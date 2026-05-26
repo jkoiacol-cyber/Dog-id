@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default function HomePage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div style={{ color: "black", padding: "20px", textAlign: "center" }}>Cargando aplicación...</div>}>
       <HomePageContent />
     </Suspense>
   );
