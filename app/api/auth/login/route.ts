@@ -7,12 +7,8 @@ export async function POST(req: Request) {
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        flowType: "pkce", // ✅ Esto fuerza token_hash en vez de #access_token
-      },
-    }
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    // Sin flowType — usa implicit por defecto
   );
 
   const { error } = await supabase.auth.signInWithOtp({
