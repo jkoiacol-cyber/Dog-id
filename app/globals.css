@@ -1,0 +1,147 @@
+@import "tailwindcss";
+@import "react-medium-image-zoom/dist/styles.css";
+
+/* 1. CONFIGURACIÓN DE BASES Y COLORES DE ALTO CONTRASTE */
+:root {
+  --background: #f4f4f5; /* Un fondo global grisáceo sutil para que el blanco resalte (zinc-100) */
+  --foreground: #09090b; /* Negro zinc-950, mucho más intenso */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #09090b;
+    --foreground: #fafafa;
+  }
+}
+
+/* 2. MOTOR DE RENDERIZADO (LA CLAVE PARA IOS) */
+html, body {
+  /* Evita que iOS cambie el tamaño del texto al rotar */
+  -webkit-text-size-adjust: 100%; 
+  /* Fuerza el suavizado de fuente de alta fidelidad, vital para Apple */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Optimiza la legibilidad por encima de la velocidad */
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* Usamos la fuente nativa SF Pro Text para un espaciado perfecto en iPhone */
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.015em; /* Un ajuste premium para que el texto se vea más profesional */
+}
+
+/* 3. REGLAS AUTOMÁTICAS PARA CUALQUIER REGISTRO NUEVO */
+/* Estas reglas se aplican a TODO el sitio de forma estructural */
+
+/* Automáticamente oscurece los grises de Tailwind en iOS para que no desaparezcan */
+@supports (-webkit-touch-callout: none) {
+  /* Si usas text-gray-400/500 o text-stone-400/500, iOS los oscurecerá automáticamente */
+  [class*="text-stone-4"], [class*="text-gray-4"], [class*="text-zinc-4"] {
+    color: #52525b !important; /* Zinc 600 - Un gris mucho más oscuro */
+  }
+
+  [class*="text-stone-5"], [class*="text-gray-5"], [class*="text-zinc-5"] {
+    color: #18181b !important; /* Zinc 900 - Casi negro */
+  }
+
+  /* Forzamos el peso real de los títulos */
+  h1, h2, h3, h4, h5, h6, b, strong {
+    color: #000000 !important; /* Negro puro para máximo contraste */
+    font-weight: 700 !important;
+  }
+
+  /* Aseguramos que los textos pequeños tengan un poco más de cuerpo */
+  p, span, label, li {
+    font-weight: 450; /* Un intermedio entre normal (400) y medium (500) */
+  }
+}
+
+/* 4. ESTILOS DE FORMULARIOS E INPUTS */
+/* (Tus estilos existentes, pero unificados y probados para iOS) */
+input, select, textarea {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #ffffff;
+  color: #09090b;
+  font-size: 16px !important; /* Evita zoom automático al pulsar */
+  border: 1px solid #e4e4e7; /* Zinc 200 */
+  border-radius: 12px;
+  padding: 12px;
+}
+
+label {
+  color: #09090b;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* 5. FIX DE SEGURIDAD PARA FOREIGN KEY */
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* globals.css */
+@layer base {
+  body {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Fuerza a Safari a no suavizar demasiado las fuentes claras */
+  span, p, h1, h2, h3, h4, div {
+    -webkit-font-smoothing: subpixel-antialiased !important;
+    text-rendering: initial !important;
+  }
+
+  /* Asegura que los inputs no tengan sombras internas raras en iOS */
+  input, textarea {
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+}
+
+
+/* globals.css */
+:root {
+  color-scheme: light; /* Esto prohíbe a iOS invertir colores de texto */
+}
+
+body {
+  background-color: #f9f9f9 !important;
+  color: #000000 !important;
+}
+
+/* Fuerza el color de los labels de los inputs */
+label {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+/* Quita el suavizado que "adelgaza" las letras en iPhone */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Neutraliza estilos globales para inputs dentro de contenedores flex */
+.input-reset {
+  all: unset;
+  font-size: 15px;
+  line-height: 1.2;
+  color: #09090b;
+  width: 100%;
+}
+
+.shadow-alert {
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+
+
