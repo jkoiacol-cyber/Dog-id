@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function HomePageContent() {
@@ -14,6 +14,13 @@ export default function HomePageContent() {
   const [email, setEmail] = useState("");
   const [mode, setMode] = useState<"none" | "login">("none");
   const [sent, setSent] = useState(false);
+
+  // 🔄 EFECTO DE CONTROL: Si no hay parámetros en la URL, activa el modo login por defecto
+  useEffect(() => {
+    if (!slug && !secretId && !error) {
+      setMode("login");
+    }
+  }, [slug, secretId, error]);
 
   const sendMagicLink = async () => {
     const res = await fetch("/api/auth/login", {
@@ -71,8 +78,51 @@ export default function HomePageContent() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-start px-6 pt-19 pb-6 bg-white">
-      {/* ... TODO TU JSX EXACTO ... */}
+    <div className="relative min-h-screen flex flex-col items-center justify-start px-6 pt-12 pb-6 bg-white text-black">
+      {/* Mensajes de error del QR si existieran */}
+      {tagErrorMessage()}
+
+      {/* Si el modo cambia a login o no hay parámetros, mostramos el acceso */}
+      {mode === "login" && (
+        <div className="w-full max-w-md flex flex-col items-center justify-center mt-10">
+          <h1 className="text-2xl font-bold mb-2 text-center">¡Bienvenido a Dog ID / Cat ID!</h1>
+          <p className="text-gray-500 text-sm mb-6 text-center">
+            Ingresa tu correo para gestionar las placas de tus mascotas.
+          </p>
+
+          {!sent ? (
+            <div className="w-full flex flex-col gap-3">
+              <input
+                type="email"
+                placeholder="tu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-gray-50"
+              />
+              <button
+                onClick={sendMagicLink}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors"
+              >
+                Enviar enlace mágico ✨
+              </button>
+            </div>
+          ) : (
+            <div className="w-full bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+              <p className="text-green-700 font-bold text-sm">¡Enlace enviado!</p>
+              <p className="text-green-600 text-xs mt-1">
+                Revisa tu bandeja de entrada para iniciar sesión de forma segura.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Si viene un slug válido (flujo normal de escaneo), podrías pintar algo extra aquí */}
+      {slug && !error && (
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-center">
+          <p className="text-blue-700 font-medium">Procesando placa: <span className="font-bold">{slug}</span></p>
+        </div>
+      )}
     </div>
   );
 }
