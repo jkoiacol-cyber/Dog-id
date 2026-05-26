@@ -5,10 +5,14 @@ import { createClient } from "@supabase/supabase-js";
 export async function POST(req: Request) {
   const { email } = await req.json();
 
-  // ✅ Usar anon key, no service role
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        flowType: "pkce", // ✅ Esto fuerza token_hash en vez de #access_token
+      },
+    }
   );
 
   const { error } = await supabase.auth.signInWithOtp({
