@@ -10,7 +10,8 @@ export async function GET(request: NextRequest) {
   const type = requestUrl.searchParams.get("type") as "magiclink" | "email" | null;
   const next = requestUrl.searchParams.get("next") ?? "/dashboard";
 
-  const cookieStore = cookies();
+  // ✅ Next.js 15+: cookies() es async
+  const cookieStore = await cookies();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,7 +30,6 @@ export async function GET(request: NextRequest) {
     }
   );
 
-  // Flujo PKCE (code)
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
@@ -37,7 +37,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Flujo Magic Link OTP (token_hash)
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash, type });
     if (!error) {
@@ -45,6 +44,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Error → volver al inicio con mensaje
   return NextResponse.redirect(new URL("/?error=auth_failed", requestUrl.origin));
 }
