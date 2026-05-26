@@ -173,6 +173,92 @@ export function templateBienvenida({
       </tr>
     </table>
 
+    <!-- LOST MODE — Feature highlight -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
+      <tr>
+        <td style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:14px;padding:22px 24px;">
+
+          <!-- Title -->
+          <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:0.08em;">
+            🚨 Función exclusiva
+          </p>
+          <p style="margin:0 0 14px;font-size:17px;font-weight:800;color:#1c1c1e;">
+            Modo Perdido — tu aliado en el peor momento
+          </p>
+          <p style="margin:0 0 16px;font-size:13px;color:#555;line-height:1.7;">
+            Si ${petName} se pierde, el estrés no te deja pensar con claridad.
+            Por eso la app tiene todo preparado de antemano: con un solo toque activas el
+            <strong>Modo Perdido</strong> y en segundos tienes un cartel profesional listo para compartir o imprimir.
+          </p>
+
+          <!-- Sub-features -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+            <tr>
+              <td style="padding:6px 0;vertical-align:top;">
+                <table cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="width:22px;font-size:14px;vertical-align:top;padding-top:1px;">📍</td>
+                    <td style="padding-left:8px;font-size:13px;color:#444;line-height:1.6;vertical-align:top;">
+                      <strong style="color:#1c1c1e;">Última localización automática.</strong>
+                      Captura tu posición GPS con un toque y la convierte en una dirección legible para el cartel.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;vertical-align:top;">
+                <table cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="width:22px;font-size:14px;vertical-align:top;padding-top:1px;">🖨️</td>
+                    <td style="padding-left:8px;font-size:13px;color:#444;line-height:1.6;vertical-align:top;">
+                      <strong style="color:#1c1c1e;">Cartel listo para imprimir o descargar.</strong>
+                      Con foto, nombre, teléfono y QR incluidos. Sin editar nada si no quieres.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;vertical-align:top;">
+                <table cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="width:22px;font-size:14px;vertical-align:top;padding-top:1px;">✏️</td>
+                    <td style="padding-left:8px;font-size:13px;color:#444;line-height:1.6;vertical-align:top;">
+                      <strong style="color:#1c1c1e;">Mensaje y recompensa editables.</strong>
+                      Personaliza el texto emocional del cartel y añade una recompensa si lo deseas.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;vertical-align:top;">
+                <table cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="width:22px;font-size:14px;vertical-align:top;padding-top:1px;">🔔</td>
+                    <td style="padding-left:8px;font-size:13px;color:#444;line-height:1.6;vertical-align:top;">
+                      <strong style="color:#1c1c1e;">Alerta visible en el perfil público.</strong>
+                      Cuando alguien escanea la placa de ${petName} ve inmediatamente que está perdido/a
+                      y dónde fue visto/a por última vez.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin:0;font-size:12px;color:#ef4444;font-weight:700;text-align:center;letter-spacing:0.02em;">
+            Esperamos que nunca lo necesites — pero si llega ese momento, lo tienes todo preparado.
+          </p>
+
+        </td>
+      </tr>
+    </table>
+
+    <!-- Divider -->
+    <hr style="border:none;border-top:1px solid #e8e8e4;margin:24px 0;" />
+
     <!-- Lost tag highlight -->
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
       <tr>
@@ -191,7 +277,7 @@ export function templateBienvenida({
 
     <!-- CTA -->
     <p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.6;text-align:center;">
-      Accede a tu dashboard para editar el perfil de ${petName}, añadir más mascotas o gestionar tu cuenta.
+      Accede a tu dashboard para editar el perfil de ${petName}, explorar todas las funciones o añadir más mascotas.
     </p>
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
