@@ -3,6 +3,48 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+const IconDog = () => (
+  <svg viewBox="0 0 64 64" className="w-10 h-10" aria-hidden="true">
+    <circle cx="32" cy="32" r="28" fill="#f5f5f5" />
+    <circle cx="24" cy="28" r="3" fill="#333" />
+    <circle cx="40" cy="28" r="3" fill="#333" />
+    <path d="M24 40 Q32 46 40 40" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M16 18 Q20 10 26 16" fill="#f5f5f5" stroke="#333" strokeWidth="2" />
+    <path d="M48 18 Q44 10 38 16" fill="#f5f5f5" stroke="#333" strokeWidth="2" />
+  </svg>
+);
+
+const IconPaw = () => (
+  <svg viewBox="0 0 64 64" className="w-10 h-10" aria-hidden="true">
+    <circle cx="32" cy="38" r="10" fill="#f5e1c5" />
+    <circle cx="22" cy="26" r="4" fill="#f5e1c5" />
+    <circle cx="30" cy="22" r="4" fill="#f5e1c5" />
+    <circle cx="38" cy="22" r="4" fill="#f5e1c5" />
+    <circle cx="46" cy="26" r="4" fill="#f5e1c5" />
+  </svg>
+);
+
+const IconCat = () => (
+  <svg viewBox="0 0 64 64" className="w-10 h-10" aria-hidden="true">
+    <circle cx="32" cy="32" r="24" fill="#f5f5f5" />
+    <path d="M20 18 L24 10 L28 18" fill="#f5f5f5" stroke="#333" strokeWidth="2" />
+    <path d="M36 18 L40 10 L44 18" fill="#f5f5f5" stroke="#333" strokeWidth="2" />
+    <circle cx="26" cy="30" r="2.5" fill="#333" />
+    <circle cx="38" cy="30" r="2.5" fill="#333" />
+    <path d="M28 38 Q32 42 36 38" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
+const IconsRow = () => (
+  <div className="flex justify-center gap-6 mb-8">
+    {[<IconDog key="dog" />, <IconPaw key="paw" />, <IconCat key="cat" />].map((icon, i) => (
+      <div key={i} className="w-16 h-16 rounded-full bg-[#f0f0f0] flex items-center justify-center">
+        {icon}
+      </div>
+    ))}
+  </div>
+);
+
 export default function HomePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -17,141 +59,115 @@ export default function HomePageContent() {
 
   useEffect(() => {
     if (slug && secretId && !error) {
-      setMode("scan"); // Vino de escanear un QR
+      setMode("scan");
     } else if (!slug && !secretId && !error) {
-      setMode("login"); // Acceso directo sin QR
+      setMode("login");
     }
   }, [slug, secretId, error]);
 
   const sendMagicLink = async () => {
     const res = await fetch("/api/auth/login", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
     if (!res.ok) { alert("Error enviando el enlace"); return; }
     setSent(true);
   };
 
-  // ── Pantalla de escaneo QR ──────────────────────────────────
+  // ── Pantalla QR escaneado ───────────────────────────────────
   if (mode === "scan" && slug && secretId) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
-        {/* Iconos */}
-        <div className="flex items-end gap-4 mb-6">
-          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-stone-200">
-            <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-          </svg>
-          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-stone-200 mb-1">
-            <path d="M12 2a3 3 0 0 0-3 3c0 1.5.8 3 2 4 .4.3.7.5 1 .5s.6-.2 1-.5c1.2-1 2-2.5 2-4a3 3 0 0 0-3-3z"/>
-            <circle cx="7" cy="9" r="1.5"/><circle cx="17" cy="9" r="1.5"/>
-            <circle cx="5" cy="14" r="1.5"/><circle cx="19" cy="14" r="1.5"/>
-          </svg>
-          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-stone-200">
-            <path d="M12 5c-3.9 0-7 2.5-7 5.5 0 1.7.9 3.2 2.3 4.2L6 18h12l-1.3-3.3C18.1 13.7 19 12.2 19 10.5 19 7.5 15.9 5 12 5z"/>
-          </svg>
-        </div>
-
-        <p className="text-xs text-stone-400 uppercase tracking-widest mb-1">Bienvenido</p>
-        <h1 className="text-2xl font-bold text-stone-900 tracking-tight mb-8">
-          Dog‑id / Cat‑id
-        </h1>
-
-        <div className="w-full flex flex-col gap-3">
-          {/* Propietario → login con secret_id para registrar/gestionar */}
-          <button
-            onClick={() => setMode("login")}
-            className="w-full bg-stone-900 text-white text-center font-semibold py-4 rounded-2xl active:scale-95 active:bg-stone-700 transition-transform"
-          >
-            Soy propietario
-          </button>
-
-          {/* Encontré la mascota → directo al perfil público */}
-          <button
-            onClick={() => router.push(`/pets/${slug}`)}
-            className="w-full bg-white border border-stone-200 text-stone-700 text-center font-semibold py-4 rounded-2xl active:scale-95 active:bg-stone-50 transition-transform"
-          >
-            He encontrado una mascota
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Pantalla de login ───────────────────────────────────────
-  if (mode === "login") {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
-        <div className="flex items-end gap-4 mb-6">
-          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-stone-200">
-            <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-          </svg>
-          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-stone-200 mb-1">
-            <path d="M12 2a3 3 0 0 0-3 3c0 1.5.8 3 2 4 .4.3.7.5 1 .5s.6-.2 1-.5c1.2-1 2-2.5 2-4a3 3 0 0 0-3-3z"/>
-            <circle cx="7" cy="9" r="1.5"/><circle cx="17" cy="9" r="1.5"/>
-            <circle cx="5" cy="14" r="1.5"/><circle cx="19" cy="14" r="1.5"/>
-          </svg>
-          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-stone-200">
-            <path d="M12 5c-3.9 0-7 2.5-7 5.5 0 1.7.9 3.2 2.3 4.2L6 18h12l-1.3-3.3C18.1 13.7 19 12.2 19 10.5 19 7.5 15.9 5 12 5z"/>
-          </svg>
-        </div>
-
-        <p className="text-xs text-stone-400 uppercase tracking-widest mb-1">Bienvenido</p>
-        <h1 className="text-2xl font-bold text-stone-900 tracking-tight mb-2">
-          Dog‑id / Cat‑id
-        </h1>
-        <p className="text-sm text-stone-400 mb-8 text-center">
-          Ingresa tu correo para gestionar las placas de tus mascotas.
-        </p>
-
-        {!sent ? (
-          <div className="w-full flex flex-col gap-3">
-            <input
-              type="email"
-              placeholder="tu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMagicLink()}
-              className="w-full px-4 py-4 border border-stone-200 rounded-2xl text-stone-900 bg-white text-base focus:outline-none focus:ring-2 focus:ring-stone-900"
-            />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-full max-w-[420px] px-6 py-8">
+          <IconsRow />
+          <div className="text-center mb-8">
+            <p className="text-[1.1rem] font-medium text-stone-800 mb-1">Bienvenido</p>
+            <h1 className="text-[1.8rem] font-bold text-stone-900">Dog‑id/Cat‑id</h1>
+          </div>
+          <div className="flex flex-col gap-3">
             <button
-              onClick={sendMagicLink}
-              className="w-full bg-stone-900 text-white font-semibold py-4 rounded-2xl active:scale-95 active:bg-stone-700 transition-transform"
+              onClick={() => setMode("login")}
+              className="w-full bg-[#111] text-white font-medium py-[14px] rounded-full text-base transition-all active:scale-[0.98] hover:bg-black hover:-translate-y-px"
             >
-              Enviar enlace de acceso
+              Soy propietario
+            </button>
+            <button
+              onClick={() => router.push(`/pets/${slug}`)}
+              className="w-full bg-[#f3f3f3] text-[#333] font-medium py-[14px] rounded-full text-base transition-all active:scale-[0.98] hover:bg-[#e7e7e7] hover:-translate-y-px"
+            >
+              He encontrado una mascota
             </button>
           </div>
-        ) : (
-          <div className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-5 text-center">
-            <p className="text-stone-900 font-bold">¡Enlace enviado!</p>
-            <p className="text-stone-500 text-sm mt-1">
-              Revisa tu bandeja de entrada para iniciar sesión.
-            </p>
-          </div>
-        )}
+        </div>
       </div>
     );
   }
 
-  // ── Error de QR ─────────────────────────────────────────────
+  // ── Login ───────────────────────────────────────────────────
+  if (mode === "login") {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-full max-w-[420px] px-6 py-8">
+          <IconsRow />
+          <div className="text-center mb-8">
+            <p className="text-[1.1rem] font-medium text-stone-800 mb-1">Bienvenido</p>
+            <h1 className="text-[1.8rem] font-bold text-stone-900 mb-2">Dog‑id/Cat‑id</h1>
+            <p className="text-sm text-stone-400">
+              Ingresa tu correo para gestionar las placas de tus mascotas.
+            </p>
+          </div>
+
+          {!sent ? (
+            <div className="flex flex-col gap-3">
+              <input
+                type="email"
+                placeholder="tu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMagicLink()}
+                className="w-full px-4 py-[14px] border border-stone-200 rounded-full text-stone-900 bg-white text-base focus:outline-none focus:ring-2 focus:ring-stone-900 placeholder:text-stone-300"
+              />
+              <button
+                onClick={sendMagicLink}
+                className="w-full bg-[#111] text-white font-medium py-[14px] rounded-full text-base transition-all active:scale-[0.98] hover:bg-black hover:-translate-y-px"
+              >
+                Enviar enlace de acceso
+              </button>
+            </div>
+          ) : (
+            <div className="bg-[#f3f3f3] rounded-2xl p-5 text-center">
+              <p className="text-stone-900 font-bold">¡Enlace enviado!</p>
+              <p className="text-stone-500 text-sm mt-1">
+                Revisa tu bandeja de entrada para iniciar sesión.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Errores de QR ───────────────────────────────────────────
   if (error) {
+    const errors: Record<string, { icon: string; title: string; desc: string }> = {
+      inactive_tag: { icon: "🚫", title: "Placa desactivada", desc: "Contacta con el soporte si crees que es un error." },
+      pending_tag:  { icon: "⏳", title: "Placa en período de baja", desc: "Estará disponible próximamente." },
+      invalid_tag:  { icon: "❌", title: "QR no válido", desc: "Este QR no corresponde a ninguna placa registrada." },
+    };
+    const e = errors[error] ?? errors["invalid_tag"];
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
-        <div className="max-w-sm w-full text-center space-y-4">
-          {error === "inactive_tag" && <>
-            <p className="text-4xl">🚫</p>
-            <h1 className="text-xl font-bold text-stone-900">Placa desactivada</h1>
-            <p className="text-stone-500 text-sm">Contacta con el soporte si crees que es un error.</p>
-          </>}
-          {error === "pending_tag" && <>
-            <p className="text-4xl">⏳</p>
-            <h1 className="text-xl font-bold text-stone-900">Placa en período de baja</h1>
-            <p className="text-stone-500 text-sm">Estará disponible próximamente.</p>
-          </>}
-          {error === "invalid_tag" && <>
-            <p className="text-4xl">❌</p>
-            <h1 className="text-xl font-bold text-stone-900">QR no válido</h1>
-            <p className="text-stone-500 text-sm">Este QR no corresponde a ninguna placa registrada.</p>
-          </>}
+        <div className="w-full max-w-[420px] text-center space-y-4">
+          <IconsRow />
+          <p className="text-4xl">{e.icon}</p>
+          <h1 className="text-xl font-bold text-stone-900">{e.title}</h1>
+          <p className="text-stone-500 text-sm">{e.desc}</p>
+          <div className="bg-[#f3f3f3] rounded-2xl p-4">
+            <a href="mailto:jko@dogidcatid.es" className="text-stone-600 font-semibold text-sm underline">
+              jko@dogidcatid.es
+            </a>
+          </div>
         </div>
       </div>
     );

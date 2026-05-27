@@ -13,13 +13,15 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "Dog-ID / Cat-ID",
-  icons: {
-    icon: "/favicon.ico",        // pestaña navegador
-    apple: "/apple-icon.png",    // iOS home screen
-  },
-};
+  export const metadata = {
+    title: "Dog-ID / Cat-ID",
+    description: "Identificación digital para mascotas",
+    icons: {
+      icon: "/favicon.ico",
+      shortcut: "/favicon.png",
+      apple: "/apple-icon.png",
+    },
+  };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
