@@ -652,22 +652,41 @@
           ">
             
             <video 
-              controls 
-              autoplay 
               muted 
-              loop 
+              playsinline
               style="
-                width: 100%;      /* Obliga al video a usar todo el ancho del wrap */
-                height: auto;     /* Ajusta la altura automáticamente según el video */
-                display: block; 
-                object-fit: contain; /* CLAVE: Asegura que todo el video quepa en el marco */
+                width: 100%;
+                height: auto;
+                display: block;
+                object-fit: contain;
                 border-radius: 15px;
-              ">
-              
+              "
+            >
               <source src="/landing/Videos/Toma1_regalo.mp4" type="video/mp4">
               Tu navegador no soporta videos HTML5.
             </video>
-            
+
+
+            <script>
+              document.addEventListener("DOMContentLoaded", () => {
+                const video = document.querySelector("video");
+
+                const observer = new IntersectionObserver(
+                  (entries) => {
+                    entries.forEach((entry) => {
+                      if (entry.isIntersecting) {
+                        video.play();
+                      } else {
+                        video.pause();
+                      }
+                    });
+                  },
+                  { threshold: 0.6 } // 60% visible para reproducir
+                );
+
+                observer.observe(video);
+              });
+            </script>            
           </div>
         </div>
       </div>
@@ -800,7 +819,7 @@
       <div class="feature-title">Perfil público personalizable</div>
       <div class="feature-desc">Tú decides qué información se muestra. Nombre, foto, dirección, notas especiales de salud... El escaneador verá exactamente lo que quieres que vea.</div>
       <div style="margin-top:16px;background:var(--off-white);border-radius:12px;padding:14px 16px;font-size:13px;color:#666;">
-        <strong style="color:#111;">URL personalizable:</strong> dog-id.app/Perla
+        <strong style="color:#111;">URL personalizable:</strong> dog-id.app/Zeus
       </div>
     </div>
 
