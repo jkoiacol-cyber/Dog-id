@@ -150,7 +150,7 @@ function GenerateTab() {
 
     // QR con error correction L → mínima densidad, ideal para grabado láser
     //const url = `https://dogidcatid.es/t/${token}`;
-    const url = `https://dogid.es/t/${token}`;
+    const url = `https://www.dogid.es/t/${token}`;
     const qrDataUrl = await QRCode.toDataURL(url, {
       width: 600,
       margin: 2,
@@ -369,7 +369,7 @@ function ManageTab() {
   // Generar QR de una placa existente para reimprimir
   const reprintQR = async (token: string) => {
     // const url = `https://dogidcatid.es/t/${token}`;
-    const url = `https://dogid.es/t/${token}`;
+    const url = `https://www.dogid.es/t/${token}`;
     const qrDataUrl = await QRCode.toDataURL(url, {
       width: 600,
       margin: 2,
