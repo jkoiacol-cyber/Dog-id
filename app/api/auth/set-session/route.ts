@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
   const { access_token, refresh_token } = await request.json();
@@ -9,7 +8,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing tokens" }, { status: 400 });
   }
 
-  const cookieStore = await cookies();
+  // ✅ Usamos NextResponse para poder escribir cookies en la respuesta
+  const response = NextResponse.json({ ok: true });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,12 +17,20 @@ export async function POST(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // ✅ Escribir en la respuesta con max-age largo para persistencia
+            response.cookies.set(name, value, {
+              ...options,
+              maxAge: 60 * 60 * 24 * 365, // 1 año
+              httpOnly: true,
+              secure: true,
+              sameSite: "lax",
+              path: "/",
+            });
+          });
         },
       },
     }
@@ -37,5 +45,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true });
+  return response;
 }
