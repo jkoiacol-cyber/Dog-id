@@ -397,7 +397,7 @@ export default function NewPetPage() {
         show_phone: showPhone,
         show_address: showAddress,
         show_owners: showOwners,
-        tag_secret_id: tagData.slug,
+        tag_secret_id: tagData.secret_id,
       })
       .select()
       .single();
