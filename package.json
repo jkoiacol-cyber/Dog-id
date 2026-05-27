@@ -24,6 +24,7 @@
     "react-easy-crop": "^5.5.6",
     "react-medium-image-zoom": "^5.4.1",
     "react-phone-number-input": "^3.4.16",
+    "resend": "^6.12.4",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
