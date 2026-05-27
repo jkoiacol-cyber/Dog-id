@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
             response.cookies.set(name, value, {
               ...options,
               maxAge: 60 * 60 * 24 * 365, // 1 año
-              httpOnly: true,
+              httpOnly: false,
               secure: true,
               sameSite: "lax",
               path: "/",
