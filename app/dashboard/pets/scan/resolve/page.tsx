@@ -27,7 +27,7 @@ export default function ScanResolvePage() {
     }
 
     const resolve = async () => {
-      const { data: tag, error } = await supabaseClient
+      const { data: tag, error } = await supabase
         .from("tags")
         .select("slug, secret_id")
         .eq("token", token)

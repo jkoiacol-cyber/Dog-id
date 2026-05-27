@@ -92,7 +92,7 @@ function GenerateTab() {
     let reused = false;
 
     // PASO 1: Placa libre con token activa
-    const { data: freeWithToken } = await supabaseClient
+    const { data: freeWithToken } = await supabase
       .from("tags")
       .select("id, slug, secret_id, token")
       .is("pet_id", null)
@@ -112,7 +112,7 @@ function GenerateTab() {
       reused = true;
     } else {
       // PASO 2: Placa libre sin token
-      const { data: freeWithoutToken } = await supabaseClient
+      const { data: freeWithoutToken } = await supabase
         .from("tags")
         .select("id, slug, secret_id")
         .is("pet_id", null).is("token", null).eq("status", "active")
@@ -254,7 +254,7 @@ function ManageTab() {
 
     // Buscar mascotas por correo de cuenta (auth) o correo de contacto (pets.email)
     // La relación placa↔mascota va por pets.tag_secret_id = tags.slug
-    const { data: petsData } = await supabaseClient
+    const { data: petsData } = await supabase
       .from("pets")
       .select(`
         id, name, email, deleted_at, tag_secret_id, owner_id,
@@ -266,7 +266,7 @@ function ManageTab() {
     if (!petsData || petsData.length === 0) {
       // Intentar también por owner_id buscando en auth via owners
       // (cuando pets.email está vacío pero el correo de cuenta coincide)
-      const { data: ownerPets } = await supabaseClient
+      const { data: ownerPets } = await supabase
         .from("pets")
         .select(`
           id, name, email, deleted_at, tag_secret_id, owner_id
@@ -287,7 +287,7 @@ function ManageTab() {
 
     let tagsData: any[] = [];
     if (slugs.length > 0) {
-      const { data: tags } = await supabaseClient
+      const { data: tags } = await supabase
         .from("tags")
         .select("id, token, slug, status, has_expiry, expires_at, sold_at, pet_id")
         .in("slug", slugs);

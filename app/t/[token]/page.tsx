@@ -24,7 +24,7 @@ export default function TokenRedirectPage() {
     if (!token) { router.replace("/"); return; }
 
     const resolve = async () => {
-      const { data: tag, error } = await supabaseClient
+      const { data: tag, error } = await supabase
         .from("tags")
         .select("slug, secret_id, status, pet_id, has_expiry, expires_at")
         .eq("token", token)
