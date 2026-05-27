@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabaseClient } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase";
 
 /**
  * /dashboard/pets/scan/resolve?token=Xk9mP2

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { supabaseClient } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase";
 
 type TagState =
   | "loading"

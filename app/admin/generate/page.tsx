@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabaseClient } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase";
 import QRCode from "qrcode";
 export const dynamic = "force-dynamic";
 
@@ -103,7 +103,7 @@ function GenerateTab() {
 
     if (freeWithToken) {
       // Resetear has_expiry según lo que el admin eligió ahora
-      await supabaseClient.from("tags")
+      await supabase.from("tags")
         .update({ has_expiry: hasExpiry, expires_at: null, sold_at: null })
         .eq("id", freeWithToken.id);
       slug = freeWithToken.slug;
@@ -123,7 +123,7 @@ function GenerateTab() {
         let done = false;
         while (!done) {
           token = generateToken(4);
-          const { error } = await supabaseClient.from("tags")
+          const { error } = await supabase.from("tags")
             .update({ token, has_expiry: hasExpiry, expires_at: null, sold_at: null })
             .eq("id", freeWithoutToken.id);
           if (!error) done = true;
@@ -139,7 +139,7 @@ function GenerateTab() {
         let done = false;
         while (!done) {
           token = generateToken(4);
-          const { error } = await supabaseClient.from("tags").insert({
+          const { error } = await supabase.from("tags").insert({
             slug, secret_id: secretId, token, status: "active", has_expiry: hasExpiry,
           });
           if (!error) done = true;
@@ -322,7 +322,7 @@ function ManageTab() {
 
   const deactivate = async (tagId: string) => {
     if (!confirm("¿Desactivar esta placa? El cliente no podrá usarla.")) return;
-    await supabaseClient.from("tags")
+    await supabase.from("tags")
       .update({ status: "inactive", pet_id: null }).eq("id", tagId);
     search();
   };
@@ -331,7 +331,7 @@ function ManageTab() {
     if (!confirm("¿Reactivar y renovar 5 años desde hoy?")) return;
     const newExpiry = new Date();
     newExpiry.setFullYear(newExpiry.getFullYear() + 5);
-    await supabaseClient.from("tags").update({
+    await supabase.from("tags").update({
       status: "active",
       expires_at: newExpiry.toISOString(),
       sold_at: new Date().toISOString(),
@@ -339,7 +339,7 @@ function ManageTab() {
 
     // Recuperar mascota si estaba en soft delete
     if (petId) {
-      await supabaseClient.from("pets")
+      await supabase.from("pets")
         .update({ deleted_at: null }).eq("id", petId);
     }
     search();
@@ -347,7 +347,7 @@ function ManageTab() {
 
   const reactivatePermanent = async (tagId: string) => {
     if (!confirm("¿Reactivar esta placa sin caducidad?")) return;
-    await supabaseClient.from("tags").update({
+    await supabase.from("tags").update({
       status: "active",
       has_expiry: false,
       expires_at: null,
@@ -357,7 +357,7 @@ function ManageTab() {
 
   const freeAndReassign = async (tagId: string) => {
     if (!confirm("¿Liberar esta placa para reasignarla? Se desvinculará del cliente actual.")) return;
-    await supabaseClient.from("tags").update({
+    await supabase.from("tags").update({
       status: "active",
       pet_id: null,
       expires_at: null,
