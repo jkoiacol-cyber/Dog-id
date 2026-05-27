@@ -92,9 +92,37 @@ export default function HomePageContent() {
             >
               Soy propietario
             </button>
+            
+            // Reemplaza el botón "He encontrado una mascota" en modo scan
             <button
-              onClick={() => router.push(`/pets/${slug}`)}
-              className="w-full bg-[#f3f3f3] text-[#333] font-medium py-[14px] rounded-full text-base transition-all active:scale-[0.98] hover:bg-[#e7e7e7] hover:-translate-y-px"
+              onClick={async () => {
+                // Si viene de QR nuevo con token → slug ya es el slug de la mascota
+                // Si viene de QR legacy → slug es el slug del tag, buscar mascota por secret_id
+                if (secretId) {
+                  // Buscar mascota por tag_secret_id
+                  const { createClient } = await import("@supabase/supabase-js");
+                  const sb = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+                  );
+                  const { data: pet } = await sb
+                    .from("pets")
+                    .select("slug")
+                    .eq("tag_secret_id", secretId)
+                    .is("deleted_at", null)
+                    .single();
+
+                  if (pet?.slug) {
+                    router.push(`/pets/${pet.slug}`);
+                  } else {
+                    // Mascota no registrada aún — mostrar mensaje
+                    alert("Esta placa aún no tiene una mascota registrada.");
+                  }
+                } else {
+                  router.push(`/pets/${slug}`);
+                }
+              }}
+              className="w-full bg-[#f3f3f3] text-[#333] font-medium py-[14px] rounded-full text-base transition-all active:scale-[0.98] hover:bg-[#e7e7e7]"
             >
               He encontrado una mascota
             </button>
