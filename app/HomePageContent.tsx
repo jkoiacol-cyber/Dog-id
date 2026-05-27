@@ -92,8 +92,6 @@ export default function HomePageContent() {
             >
               Soy propietario
             </button>
-            
-            // Reemplaza el botón "He encontrado una mascota" en modo scan
             <button
               onClick={async () => {
                 // Si viene de QR nuevo con token → slug ya es el slug de la mascota
