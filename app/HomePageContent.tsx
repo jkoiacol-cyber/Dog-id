@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 const IconsRow = () => (
   <div className="flex justify-center">
     <img
-      src="img/icons.png"
+      src="/img/icons.png"
       alt="dog paw cat icons"
       style={{ width: "390px", opacity: 0.9, marginTop: "60px", marginBottom: "10px" }}
     />
