@@ -28,12 +28,18 @@ export default async function DashboardPage() {
       {/* Estado vacío — estilo igual al welcome screen original */}
       {isEmpty && (
         <div className="flex flex-col items-center justify-center pt-16 pb-8 gap-6">
-          {/* Iconos perro / huella / gato */}
-          <img
-            src="/img/icons.png"
-            alt="dog paw cat icons"
-            style={{ width: "220px", opacity: 0.9 }}
-          />
+          {/* Iconos perro / huella / gato grandes */}
+          <div className="flex items-end gap-4">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-stone-200">
+              <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+            </svg>
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-stone-200 mb-1">
+              <path d="M12 2a3 3 0 0 0-3 3c0 1.5.8 3 2 4 .4.3.7.5 1 .5s.6-.2 1-.5c1.2-1 2-2.5 2-4a3 3 0 0 0-3-3z"/><circle cx="7" cy="9" r="1.5"/><circle cx="17" cy="9" r="1.5"/><circle cx="5" cy="14" r="1.5"/><circle cx="19" cy="14" r="1.5"/>
+            </svg>
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-stone-200">
+              <path d="M12 5c-3.9 0-7 2.5-7 5.5 0 1.7.9 3.2 2.3 4.2L6 18h12l-1.3-3.3C18.1 13.7 19 12.2 19 10.5 19 7.5 15.9 5 12 5z"/>
+            </svg>
+          </div>
 
           <div className="text-center">
             <p className="text-xs text-stone-400 uppercase tracking-widest mb-1">Bienvenido</p>

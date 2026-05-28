@@ -5,12 +5,23 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/',
+        has: [
+          {
+            type: 'query',
+            key: 'slug',
+            value: '(.*)',
+          },
+        ],
+        destination: '/', // si hay slug, NO redirigimos
+        permanent: false,
+      },
+      {
+        source: '/',
         destination: '/landing',
-        permanent: true,
+        permanent: false,
       },
     ];
   },
 };
 
 export default nextConfig;
-
