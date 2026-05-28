@@ -3,45 +3,20 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const IconDog = () => (
-  <svg viewBox="0 0 64 64" className="w-10 h-10" aria-hidden="true">
-    <circle cx="32" cy="32" r="28" fill="#f5f5f5" />
-    <circle cx="24" cy="28" r="3" fill="#333" />
-    <circle cx="40" cy="28" r="3" fill="#333" />
-    <path d="M24 40 Q32 46 40 40" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" />
-    <path d="M16 18 Q20 10 26 16" fill="#f5f5f5" stroke="#333" strokeWidth="2" />
-    <path d="M48 18 Q44 10 38 16" fill="#f5f5f5" stroke="#333" strokeWidth="2" />
-  </svg>
-);
-
-const IconPaw = () => (
-  <svg viewBox="0 0 64 64" className="w-10 h-10" aria-hidden="true">
-    <circle cx="32" cy="38" r="10" fill="#f5e1c5" />
-    <circle cx="22" cy="26" r="4" fill="#f5e1c5" />
-    <circle cx="30" cy="22" r="4" fill="#f5e1c5" />
-    <circle cx="38" cy="22" r="4" fill="#f5e1c5" />
-    <circle cx="46" cy="26" r="4" fill="#f5e1c5" />
-  </svg>
-);
-
-const IconCat = () => (
-  <svg viewBox="0 0 64 64" className="w-10 h-10" aria-hidden="true">
-    <circle cx="32" cy="32" r="24" fill="#f5f5f5" />
-    <path d="M20 18 L24 10 L28 18" fill="#f5f5f5" stroke="#333" strokeWidth="2" />
-    <path d="M36 18 L40 10 L44 18" fill="#f5f5f5" stroke="#333" strokeWidth="2" />
-    <circle cx="26" cy="30" r="2.5" fill="#333" />
-    <circle cx="38" cy="30" r="2.5" fill="#333" />
-    <path d="M28 38 Q32 42 36 38" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" />
-  </svg>
-);
-
 const IconsRow = () => (
-  <div className="flex justify-center gap-6 mb-8">
-    {[<IconDog key="dog" />, <IconPaw key="paw" />, <IconCat key="cat" />].map((icon, i) => (
-      <div key={i} className="w-16 h-16 rounded-full bg-[#f0f0f0] flex items-center justify-center">
-        {icon}
-      </div>
-    ))}
+  <div className="flex justify-center">
+    <img
+      src="/img/icons.png"
+      alt="dog paw cat icons"
+      style={{ width: "390px", opacity: 0.9, marginTop: "60px", marginBottom: "10px" }}
+    />
+  </div>
+);
+
+// Shared card wrapper matching the HTML's .container style
+const Card = ({ children }: { children: React.ReactNode }) => (
+  <div className="w-full max-w-[420px] bg-white/85 backdrop-blur-sm px-8 py-8 rounded-[18px] shadow-[0_4px_20px_rgba(0,0,0,0.15)] text-center">
+    {children}
   </div>
 );
 
@@ -78,26 +53,21 @@ export default function HomePageContent() {
   // ── Pantalla QR escaneado ───────────────────────────────────
   if (mode === "scan" && slug && secretId) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-full max-w-[420px] px-6 py-8">
+      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center px-5">
+        <Card>
           <IconsRow />
-          <div className="text-center mb-8">
-            <p className="text-[1.1rem] font-medium text-stone-800 mb-1">Bienvenido</p>
-            <h1 className="text-[1.8rem] font-bold text-stone-900">Dog‑id/Cat‑id</h1>
-          </div>
+          <h4 className="text-[1rem] font-medium text-stone-700 mb-1">Bienvenido</h4>
+          <h1 className="text-[1.6rem] font-semibold text-stone-900 mb-7">Dog‑id/Cat‑id</h1>
           <div className="flex flex-col gap-3">
             <button
               onClick={() => setMode("login")}
-              className="w-full bg-[#111] text-white font-medium py-[14px] rounded-full text-base transition-all active:scale-[0.98] hover:bg-black hover:-translate-y-px"
+              className="w-full bg-[#000] text-white font-semibold py-[16px] rounded-xl text-[1.1rem] transition-all active:scale-[0.98] hover:bg-[#222]"
             >
               Soy propietario
             </button>
             <button
               onClick={async () => {
-                // Si viene de QR nuevo con token → slug ya es el slug de la mascota
-                // Si viene de QR legacy → slug es el slug del tag, buscar mascota por secret_id
                 if (secretId) {
-                  // Buscar mascota por tag_secret_id
                   const { createClient } = await import("@supabase/supabase-js");
                   const sb = createClient(
                     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -113,19 +83,18 @@ export default function HomePageContent() {
                   if (pet?.slug) {
                     router.push(`/pets/${pet.slug}`);
                   } else {
-                    // Mascota no registrada aún — mostrar mensaje
                     alert("Esta placa aún no tiene una mascota registrada.");
                   }
                 } else {
                   router.push(`/pets/${slug}`);
                 }
               }}
-              className="w-full bg-[#f3f3f3] text-[#333] font-medium py-[14px] rounded-full text-base transition-all active:scale-[0.98] hover:bg-[#e7e7e7]"
+              className="w-full bg-[#e5e5e5] text-[#333] font-semibold py-[16px] rounded-xl text-[1.1rem] transition-all active:scale-[0.98] hover:bg-[#d5d5d5]"
             >
               He encontrado una mascota
             </button>
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -133,43 +102,41 @@ export default function HomePageContent() {
   // ── Login ───────────────────────────────────────────────────
   if (mode === "login") {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-full max-w-[420px] px-6 py-8">
+      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center px-5">
+        <Card>
           <IconsRow />
-          <div className="text-center mb-8">
-            <p className="text-[1.1rem] font-medium text-stone-800 mb-1">Bienvenido</p>
-            <h1 className="text-[1.8rem] font-bold text-stone-900 mb-2">Dog‑id/Cat‑id</h1>
-            <p className="text-sm text-stone-400">
-              Ingresa tu correo para gestionar las placas de tus mascotas.
-            </p>
-          </div>
+          <h4 className="text-[1rem] font-medium text-stone-700 mb-1">Bienvenido</h4>
+          <h1 className="text-[1.6rem] font-semibold text-stone-900 mb-2">Dog‑id/Cat‑id</h1>
+          <p className="text-sm text-stone-400 mb-7">
+            Ingresa tu correo para gestionar las placas de tus mascotas.
+          </p>
 
           {!sent ? (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 text-left">
               <input
                 type="email"
                 placeholder="tu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMagicLink()}
-                className="w-full px-4 py-[14px] border border-stone-200 rounded-full text-stone-900 bg-white text-base focus:outline-none focus:ring-2 focus:ring-stone-900 placeholder:text-stone-300"
+                className="w-full px-4 py-[14px] border border-stone-200 rounded-xl text-stone-900 bg-white text-base focus:outline-none focus:ring-2 focus:ring-stone-900 placeholder:text-stone-300"
               />
               <button
                 onClick={sendMagicLink}
-                className="w-full bg-[#111] text-white font-medium py-[14px] rounded-full text-base transition-all active:scale-[0.98] hover:bg-black hover:-translate-y-px"
+                className="w-full bg-[#000] text-white font-semibold py-[16px] rounded-xl text-[1.1rem] transition-all active:scale-[0.98] hover:bg-[#222]"
               >
                 Enviar enlace de acceso
               </button>
             </div>
           ) : (
-            <div className="bg-[#f3f3f3] rounded-2xl p-5 text-center">
+            <div className="bg-[#f3f3f3] rounded-xl p-5 text-center">
               <p className="text-stone-900 font-bold">¡Enlace enviado!</p>
               <p className="text-stone-500 text-sm mt-1">
                 Revisa tu bandeja de entrada para iniciar sesión.
               </p>
             </div>
           )}
-        </div>
+        </Card>
       </div>
     );
   }
@@ -183,18 +150,18 @@ export default function HomePageContent() {
     };
     const e = errors[error] ?? errors["invalid_tag"];
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-6">
-        <div className="w-full max-w-[420px] text-center space-y-4">
+      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center px-5">
+        <Card>
           <IconsRow />
-          <p className="text-4xl">{e.icon}</p>
+          <p className="text-4xl mb-2">{e.icon}</p>
           <h1 className="text-xl font-bold text-stone-900">{e.title}</h1>
-          <p className="text-stone-500 text-sm">{e.desc}</p>
-          <div className="bg-[#f3f3f3] rounded-2xl p-4">
+          <p className="text-stone-500 text-sm mt-2 mb-4">{e.desc}</p>
+          <div className="bg-[#f3f3f3] rounded-xl p-4">
             <a href="mailto:jko@dogidcatid.es" className="text-stone-600 font-semibold text-sm underline">
               jko@dogidcatid.es
             </a>
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
