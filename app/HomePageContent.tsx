@@ -64,7 +64,7 @@ export default function HomePageContent() {
 
       if (session && session.user) {
         // Opcional: Si quieres ser estricto con los 7 días (aunque la sesión por defecto dura semanas)
-        const createdAt = new Date(session.created_at).getTime();
+        const createdAt = new Date((session as any).created_at).getTime();
         const sieteDiasEnMs = 7 * 24 * 60 * 60 * 1000;
         const tiempoTranscurrido = Date.now() - createdAt;
 
