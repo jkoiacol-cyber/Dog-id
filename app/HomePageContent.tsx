@@ -50,7 +50,7 @@ export default function HomePageContent() {
     setSent(true);
   };
 
-  // Función controlada para verificar la sesión del dueño de forma segura
+  // Función corregida: Si hay sesión válida, pasa directo sin importar restricciones de días complejos
   const handleOwnerClick = async () => {
     try {
       const { createClient } = await import("@supabase/supabase-js");
@@ -59,27 +59,19 @@ export default function HomePageContent() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
 
+      // Obtenemos la sesión actual del almacenamiento local/cookie
       const { data: { session } } = await sb.auth.getSession();
 
+      // Si existe la sesión y hay un usuario autenticado activo, al dashboard directo
       if (session && session.user) {
-        // session.expires_at viene en segundos UNIX
-        const expiraEnMs = (session.expires_at ?? 0) * 1000; 
-        const unDiaEnMs = 24 * 60 * 60 * 1000;
-        
-        // Si faltan más de 23 días para que expire la sesión (dura 30),
-        // significa que el usuario se logueó hace menos de 7 días.
-        const diasRestantes = (expiraEnMs - Date.now()) / unDiaEnMs;
-
-        if (diasRestantes > 23) {
-          router.push("/dashboard");
-          return;
-        }
+        router.push("/dashboard");
+        return;
       }
     } catch (err) {
       console.error("Error al verificar la sesión:", err);
     }
 
-    // Si no hay sesión válida o superó el tiempo límite, abrimos el formulario de login
+    // Si realmente no hay ninguna sesión guardada en este navegador, entonces sí pedimos login
     setMode("login");
   };
 
