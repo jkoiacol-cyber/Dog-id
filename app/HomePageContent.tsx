@@ -13,9 +13,9 @@ const IconsRow = () => (
   </div>
 );
 
-// Card wrapper adaptado exactamente al .container del HTML
+// Shared card wrapper matching the HTML's .container style
 const Card = ({ children }: { children: React.ReactNode }) => (
-  <div className="w-[90%] max-w-[420px] bg-white/85 backdrop-blur-[6px] p-8 rounded-[18px] shadow-[0_4px_20px_rgba(0,0,0,0.15)] text-center font-sans">
+  <div className="w-full max-w-[420px] bg-white/85 backdrop-blur-sm px-8 py-8 rounded-[18px] shadow-[0_4px_20px_rgba(0,0,0,0.15)] text-center">
     {children}
   </div>
 );
@@ -50,7 +50,7 @@ export default function HomePageContent() {
     setSent(true);
   };
 
-  // Función para manejar el clic en "Soy propietario" comprobando sesión activa
+  // Función controlada para verificar la sesión del dueño de forma segura
   const handleOwnerClick = async () => {
     try {
       const { createClient } = await import("@supabase/supabase-js");
@@ -59,107 +59,110 @@ export default function HomePageContent() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
 
-      // Comprobamos si hay una sesión guardada localmente en el navegador
       const { data: { session } } = await sb.auth.getSession();
 
-        if (session && session.user) {
-          // session.expires_at viene de Supabase en formato UNIX (segundos)
-          const expiraEnMs = (session.expires_at ?? 0) * 1000; 
-          const unDiaEnMs = 24 * 60 * 60 * 1000;
-          
-          // Si faltan más de 23 días para que expire la sesión (que dura 30),
-          // significa que el usuario inició sesión hace menos de 7 días.
-          const diasRestantes = (expiraEnMs - Date.now()) / unDiaEnMs;
+      if (session && session.user) {
+        // session.expires_at viene en segundos UNIX
+        const expiraEnMs = (session.expires_at ?? 0) * 1000; 
+        const unDiaEnMs = 24 * 60 * 60 * 1000;
+        
+        // Si faltan más de 23 días para que expire la sesión (dura 30),
+        // significa que el usuario se logueó hace menos de 7 días.
+        const diasRestantes = (expiraEnMs - Date.now()) / unDiaEnMs;
 
-          if (diasRestantes > 23) {
-            router.push("/dashboard"); 
-            return;
-          }
+        if (diasRestantes > 23) {
+          router.push("/dashboard");
+          return;
         }
+      }
+    } catch (err) {
+      console.error("Error al verificar la sesión:", err);
+    }
 
-    // Si no hay sesión válida o tiene más de 7 días, lo mandamos al formulario de login normal
+    // Si no hay sesión válida o superó el tiempo límite, abrimos el formulario de login
     setMode("login");
   };
 
-  // ── Pantalla QR escaneado ───────────────────────────────────────────
+  // ── Pantalla QR escaneado ───────────────────────────────────
   if (mode === "scan" && slug && secretId) {
     return (
-      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center px-5">
         <Card>
           <IconsRow />
           <h4 className="text-[1rem] font-medium text-stone-700 mb-1">Bienvenido</h4>
-          <h1 className="text-[1.6rem] font-semibold text-[#222] mb-[28px] tracking-tight">Dog‑id/Cat‑id</h1>
-          
-          <button
-            onClick={handleOwnerClick} // <-- Ahora ejecuta la comprobación de sesión
-            className="w-full bg-[#000] text-white font-semibold py-4 rounded-xl text-[1.1rem] mb-3.5 transition-all active:scale-[0.98] hover:bg-[#222] border-none cursor-pointer"
-          >
-            Soy propietario
-          </button>
-          <button
-            onClick={async () => {
-              if (secretId) {
-                const { createClient } = await import("@supabase/supabase-js");
-                const sb = createClient(
-                  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-                );
-                const { data: pet } = await sb
-                  .from("pets")
-                  .select("slug")
-                  .eq("tag_secret_id", secretId)
-                  .is("deleted_at", null)
-                  .single();
+          <h1 className="text-[1.6rem] font-semibold text-stone-900 mb-7">Dog‑id/Cat‑id</h1>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleOwnerClick}
+              className="w-full bg-[#000] text-white font-semibold py-[16px] rounded-xl text-[1.1rem] transition-all active:scale-[0.98] hover:bg-[#222]"
+            >
+              Soy propietario
+            </button>
+            <button
+              onClick={async () => {
+                if (secretId) {
+                  const { createClient } = await import("@supabase/supabase-js");
+                  const sb = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+                  );
+                  const { data: pet } = await sb
+                    .from("pets")
+                    .select("slug")
+                    .eq("tag_secret_id", secretId)
+                    .is("deleted_at", null)
+                    .single();
 
-                if (pet?.slug) {
-                  router.push(`/pets/${pet.slug}`);
+                  if (pet?.slug) {
+                    router.push(`/pets/${pet.slug}`);
+                  } else {
+                    alert("Esta placa aún no tiene una mascota registrada.");
+                  }
                 } else {
-                  alert("Esta placa aún no tiene una mascota registrada.");
+                  router.push(`/pets/${slug}`);
                 }
-              } else {
-                router.push(`/pets/${slug}`);
-              }
-            }}
-            className="w-full bg-[#e5e5e5] text-[#333] font-semibold py-4 rounded-xl text-[1.1rem] mb-3.5 transition-all active:scale-[0.98] hover:bg-[#d5d5d5] border-none cursor-pointer"
-          >
-            He encontrado una mascota
-          </button>
+              }}
+              className="w-full bg-[#e5e5e5] text-[#333] font-semibold py-[16px] rounded-xl text-[1.1rem] transition-all active:scale-[0.98] hover:bg-[#d5d5d5]"
+            >
+              He encontrado una mascota
+            </button>
+          </div>
         </Card>
       </div>
     );
   }
 
-  // ── Login ───────────────────────────────────────────────────────────
+  // ── Login ───────────────────────────────────────────────────
   if (mode === "login") {
     return (
-      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center px-5">
         <Card>
           <IconsRow />
           <h4 className="text-[1rem] font-medium text-stone-700 mb-1">Bienvenido</h4>
-          <h1 className="text-[1.6rem] font-semibold text-[#222] mb-[14px] tracking-tight">Dog‑id/Cat‑id</h1>
-          <p className="text-sm text-stone-500 mb-[28px] px-2 leading-relaxed">
+          <h1 className="text-[1.6rem] font-semibold text-stone-900 mb-2">Dog‑id/Cat‑id</h1>
+          <p className="text-sm text-stone-400 mb-7">
             Ingresa tu correo para gestionar las placas de tus mascotas.
           </p>
 
           {!sent ? (
-            <div className="flex flex-col text-left">
+            <div className="flex flex-col gap-3 text-left">
               <input
                 type="email"
                 placeholder="tu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMagicLink()}
-                className="w-full px-4 py-[14px] border border-stone-200 rounded-xl text-stone-900 bg-white text-base focus:outline-none focus:ring-2 focus:ring-stone-900 placeholder:text-stone-300 mb-3.5"
+                className="w-full px-4 py-[14px] border border-stone-200 rounded-xl text-stone-900 bg-white text-base focus:outline-none focus:ring-2 focus:ring-stone-900 placeholder:text-stone-300"
               />
               <button
                 onClick={sendMagicLink}
-                className="w-full bg-[#000] text-white font-semibold py-4 rounded-xl text-[1.1rem] mb-3.5 transition-all active:scale-[0.98] hover:bg-[#222] border-none cursor-pointer"
+                className="w-full bg-[#000] text-white font-semibold py-[16px] rounded-xl text-[1.1rem] transition-all active:scale-[0.98] hover:bg-[#222]"
               >
                 Enviar enlace de acceso
               </button>
             </div>
           ) : (
-            <div className="bg-[#f3f3f3] rounded-xl p-5 text-center mb-3.5">
+            <div className="bg-[#f3f3f3] rounded-xl p-5 text-center">
               <p className="text-stone-900 font-bold">¡Enlace enviado!</p>
               <p className="text-stone-500 text-sm mt-1">
                 Revisa tu bandeja de entrada para iniciar sesión.
@@ -171,7 +174,7 @@ export default function HomePageContent() {
     );
   }
 
-  // ── Errores de QR ───────────────────────────────────────────────────
+  // ── Errores de QR ───────────────────────────────────────────
   if (error) {
     const errors: Record<string, { icon: string; title: string; desc: string }> = {
       inactive_tag: { icon: "🚫", title: "Placa desactivada", desc: "Contacta con el soporte si crees que es un error." },
@@ -180,13 +183,13 @@ export default function HomePageContent() {
     };
     const e = errors[error] ?? errors["invalid_tag"];
     return (
-      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center px-5">
         <Card>
           <IconsRow />
           <p className="text-4xl mb-2">{e.icon}</p>
-          <h1 className="text-xl font-bold text-[#222] mb-2">{e.title}</h1>
-          <p className="text-stone-500 text-sm mb-[28px] px-4">{e.desc}</p>
-          <div className="bg-[#f3f3f3] rounded-xl p-4 mb-3.5">
+          <h1 className="text-xl font-bold text-stone-900">{e.title}</h1>
+          <p className="text-stone-500 text-sm mt-2 mb-4">{e.desc}</p>
+          <div className="bg-[#f3f3f3] rounded-xl p-4">
             <a href="mailto:jko@dogidcatid.es" className="text-stone-600 font-semibold text-sm underline">
               jko@dogidcatid.es
             </a>
