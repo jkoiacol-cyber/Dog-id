@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
         destination: '/',
         permanent: false,
       },
+
+      // 2. Si viene secret_id, NO redirigir a /landing
       {
         source: '/',
         has: [
@@ -27,7 +29,7 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
 
-      // 2. Si NO viene slug ni secret_id → redirigir a /landing
+      // 3. Si NO viene nada → redirigir a /landing
       {
         source: '/',
         destination: '/landing',

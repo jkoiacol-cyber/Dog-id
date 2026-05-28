@@ -1,5 +1,7 @@
 "use client";
 
+//C:\Users\nikom\Desktop\Dog-idCat-id\dog-id\app\t\[token]\page.tsx
+
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
