@@ -3,35 +3,19 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async redirects() {
     return [
-      // 1. Si viene slug, NO redirigir a /landing
+      // Si el usuario entra a '/' y NO viene ni 'slug' ni 'secret_id' -> Redirigir a /landing
       {
         source: '/',
-        has: [
+        missing: [
           {
             type: 'query',
             key: 'slug',
           },
-        ],
-        destination: '/',
-        permanent: false,
-      },
-
-      // 2. Si viene secret_id, NO redirigir a /landing
-      {
-        source: '/',
-        has: [
           {
             type: 'query',
             key: 'secret_id',
           },
         ],
-        destination: '/',
-        permanent: false,
-      },
-
-      // 3. Si NO viene nada → redirigir a /landing
-      {
-        source: '/',
         destination: '/landing',
         permanent: false,
       },
