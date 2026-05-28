@@ -64,9 +64,20 @@ export default function HomePageContent() {
 
       if (session && session.user) {
         // Opcional: Si quieres ser estricto con los 7 días (aunque la sesión por defecto dura semanas)
-        const createdAt = new Date((session as any).created_at).getTime();
-        const sieteDiasEnMs = 7 * 24 * 60 * 60 * 1000;
-        const tiempoTranscurrido = Date.now() - createdAt;
+        if (session && session.user) {
+          // session.expires_at viene en segundos (UNIX timestamp)
+          const expiraEnMs = (session.expires_at ?? 0) * 1000; 
+          const unDiaEnMs = 24 * 60 * 60 * 1000;
+          
+          // Si faltan más de 23 días para que expire, significa que inició sesión hace menos de 7 días.
+          const diasRestantes = (expiraEnMs - Date.now()) / unDiaEnMs;
+
+          if (diasRestantes > 23) {
+            // CAMBIA '/dashboard' por la ruta a la que van los usuarios logueados de tu app
+            router.push("/dashboard"); 
+            return;
+          }
+        }
 
         if (tiempoTranscurrido < sieteDiasEnMs) {
           // CAMBIA '/dashboard' por la ruta a la que van los usuarios logueados de tu app
