@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@supabase/supabase-js"; // Inicialización limpia al inicio
 
 const IconsRow = () => (
   <div className="flex justify-center">
@@ -13,11 +14,16 @@ const IconsRow = () => (
   </div>
 );
 
-// Shared card wrapper matching the HTML's .container style
 const Card = ({ children }: { children: React.ReactNode }) => (
   <div className="w-full max-w-[420px] bg-white/85 backdrop-blur-sm px-8 py-8 rounded-[18px] shadow-[0_4px_20px_rgba(0,0,0,0.15)] text-center">
     {children}
   </div>
+);
+
+// Creamos una única instancia fuera del componente para que mantenga el estado del almacenamiento
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export default function HomePageContent() {
@@ -50,19 +56,11 @@ export default function HomePageContent() {
     setSent(true);
   };
 
-  // Función corregida: Si hay sesión válida, pasa directo sin importar restricciones de días complejos
+  // Al estar la instancia 'supabase' ya activa, getSession() responderá al instante de forma síncrona con el navegador
   const handleOwnerClick = async () => {
     try {
-      const { createClient } = await import("@supabase/supabase-js");
-      const sb = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      const { data: { session } } = await supabase.auth.getSession();
 
-      // Obtenemos la sesión actual del almacenamiento local/cookie
-      const { data: { session } } = await sb.auth.getSession();
-
-      // Si existe la sesión y hay un usuario autenticado activo, al dashboard directo
       if (session && session.user) {
         router.push("/dashboard");
         return;
@@ -71,7 +69,7 @@ export default function HomePageContent() {
       console.error("Error al verificar la sesión:", err);
     }
 
-    // Si realmente no hay ninguna sesión guardada en este navegador, entonces sí pedimos login
+    // Si realmente dio null, abrimos el formulario de login
     setMode("login");
   };
 
@@ -93,12 +91,7 @@ export default function HomePageContent() {
             <button
               onClick={async () => {
                 if (secretId) {
-                  const { createClient } = await import("@supabase/supabase-js");
-                  const sb = createClient(
-                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-                  );
-                  const { data: pet } = await sb
+                  const { data: pet } = await supabase
                     .from("pets")
                     .select("slug")
                     .eq("tag_secret_id", secretId)
