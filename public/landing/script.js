@@ -1,3 +1,4 @@
+// ── VIDEO OBSERVER (Solo esto requiere DOMContentLoaded) ──
 document.addEventListener("DOMContentLoaded", () => {
   const video = document.querySelector("video");
 
@@ -17,11 +18,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (video) {
     videoObserver.observe(video);
   }
+
+  // Inicializar carrito al cargar la página
+  renderCart();
 });
 
-// ── CART STATE ──
+// ── CART STATE (Globales y accesibles desde el HTML) ──
 let cart = [];
-let selectedPayMethod = 'bizum'; 
+let selectedPayMethod = 'bizum'; // Coherente con la clase 'active' de tu HTML por defecto
 
 const PRODUCTS = {
   dog: { name: 'Dog-id', price: 19.99, emoji: '🐶' },
@@ -38,7 +42,7 @@ function addToCart(type, event) {
   renderCart();
   toggleCart(true);
 
-  // Animación de feedback en el botón que lanzó el evento
+  // Animación de feedback visual en el botón correspondiente
   if (event && event.target) {
     const btn = event.target;
     const originalText = btn.textContent;
@@ -55,6 +59,8 @@ function renderCart() {
   const body = document.getElementById('cartBody');
   const footer = document.getElementById('cartFooter');
   const countEl = document.getElementById('cartCount');
+
+  if (!body || !footer || !countEl) return;
 
   const totalItems = cart.reduce((s, i) => s + i.qty, 0);
   countEl.textContent = totalItems;
@@ -82,7 +88,8 @@ function renderCart() {
   `).join('');
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  document.getElementById('cartTotal').textContent = total.toFixed(2).replace('.', ',') + '€';
+  const totalEl = document.getElementById('cartTotal');
+  if (totalEl) totalEl.textContent = total.toFixed(2).replace('.', ',') + '€';
   footer.style.display = 'block';
 }
 
@@ -102,6 +109,8 @@ function removeFromCart(type) {
 function toggleCart(forceOpen) {
   const overlay = document.getElementById('cartOverlay');
   const sidebar = document.getElementById('cartSidebar');
+  if (!overlay || !sidebar) return;
+
   const isOpen = sidebar.classList.contains('open');
   if (forceOpen === true || !isOpen) {
     overlay.classList.add('open');
@@ -117,20 +126,27 @@ function toggleCart(forceOpen) {
 function openCheckout() {
   toggleCart();
   const modal = document.getElementById('checkoutModal');
-  modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
-  renderOrderSummary();
+  if (modal) {
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    renderOrderSummary();
+  }
 }
 
 function closeCheckout() {
-  document.getElementById('checkoutModal').classList.remove('open');
-  document.getElementById('checkoutForm').style.display = 'block';
-  document.getElementById('successScreen').style.display = 'none';
+  const modal = document.getElementById('checkoutModal');
+  const form = document.getElementById('checkoutForm');
+  const success = document.getElementById('successScreen');
+  
+  if (modal) modal.classList.remove('open');
+  if (form) form.style.display = 'block';
+  if (success) success.style.display = 'none';
   document.body.style.overflow = '';
 }
 
 function renderOrderSummary() {
   const el = document.getElementById('orderSummary');
+  if (!el) return;
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   el.innerHTML = `
     <div class="order-summary-title">Resumen del pedido</div>
@@ -146,12 +162,6 @@ function selectPay(btn, method) {
   selectedPayMethod = method;
 }
 
-function formatCard(input) {
-  let val = input.value.replace(/\s/g, '').replace(/[^0-9]/g, '');
-  let formatted = val.match(/.{1,4}/g)?.join(' ') || '';
-  input.value = formatted;
-}
-
 function processOrder() {
   const name = document.getElementById('fName').value.trim();
   const email = document.getElementById('fEmail').value.trim();
@@ -159,24 +169,18 @@ function processOrder() {
   const city = document.getElementById('fCity').value.trim();
   const cp = document.getElementById('fCP').value.trim();
 
-  // Método de pago final
-  const payText = selectedPayMethod === 'bizum'
-    ? 'Bizum (606295911)'
-    : 'Efectivo en entrega';
+  const payText = selectedPayMethod === 'bizum' ? 'Bizum (606295911)' : 'Efectivo en entrega';
 
-  // Validación mínima
   if (!name || !email || !address) {
     alert('Por favor, completa los datos de contacto y envío.');
     return;
   }
 
-  // Totales e items
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const itemsText = cart
     .map(i => `• ${i.name} × ${i.qty} — ${(i.price * i.qty).toFixed(2)}€`)
     .join('%0A');
 
-  // Mensaje final para WhatsApp
   const msg =
     `🐾 *Nuevo pedido Dog-id / Cat-id*%0A%0A` +
     `👤 *Cliente:* ${name}%0A` +
@@ -188,22 +192,21 @@ function processOrder() {
     `💰 *Total:* ${total.toFixed(2).replace('.', ',')}€%0A%0A` +
     `_Pedido realizado desde dogid.es_`;
 
-  // Enviar a WhatsApp
   window.open(`https://wa.me/34606295911?text=${msg}`, '_blank');
 
-  // Reset visual
   closeCheckout();
   cart = [];
   renderCart();
 
   setTimeout(() => {
-    document.getElementById('checkoutForm').style.display = 'none';
-    document.getElementById('successScreen').style.display = 'block';
+    const form = document.getElementById('checkoutForm');
+    const success = document.getElementById('successScreen');
+    if (form) form.style.display = 'none';
+    if (success) success.style.display = 'block';
   }, 500);
 }
 
 // ── SCROLL ANIMATIONS ──
-// Cambiado el nombre de 'observer' a 'scrollObserver' para evitar conflictos con el del video
 const scrollObserver = new IntersectionObserver((entries) => {
   entries.forEach(e => {
     if (e.isIntersecting) e.target.classList.add('visible');
@@ -211,6 +214,3 @@ const scrollObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 
 document.querySelectorAll('.fade-in').forEach(el => scrollObserver.observe(el));
-
-// ── INIT ──
-renderCart();
