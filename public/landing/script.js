@@ -1,5 +1,24 @@
-// ── VIDEO OBSERVER (Solo esto requiere DOMContentLoaded) ──
-document.addEventListener("DOMContentLoaded", () => {
+// ── CONFIGURACIÓN DE SESIÓN (Rutas de tu backend y cliente) ──
+const DASHBOARD_URL = 'https://www.dogid.es/dashboard'; 
+const SESSION_CHECK_ENDPOINT = 'https://www.dogid.es/api/auth/me';
+
+// ── VIDEO & SESSION OBSERVER (Ejecución al cargar la página) ──
+document.addEventListener("DOMContentLoaded", async () => {
+  // 1. Comprobación automática de sesión activa antes de renderizar la web
+  const token = localStorage.getItem('user_token'); 
+
+  if (token) {
+    const sessionValid = await checkActiveSession(token);
+    if (sessionValid) {
+      window.location.href = DASHBOARD_URL;
+      return; // Detiene la ejecución del resto del script ya que redirige
+    } else {
+      // Si el token no es válido o expiró, lo limpiamos
+      localStorage.removeItem('user_token');
+    }
+  }
+
+  // 2. Lógica del Video Observer
   const video = document.querySelector("video");
 
   const videoObserver = new IntersectionObserver(
@@ -19,9 +38,29 @@ document.addEventListener("DOMContentLoaded", () => {
     videoObserver.observe(video);
   }
 
-  // Inicializar carrito al cargar la página
+  // 3. Inicializar carrito al cargar la página si no hay redirección
   renderCart();
+  
+  // 4. Inicializar animaciones de Scroll
+  initScrollAnimations();
 });
+
+// Función auxiliar para validar el token contra tu API
+async function checkActiveSession(token) {
+  try {
+    const res = await fetch(SESSION_CHECK_ENDPOINT, {
+      method: 'GET', // Cambiar a 'POST' si tu backend lo requiere
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return res.ok; 
+  } catch (error) {
+    console.error('Error al verificar la sesión:', error);
+    return false;
+  }
+}
 
 // ── CART STATE (Globales y accesibles desde el HTML) ──
 let cart = [];
@@ -207,13 +246,12 @@ function processOrder() {
 }
 
 // ── SCROLL ANIMATIONS ──
-const scrollObserver = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) e.target.classList.add('visible');
-  });
-}, { threshold: 0.1 });
+function initScrollAnimations() {
+  const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
 
-document.querySelectorAll('.fade-in').forEach(el => scrollObserver.observe(el));
-
-// ── INIT ──
-  renderCart();
+  document.querySelectorAll('.fade-in').forEach(el => scrollObserver.observe(el));
+}
