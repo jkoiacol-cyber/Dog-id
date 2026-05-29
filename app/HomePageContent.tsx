@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@supabase/supabase-js"; // Inicialización limpia al inicio
 
 const IconsRow = () => (
   <div className="flex justify-center">
@@ -14,16 +13,11 @@ const IconsRow = () => (
   </div>
 );
 
+// Shared card wrapper matching the HTML's .container style
 const Card = ({ children }: { children: React.ReactNode }) => (
   <div className="w-full max-w-[420px] bg-white/85 backdrop-blur-sm px-8 py-8 rounded-[18px] shadow-[0_4px_20px_rgba(0,0,0,0.15)] text-center">
     {children}
   </div>
-);
-
-// Creamos una única instancia fuera del componente para que mantenga el estado del almacenamiento
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export default function HomePageContent() {
@@ -38,11 +32,39 @@ export default function HomePageContent() {
   const [mode, setMode] = useState<"none" | "login" | "scan">("none");
   const [sent, setSent] = useState(false);
 
+  // Comprueba sesión activa; si existe redirige al dashboard, si no muestra login
+  const handleOwner = async () => {
+    const { createClient } = await import("@supabase/supabase-js");
+    const sb = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      router.push("/dashboard");
+    } else {
+      setMode("login");
+    }
+  };
+
   useEffect(() => {
     if (slug && secretId && !error) {
       setMode("scan");
     } else if (!slug && !secretId && !error) {
-      setMode("login");
+      // Sin QR: verificar sesión antes de mostrar el login
+      (async () => {
+        const { createClient } = await import("@supabase/supabase-js");
+        const sb = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: { session } } = await sb.auth.getSession();
+        if (session) {
+          router.push("/dashboard");
+        } else {
+          setMode("login");
+        }
+      })();
     }
   }, [slug, secretId, error]);
 
@@ -56,23 +78,6 @@ export default function HomePageContent() {
     setSent(true);
   };
 
-  // Al estar la instancia 'supabase' ya activa, getSession() responderá al instante de forma síncrona con el navegador
-  const handleOwnerClick = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (session && session.user) {
-        router.push("/dashboard");
-        return;
-      }
-    } catch (err) {
-      console.error("Error al verificar la sesión:", err);
-    }
-
-    // Si realmente dio null, abrimos el formulario de login
-    setMode("login");
-  };
-
   // ── Pantalla QR escaneado ───────────────────────────────────
   if (mode === "scan" && slug && secretId) {
     return (
@@ -83,7 +88,7 @@ export default function HomePageContent() {
           <h1 className="text-[1.6rem] font-semibold text-stone-900 mb-7">Dog‑id/Cat‑id</h1>
           <div className="flex flex-col gap-3">
             <button
-              onClick={handleOwnerClick}
+              onClick={handleOwner}
               className="w-full bg-[#000] text-white font-semibold py-[16px] rounded-xl text-[1.1rem] transition-all active:scale-[0.98] hover:bg-[#222]"
             >
               Soy propietario
@@ -91,7 +96,12 @@ export default function HomePageContent() {
             <button
               onClick={async () => {
                 if (secretId) {
-                  const { data: pet } = await supabase
+                  const { createClient } = await import("@supabase/supabase-js");
+                  const sb = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+                  );
+                  const { data: pet } = await sb
                     .from("pets")
                     .select("slug")
                     .eq("tag_secret_id", secretId)

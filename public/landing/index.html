@@ -67,7 +67,7 @@
     border: none; padding: 10px 20px;
     border-radius: 50px; font-family: 'DM Sans', sans-serif;
     font-size: 14px; font-weight: 500; cursor: pointer;
-    text-decoration: none; display: inline-flex; align-items: center;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
     transition: all .2s;
   }
   .btn-clientes:hover { background: #2563eb; transform: translateY(-1px); }
@@ -628,7 +628,7 @@
     <a href="#footer">Contacto</a>
   </nav>
   <div style="display:flex;align-items:center;gap:10px;">
-    <a href="https://www.dogid.es/login" class="btn-clientes">Clientes</a>
+    <a href="login.html" class="btn-clientes">🔑 Clientes</a>
     <button class="btn-cart" onclick="toggleCart()">
       🛒 Carrito
       <span class="cart-count" id="cartCount">0</span>
@@ -1111,7 +1111,6 @@
     document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedPayMethod = method;
-    document.getElementById('cardFields').style.display = method === 'card' ? 'block' : 'none';
   }
 
   function formatCard(input) {
