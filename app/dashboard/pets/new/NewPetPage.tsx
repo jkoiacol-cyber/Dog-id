@@ -448,7 +448,7 @@ export default function NewPetPage() {
         }
       }
 
-      // 8. Enviar email de bienvenida
+      // 8. Enviar email de bienvenida (no bloquea el flujo)
       fetch("/api/send-welcome-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -463,6 +463,15 @@ export default function NewPetPage() {
         .then(res => res.json().then(data => console.log("EMAIL RESPONSE:", res.status, data)))
         .catch(err => console.warn("Email fetch error:", err));
 
+      setSaving(false);
+      router.push("/dashboard");
+
+    } catch (err: any) {
+      console.error("Error inesperado en handleSave:", err);
+      alert("Ocurri\u00f3 un error inesperado: " + (err?.message ?? String(err)));
+      setSaving(false);
+    }
+  };
 
   // -------------------------------------------------------------
   //  UI
