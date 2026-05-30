@@ -297,152 +297,146 @@ export default function NewPetPage() {
 
     setSaving(true);
 
-    // 1. Intentamos obtener el usuario de forma directa (más seguro en iOS)
-    const {
-      data: { user: activeUser },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    // 2. Si falla (típico en iPhone), recuperamos la sesión como respaldo
-    let user = activeUser;
-    if (!user) {
+    try {
+      // 1. Obtener usuario (con fallback para iOS)
       const {
-        data: { session: backupSession },
-      } = await supabase.auth.getSession();
-      user = backupSession?.user || null;
-    }
+        data: { user: activeUser },
+      } = await supabase.auth.getUser();
 
-    // -------------------------------------------------------------
-    // VALIDAR ID PRIVADO (secret_id) Y OBTENER SLUG PÚBLICO
-    // -------------------------------------------------------------
-    const slugPublic = searchParams.get("slug");
-
-    if (!slugPublic) {
-      alert("Este QR no contiene un identificador público válido.");
-      setSaving(false);
-      return;
-    }
-
-    // 1. Buscar la placa en la tabla tags
-    // secretId ya es UUID completo → query sin cambios
-    const { data: tagRecord, error: tagError } = await supabase
-      .from("tags")
-      .select("id, pet_id, slug, has_expiry")
-      .eq("secret_id", secretId)
-      .single();
-
-    if (tagError || !tagRecord) {
-      alert("Esta placa no existe o no es válida.");
-      setSaving(false);
-      return;
-    }
-
-    // 2. Verificar si ya está asignada a una mascota
-    if (tagRecord.pet_id) {
-      alert("Esta placa ya está registrada por otra mascota.");
-      setSaving(false);
-      return;
-    }
-
-    // 3. Verificar que el slug del QR coincide con el slug de la placa
-    if (tagRecord.slug !== slugPublic) {
-      alert("El QR no coincide con la placa registrada.");
-      setSaving(false);
-      return;
-    }
-
-    // --- PASO CRÍTICO: Registrar/Actualizar al Dueño primero ---
-    // Validación necesaria para TypeScript y Vercel
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const { error: ownerError } = await supabase
-      .from("owners")
-      .upsert(
-        {
-          id: user.id,
-          full_name: owners || "Propietario",
-          phone: phone.trim(),
-          address: address || null,
-        },
-        { onConflict: "id" }
-      );
-
-    if (ownerError) {
-      alert("Error al registrar perfil de dueño: " + ownerError.message);
-      setSaving(false);
-      return;
-    }
-
-
-    // 4. Crear el Slug y la Mascota
-    const slug = `${name.trim().toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
-
-    const { data: petData, error: petError } = await supabase
-      .from("pets")
-      .insert({
-        owner_id: user.id,
-        name: name.trim(),
-        species,
-        slug,
-        chip_id: chip || null,
-        address: address || null,
-        owners: owners || null,
-        birth_date: birthDate || null,
-        sex,
-        phone: phone.trim(),
-        phone2: phone2 || null,
-        email: email || null,
-        show_phone: showPhone,
-        show_address: showAddress,
-        show_owners: showOwners,
-        tag_secret_id: tagData.secret_id,
-      })
-      .select()
-      .single();
-
-    // -------------------------------------------------------------
-    // ASIGNAR LA PLACA A LA MASCOTA + ACTIVAR CONTRATO
-    // sold_at = ahora (cuando el cliente activa, no cuando compra)
-    // expires_at = ahora + 5 años si has_expiry, null si sin caducidad
-    // -------------------------------------------------------------
-    const now = new Date().toISOString();
-    const expiresAt = tagRecord.has_expiry
-      ? new Date(Date.now() + 5 * 365.25 * 24 * 60 * 60 * 1000).toISOString()
-      : null;
-
-    await supabase
-      .from("tags")
-      .update({
-        pet_id: petData.id,
-        sold_at: now,
-        expires_at: expiresAt,
-      })
-      .eq("secret_id", secretId);
-
-    // 5. Gestión de la Foto
-    if (newPhotoFile && petData) {
-      const fileName = `pets/${petData.id}-${Date.now()}.jpg`;
-      const { error: uploadError } = await supabase.storage
-        .from("pet-photos")
-        .upload(fileName, newPhotoFile, { upsert: true });
-
-      if (!uploadError) {
-        const { data: publicUrlData } = supabase.storage
-          .from("pet-photos")
-          .getPublicUrl(fileName);
-
-        await supabase
-          .from("pets")
-          .update({ photo_url: publicUrlData.publicUrl })
-          .eq("id", petData.id);
+      let user = activeUser;
+      if (!user) {
+        const {
+          data: { session: backupSession },
+        } = await supabase.auth.getSession();
+        user = backupSession?.user || null;
       }
-    }
 
-    setSaving(false);
-  try {
-      await fetch("/api/send-welcome-email", {
+      if (!user) {
+        alert("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
+        setSaving(false);
+        return;
+      }
+
+      // 2. Validar slug público del QR
+      const slugPublic = searchParams.get("slug");
+      if (!slugPublic) {
+        alert("Este QR no contiene un identificador público válido.");
+        setSaving(false);
+        return;
+      }
+
+      // 3. Buscar la placa en tags
+      const { data: tagRecord, error: tagFetchError } = await supabase
+        .from("tags")
+        .select("id, pet_id, slug, has_expiry")
+        .eq("secret_id", secretId)
+        .single();
+
+      if (tagFetchError || !tagRecord) {
+        alert("Esta placa no existe o no es válida.");
+        setSaving(false);
+        return;
+      }
+
+      if (tagRecord.pet_id) {
+        alert("Esta placa ya está registrada por otra mascota.");
+        setSaving(false);
+        return;
+      }
+
+      if (tagRecord.slug !== slugPublic) {
+        alert("El QR no coincide con la placa registrada.");
+        setSaving(false);
+        return;
+      }
+
+      // 4. Registrar/actualizar dueño
+      const { error: ownerError } = await supabase
+        .from("owners")
+        .upsert(
+          {
+            id: user.id,
+            full_name: owners || "Propietario",
+            phone: phone.trim(),
+            address: address || null,
+          },
+          { onConflict: "id" }
+        );
+
+      if (ownerError) {
+        alert("Error al registrar perfil de dueño: " + ownerError.message);
+        setSaving(false);
+        return;
+      }
+
+      // 5. Crear mascota
+      const slug = `${name.trim().toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
+
+      const { data: petData, error: petError } = await supabase
+        .from("pets")
+        .insert({
+          owner_id: user.id,
+          name: name.trim(),
+          species,
+          slug,
+          chip_id: chip || null,
+          address: address || null,
+          owners: owners || null,
+          birth_date: birthDate || null,
+          sex,
+          phone: phone.trim(),
+          phone2: phone2 || null,
+          email: email || null,
+          show_phone: showPhone,
+          show_address: showAddress,
+          show_owners: showOwners,
+          tag_secret_id: tagData.secret_id,
+        })
+        .select()
+        .single();
+
+      if (petError || !petData) {
+        alert("Error al guardar la mascota: " + (petError?.message ?? "sin datos"));
+        setSaving(false);
+        return;
+      }
+
+      // 6. Asignar placa a mascota + activar contrato
+      const now = new Date().toISOString();
+      const expiresAt = tagRecord.has_expiry
+        ? new Date(Date.now() + 5 * 365.25 * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
+      await supabase
+        .from("tags")
+        .update({
+          pet_id: petData.id,
+          sold_at: now,
+          expires_at: expiresAt,
+        })
+        .eq("secret_id", secretId);
+
+      // 7. Subir foto
+      if (newPhotoFile) {
+        const fileName = `pets/${petData.id}-${Date.now()}.jpg`;
+        const { error: uploadError } = await supabase.storage
+          .from("pet-photos")
+          .upload(fileName, newPhotoFile, { upsert: true });
+
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage
+            .from("pet-photos")
+            .getPublicUrl(fileName);
+
+          await supabase
+            .from("pets")
+            .update({ photo_url: publicUrlData.publicUrl })
+            .eq("id", petData.id);
+        }
+      }
+
+      // 8. Enviar email de bienvenida (no bloquea el flujo)
+      fetch("/api/send-welcome-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -452,13 +446,18 @@ export default function NewPetPage() {
           species:   species,
           qrCode:    tagData.slug,
         }),
-      });
-    } catch (err) {
-      console.warn("Email de bienvenida no enviado:", err);
-    }
+      }).catch((err) => console.warn("Email de bienvenida no enviado:", err));
 
-    router.push("/dashboard");
+      setSaving(false);
+      router.push("/dashboard");
+
+    } catch (err: any) {
+      console.error("Error inesperado en handleSave:", err);
+      alert("Ocurrió un error inesperado: " + (err?.message ?? String(err)));
+      setSaving(false);
+    }
   };
+
   // -------------------------------------------------------------
   //  UI
   // -------------------------------------------------------------
