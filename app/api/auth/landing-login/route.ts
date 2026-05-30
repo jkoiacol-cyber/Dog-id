@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     const { error: magicError } = await supabaseAdmin.auth.signInWithOtp({
       email: normalizedEmail,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
       },
     });
 
