@@ -441,17 +441,8 @@ export default function NewPetPage() {
     }
 
     setSaving(false);
-    // Se añade const res en la sigueinte linea 
-    try {
-      console.log("[NEW PET] Enviando email de bienvenida con datos:", {
-        email:     email.trim(),
-        petName:   name.trim(),
-        ownerName: owners.trim() || "Propietario",
-        species:   species,
-        qrCode:    tagData.slug,
-      });
-
-      const res = await fetch("/api/send-welcome-email", {
+  try {
+      await fetch("/api/send-welcome-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -462,33 +453,12 @@ export default function NewPetPage() {
           qrCode:    tagData.slug,
         }),
       });
-
-      console.log("[NEW PET] Email fetch completado. Status:", res.status);
-
-      let result: any = null;
-      try {
-        result = await res.json();
-        console.log("[NEW PET] Respuesta JSON del email:", result);
-      } catch (jsonErr) {
-        console.warn("[NEW PET] No se pudo parsear JSON de la respuesta del email:", jsonErr);
-      }
-
-      if (!res.ok) {
-        console.warn("[NEW PET] El endpoint de email devolvió error:", {
-          status: res.status,
-          body: result,
-        });
-      } else {
-        console.log("[NEW PET] Email de bienvenida enviado (o al menos aceptado por la API).");
-      }
-
     } catch (err) {
-      console.error("[NEW PET] Error de red al llamar a /api/send-welcome-email:", err);
+      console.warn("Email de bienvenida no enviado:", err);
     }
 
     router.push("/dashboard");
-
-    }
+  };
   // -------------------------------------------------------------
   //  UI
   // -------------------------------------------------------------
