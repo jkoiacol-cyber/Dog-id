@@ -463,7 +463,6 @@ export default function NewPetPage() {
         .then(res => res.json().then(data => console.log("EMAIL RESPONSE:", res.status, data)))
         .catch(err => console.warn("Email fetch error:", err));
 
-  };
 
   // -------------------------------------------------------------
   //  UI
