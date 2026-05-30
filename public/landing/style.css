@@ -686,3 +686,52 @@
 
   /* ── SECTION DIVIDERS ── */
   .divider { height: 1px; background: var(--light-gray); max-width: 1100px; margin: 0 auto; }
+
+  /* ── COOKIE BANNER ── */
+.cookie-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--black);
+  color: var(--off-white);
+  padding: 18px 22px;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 90%;
+  width: 600px;
+  z-index: 9999;
+  font-size: 14px;
+}
+
+.cookie-banner a {
+  color: var(--pink);
+  text-decoration: underline;
+}
+
+.cookie-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.cookie-buttons button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#cookie-accept {
+  background: var(--pink);
+  color: white;
+}
+
+#cookie-decline {
+  background: #333;
+  color: white;
+}

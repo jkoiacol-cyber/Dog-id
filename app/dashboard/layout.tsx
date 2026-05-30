@@ -21,8 +21,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <img
                 src="/img/icons.png"
                 alt="dog paw cat icons"
-                width={60}
-                height={20}
+                width={72}
+                height={24}
                 className="opacity-90"
               />
             </div>

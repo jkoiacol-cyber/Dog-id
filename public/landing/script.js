@@ -231,3 +231,26 @@ function initScrollAnimations() {
   );
   document.querySelectorAll('.fade-in').forEach(el => scrollObserver.observe(el));
 }
+
+// ── COOKIE BANNER LOGIC ──
+document.addEventListener("DOMContentLoaded", () => {
+  const banner = document.getElementById("cookie-banner");
+  const acceptBtn = document.getElementById("cookie-accept");
+  const declineBtn = document.getElementById("cookie-decline");
+
+  // Si ya aceptó o rechazó, no mostrar
+  if (localStorage.getItem("cookie-consent")) {
+    banner.style.display = "none";
+    return;
+  }
+
+  acceptBtn.addEventListener("click", () => {
+    localStorage.setItem("cookie-consent", "accepted");
+    banner.style.display = "none";
+  });
+
+  declineBtn.addEventListener("click", () => {
+    localStorage.setItem("cookie-consent", "declined");
+    banner.style.display = "none";
+  });
+});
