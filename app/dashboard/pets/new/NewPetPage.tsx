@@ -369,7 +369,20 @@ export default function NewPetPage() {
         return;
       }
 
-      // 5. Crear mascota
+      // 5. Verificar que no existe ya una mascota con este tag_secret_id (registros huérfanos)
+      const { data: existingPet } = await supabase
+        .from("pets")
+        .select("id")
+        .eq("tag_secret_id", tagData.secret_id)
+        .maybeSingle();
+
+      if (existingPet) {
+        alert("Esta placa ya tiene una mascota asociada. Si crees que es un error, contacta con soporte.");
+        setSaving(false);
+        return;
+      }
+
+      // 6. Crear mascota
       const slug = `${name.trim().toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
 
       const { data: petData, error: petError } = await supabase
@@ -435,7 +448,7 @@ export default function NewPetPage() {
         }
       }
 
-      // 8. Enviar email de bienvenida (no bloquea el flujo)
+      // 8. Enviar email de bienvenida
       fetch("/api/send-welcome-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -446,16 +459,10 @@ export default function NewPetPage() {
           species:   species,
           qrCode:    tagData.slug,
         }),
-      }).catch((err) => console.warn("Email de bienvenida no enviado:", err));
+      })
+        .then(res => res.json().then(data => console.log("EMAIL RESPONSE:", res.status, data)))
+        .catch(err => console.warn("Email fetch error:", err));
 
-      setSaving(false);
-      router.push("/dashboard");
-
-    } catch (err: any) {
-      console.error("Error inesperado en handleSave:", err);
-      alert("Ocurrió un error inesperado: " + (err?.message ?? String(err)));
-      setSaving(false);
-    }
   };
 
   // -------------------------------------------------------------
