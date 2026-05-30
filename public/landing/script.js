@@ -1,70 +1,31 @@
-// ── CONFIGURACIÓN DE SESIÓN (Rutas de tu backend y cliente) ──
-const DASHBOARD_URL = 'https://www.dogid.es/dashboard'; 
-const SESSION_CHECK_ENDPOINT = 'https://www.dogid.es/api/auth/me';
+// ── INICIALIZACIÓN AL CARGAR ──────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
 
-// ── VIDEO & SESSION OBSERVER (Ejecución al cargar la página) ──
-document.addEventListener("DOMContentLoaded", async () => {
-  // 1. Comprobación automática de sesión activa antes de renderizar la web
-  const token = localStorage.getItem('user_token'); 
-
-  if (token) {
-    const sessionValid = await checkActiveSession(token);
-    if (sessionValid) {
-      window.location.href = DASHBOARD_URL;
-      return; // Detiene la ejecución del resto del script ya que redirige
-    } else {
-      // Si el token no es válido o expiró, lo limpiamos
-      localStorage.removeItem('user_token');
-    }
-  }
-
-  // 2. Lógica del Video Observer
+  // 1. Video Observer — reproduce solo cuando está visible en pantalla
   const video = document.querySelector("video");
-
-  const videoObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          video.play();
-        } else {
-          video.pause();
-        }
-      });
-    },
-    { threshold: 0.6 } // 60% visible para reproducir
-  );
-
   if (video) {
+    const videoObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) { video.play(); }
+          else                      { video.pause(); }
+        });
+      },
+      { threshold: 0.6 }
+    );
     videoObserver.observe(video);
   }
 
-  // 3. Inicializar carrito al cargar la página si no hay redirección
+  // 2. Carrito
   renderCart();
-  
-  // 4. Inicializar animaciones de Scroll
+
+  // 3. Animaciones de scroll
   initScrollAnimations();
 });
 
-// Función auxiliar para validar el token contra tu API
-async function checkActiveSession(token) {
-  try {
-    const res = await fetch(SESSION_CHECK_ENDPOINT, {
-      method: 'GET', // Cambiar a 'POST' si tu backend lo requiere
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    return res.ok; 
-  } catch (error) {
-    console.error('Error al verificar la sesión:', error);
-    return false;
-  }
-}
-
-// ── CART STATE (Globales y accesibles desde el HTML) ──
+// ── CART STATE ────────────────────────────────────────────────────────────────
 let cart = [];
-let selectedPayMethod = 'bizum'; // Coherente con la clase 'active' de tu HTML por defecto
+let selectedPayMethod = 'bizum';
 
 const PRODUCTS = {
   dog: { name: 'Dog-id', price: 19.99, emoji: '🐶' },
@@ -73,15 +34,14 @@ const PRODUCTS = {
 
 function addToCart(type, event) {
   const existing = cart.find(i => i.type === type);
-  if (existing) { 
-    existing.qty++; 
-  } else { 
-    cart.push({ type, ...PRODUCTS[type], qty: 1 }); 
+  if (existing) {
+    existing.qty++;
+  } else {
+    cart.push({ type, ...PRODUCTS[type], qty: 1 });
   }
   renderCart();
   toggleCart(true);
 
-  // Animación de feedback visual en el botón correspondiente
   if (event && event.target) {
     const btn = event.target;
     const originalText = btn.textContent;
@@ -95,8 +55,8 @@ function addToCart(type, event) {
 }
 
 function renderCart() {
-  const body = document.getElementById('cartBody');
-  const footer = document.getElementById('cartFooter');
+  const body    = document.getElementById('cartBody');
+  const footer  = document.getElementById('cartFooter');
   const countEl = document.getElementById('cartCount');
 
   if (!body || !footer || !countEl) return;
@@ -105,7 +65,12 @@ function renderCart() {
   countEl.textContent = totalItems;
 
   if (cart.length === 0) {
-    body.innerHTML = `<div class="cart-empty"><div class="empty-icon">🛍️</div><p>Tu carrito está vacío</p><p style="font-size:13px;color:#bbb;margin-top:8px;">Añade una placa para empezar</p></div>`;
+    body.innerHTML = `
+      <div class="cart-empty">
+        <div class="empty-icon">🛍️</div>
+        <p>Tu carrito está vacío</p>
+        <p style="font-size:13px;color:#bbb;margin-top:8px;">Añade una placa para empezar</p>
+      </div>`;
     footer.style.display = 'none';
     return;
   }
@@ -126,7 +91,7 @@ function renderCart() {
     </div>
   `).join('');
 
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const total   = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const totalEl = document.getElementById('cartTotal');
   if (totalEl) totalEl.textContent = total.toFixed(2).replace('.', ',') + '€';
   footer.style.display = 'block';
@@ -162,6 +127,7 @@ function toggleCart(forceOpen) {
   }
 }
 
+// ── CHECKOUT ──────────────────────────────────────────────────────────────────
 function openCheckout() {
   toggleCart();
   const modal = document.getElementById('checkoutModal');
@@ -173,12 +139,11 @@ function openCheckout() {
 }
 
 function closeCheckout() {
-  const modal = document.getElementById('checkoutModal');
-  const form = document.getElementById('checkoutForm');
+  const modal   = document.getElementById('checkoutModal');
+  const form    = document.getElementById('checkoutForm');
   const success = document.getElementById('successScreen');
-  
-  if (modal) modal.classList.remove('open');
-  if (form) form.style.display = 'block';
+  if (modal)   modal.classList.remove('open');
+  if (form)    form.style.display = 'block';
   if (success) success.style.display = 'none';
   document.body.style.overflow = '';
 }
@@ -189,9 +154,19 @@ function renderOrderSummary() {
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   el.innerHTML = `
     <div class="order-summary-title">Resumen del pedido</div>
-    ${cart.map(i => `<div class="order-summary-item"><span>${i.name} × ${i.qty}</span><span>${(i.price*i.qty).toFixed(2)}€</span></div>`).join('')}
-    <div class="order-summary-item"><span>Envío</span><span style="color:#25D366;font-weight:600;">Gratis</span></div>
-    <div class="order-summary-total"><span>Total</span><span>${total.toFixed(2).replace('.',',')}€</span></div>
+    ${cart.map(i => `
+      <div class="order-summary-item">
+        <span>${i.name} × ${i.qty}</span>
+        <span>${(i.price * i.qty).toFixed(2)}€</span>
+      </div>`).join('')}
+    <div class="order-summary-item">
+      <span>Envío</span>
+      <span style="color:#25D366;font-weight:600;">Gratis</span>
+    </div>
+    <div class="order-summary-total">
+      <span>Total</span>
+      <span>${total.toFixed(2).replace('.', ',')}€</span>
+    </div>
   `;
 }
 
@@ -202,20 +177,19 @@ function selectPay(btn, method) {
 }
 
 function processOrder() {
-  const name = document.getElementById('fName').value.trim();
-  const email = document.getElementById('fEmail').value.trim();
+  const name    = document.getElementById('fName').value.trim();
+  const email   = document.getElementById('fEmail').value.trim();
   const address = document.getElementById('fAddress').value.trim();
-  const city = document.getElementById('fCity').value.trim();
-  const cp = document.getElementById('fCP').value.trim();
-
-  const payText = selectedPayMethod === 'bizum' ? 'Bizum (606295911)' : 'Efectivo en entrega';
+  const city    = document.getElementById('fCity').value.trim();
+  const cp      = document.getElementById('fCP').value.trim();
 
   if (!name || !email || !address) {
     alert('Por favor, completa los datos de contacto y envío.');
     return;
   }
 
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const payText  = selectedPayMethod === 'bizum' ? 'Bizum (606295911)' : 'Efectivo en entrega';
+  const total    = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const itemsText = cart
     .map(i => `• ${i.name} × ${i.qty} — ${(i.price * i.qty).toFixed(2)}€`)
     .join('%0A');
@@ -238,20 +212,22 @@ function processOrder() {
   renderCart();
 
   setTimeout(() => {
-    const form = document.getElementById('checkoutForm');
+    const form    = document.getElementById('checkoutForm');
     const success = document.getElementById('successScreen');
-    if (form) form.style.display = 'none';
+    if (form)    form.style.display = 'none';
     if (success) success.style.display = 'block';
   }, 500);
 }
 
-// ── SCROLL ANIMATIONS ──
+// ── SCROLL ANIMATIONS ─────────────────────────────────────────────────────────
 function initScrollAnimations() {
-  const scrollObserver = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) e.target.classList.add('visible');
-    });
-  }, { threshold: 0.1 });
-
+  const scrollObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      });
+    },
+    { threshold: 0.1 }
+  );
   document.querySelectorAll('.fade-in').forEach(el => scrollObserver.observe(el));
 }

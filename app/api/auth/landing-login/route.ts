@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
-// Cliente de Supabase con la service role key para poder
-// consultar la tabla owners y disparar el magic link
-// sin estar sujeto a las políticas RLS de usuario final.
-const supabase = createClient(
+// Service role: consulta owners sin restricciones RLS y envía magic links
+const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
@@ -13,7 +12,6 @@ export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
 
-    // ── Validación básica ──────────────────────────────────
     if (!email || typeof email !== "string" || !email.includes("@")) {
       return NextResponse.json(
         { ok: false, reason: "invalid_email" },
@@ -23,12 +21,32 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // ── Comprobar si el email existe en public.owners ──────
-    // La tabla owners.email se rellena cuando el usuario
-    // asocia su placa QR (número de placa → correo electrónico).
-    const { data: owner, error: ownerError } = await supabase
+    // ── PASO 1: ¿Ya hay sesión activa? ──────────────────────────────────────
+    // Usamos el mismo patrón que middleware.ts (createServerClient + cookies).
+    // El fetch del login.html lleva credentials: "include", así que las cookies
+    // httpOnly de dogid.es viajan con la petición y podemos leerlas aquí.
+    const supabaseSession = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return req.cookies.getAll(); },
+          setAll() {},   // solo lectura, no escribimos cookies aquí
+        },
+      }
+    );
+
+    const { data: { user } } = await supabaseSession.auth.getUser();
+
+    if (user) {
+      // Sesión válida → el cliente redirigirá al dashboard sin enviar magic link
+      return NextResponse.json({ authenticated: true });
+    }
+
+    // ── PASO 2: Sin sesión — ¿existe el email en owners? ────────────────────
+    const { data: owner, error: ownerError } = await supabaseAdmin
       .from("owners")
-      .select("id, email")
+      .select("id")
       .eq("email", normalizedEmail)
       .maybeSingle();
 
@@ -40,20 +58,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Email no registrado → el login.html mostrará la vista "no encontrado"
     if (!owner) {
+      // Email no registrado → el cliente mostrará la vista "no encontrado"
       return NextResponse.json({ ok: false, reason: "not_found" });
     }
 
-    // ── Email existe → disparar magic link via Supabase Auth ──
-    // Equivalente a lo que hace /app/login/page.tsx llamando
-    // a /api/auth/login, pero invocado directamente aquí para
-    // mantener este endpoint independiente.
-    const { error: magicError } = await supabase.auth.signInWithOtp({
+    // ── PASO 3: Email registrado y sin sesión → enviar magic link ───────────
+    const { error: magicError } = await supabaseAdmin.auth.signInWithOtp({
       email: normalizedEmail,
       options: {
-        // Al hacer clic en el enlace del email, Supabase redirige aquí.
-        // El middleware de Next.js intercambia el token y lleva al dashboard.
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
       },
     });
@@ -66,7 +79,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Todo correcto → el login.html mostrará "revisa tu correo"
     return NextResponse.json({ ok: true });
 
   } catch (err) {
