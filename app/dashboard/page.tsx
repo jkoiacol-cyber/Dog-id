@@ -30,7 +30,7 @@ export default async function DashboardPage() {
         <div className="flex flex-col items-center justify-center pt-16 pb-8 gap-6">
           {/* Iconos perro / huella / gato */}
           <img
-            src="/public/img/icons.png"
+            src="/img/iconsv2.png"
             alt="dog paw cat icons"
             style={{ width: "220px", opacity: 0.9 }}
           />
