@@ -441,9 +441,9 @@ export default function NewPetPage() {
     }
 
     setSaving(false);
-
+    // Se añade const res en la sigueinte linea 
     try {
-      await fetch("/api/send-welcome-email", {
+      const res await fetch("/api/send-welcome-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -454,6 +454,7 @@ export default function NewPetPage() {
           qrCode:    tagData.slug,
         }),
       });
+      const data = await res.json(); //añadido
       console.log("Email response:", res.status, data);  //añadido 
     } catch (err) {
       console.warn("Email de bienvenida no enviado:", err);
