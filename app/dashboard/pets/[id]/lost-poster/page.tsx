@@ -142,9 +142,11 @@ export default function LostPosterPage({
     let H = 120; // cabecera
     H += 320;    // foto
     H += 100;    // nombre + especie
+    if (pet.chip_id) H += 30;
     if (lastLocation) H += 80;
     if (lostMessage) H += 80;
     if (reward) H += 60;
+    if (pet.notes) H += 80;
     H += 120;    // teléfono + QR + padding
 
     canvas.width = W;
@@ -194,6 +196,15 @@ export default function LostPosterPage({
     const speciesText = `${pet.species === "dog" ? "🐶 Perro" : "🐱 Gato"}${pet.sex && pet.sex !== "unknown" ? ` · ${pet.sex === "male" ? "Macho" : "Hembra"}` : ""}`;
     ctx.fillText(speciesText, W / 2, y + 24);
     y += 40;
+
+    // Número de chip
+    if (pet.chip_id) {
+      ctx.fillStyle = "#a8a29e";
+      ctx.font = "12px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(`🔖 Chip: ${pet.chip_id}`, W / 2, y + 20);
+      y += 30;
+    }
 
     // Última localización
     if (lastLocation) {
@@ -254,6 +265,40 @@ export default function LostPosterPage({
       ctx.fillText(`💰 Recompensa: ${reward}`, W / 2, y + 36);
       y += 60;
     }
+
+ // Notas médicas
+    if (pet.notes) {
+      ctx.fillStyle = "#fff7ed";
+      ctx.beginPath();
+      ctx.roundRect(40, y + 8, W - 80, 60, 10);
+      ctx.fill();
+      ctx.strokeStyle = "#fed7aa";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = "#ea580c";
+      ctx.font = "bold 11px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("⚠️ INFORMACIÓN IMPORTANTE", W / 2, y + 28);
+
+      ctx.fillStyle = "#1c1917";
+      ctx.font = "13px Arial";
+      const maxWidth = W - 100;
+      const words = pet.notes.split(" ");
+      let line = "";
+      let lineY = y + 48;
+      for (const word of words) {
+        const test = line + word + " ";
+        if (ctx.measureText(test).width > maxWidth && line !== "") {
+          ctx.fillText(line.trim(), W / 2, lineY);
+          line = word + " ";
+          lineY += 18;
+        } else {
+          line = test;
+        }
+      }
+      ctx.fillText(line.trim(), W / 2, lineY);
+      y = lineY + 16
 
     // Teléfono y QR
     y += 16;
@@ -509,6 +554,14 @@ export default function LostPosterPage({
         {reward && (
           <div className="mx-6 mt-4 bg-yellow-50 border border-yellow-300 rounded-xl p-3 text-center">
             <p className="text-yellow-700 font-black text-xl">💰 Recompensa: {reward}</p>
+          </div>
+        )}
+
+        {/* Notas médicas */}
+        {pet.notes && (
+          <div className="mx-6 mt-4 bg-orange-50 border border-orange-200 rounded-xl p-3 text-center">
+            <p className="text-xs font-black text-orange-500 uppercase tracking-widest mb-1">⚠️ Información importante</p>
+            <p className="text-stone-700 text-sm leading-relaxed">{pet.notes}</p>
           </div>
         )}
 

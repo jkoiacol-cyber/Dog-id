@@ -197,6 +197,22 @@ export default async function PublicPetPage(
           </div>
         </div>
 
+        
+        {/* Notas médicas / pasaporte */}
+        {pet.notes && (
+          <div className="rounded-xl bg-orange-50 p-4 border border-orange-200 flex items-start gap-3">
+            <span className="text-lg">⚠️</span>
+            <div>
+              <span className="text-[9px] font-black text-orange-500 tracking-widest uppercase">
+                Información importante
+              </span>
+              <p className="text-stone-800 text-sm leading-relaxed mt-1">
+                {pet.notes}
+              </p>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
