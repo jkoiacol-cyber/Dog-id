@@ -58,6 +58,18 @@ export default async function PublicPetPage(
     pet = petByTag;
   }
 
+    let medicalNotes: { title: string; description: string; notes: string }[] = [];
+
+    if (pet && pet.show_medical_notes) {
+      const { data: records } = await supabase
+        .from("pet_records")
+        .select("title, description, notes")
+        .eq("pet_id", pet.id)
+        .eq("show_in_lost", true);
+
+      medicalNotes = records || [];
+    }
+
   if (!pet) {
     if (!t) return null;
 
@@ -199,16 +211,28 @@ export default async function PublicPetPage(
 
         
         {/* Notas médicas / pasaporte */}
-        {pet.notes && (
+        {medicalNotes.length > 0 && (
           <div className="rounded-xl bg-orange-50 p-4 border border-orange-200 flex items-start gap-3">
             <span className="text-lg">⚠️</span>
-            <div>
+            <div className="flex-1">
               <span className="text-[9px] font-black text-orange-500 tracking-widest uppercase">
                 Información importante
               </span>
-              <p className="text-stone-800 text-sm leading-relaxed mt-1">
-                {pet.notes}
-              </p>
+              <div className="mt-2 space-y-2">
+                {medicalNotes.map((record, idx) => (
+                  <div key={idx}>
+                    {record.title && (
+                      <p className="text-xs font-bold text-stone-700">{record.title}</p>
+                    )}
+                    {record.description && (
+                      <p className="text-stone-700 text-sm leading-relaxed">{record.description}</p>
+                    )}
+                    {record.notes && (
+                      <p className="text-stone-500 text-xs mt-0.5">{record.notes}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

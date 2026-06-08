@@ -24,6 +24,7 @@ export default function LostPosterPage({
   const [lostMessage, setLostMessage] = useState("");
   const [reward, setReward] = useState("");
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [medicalNotes, setMedicalNotes] = useState<{ title: string; description: string; notes: string }[]>([]);
 
   const posterRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +44,15 @@ export default function LostPosterPage({
         setIsLost(data.is_lost || false);
         setLastLocation(data.last_location || "");
         setLostMessage(data.lost_message || DEFAULT_MESSAGE);
+
+        if (data.show_medical_notes) {
+          const { data: records } = await supabase
+            .from("pet_records")
+            .select("title, description, notes")
+            .eq("pet_id", data.id)
+            .eq("show_in_lost", true);
+          setMedicalNotes(records || []);
+        }
 
         const publicUrl = `${window.location.origin}/pets/${data.slug}`;
         const qrData = await QRCode.toDataURL(publicUrl, { width: 200, margin: 1 });
@@ -146,7 +156,7 @@ export default function LostPosterPage({
     if (lastLocation) H += 80;
     if (lostMessage) H += 80;
     if (reward) H += 60;
-    if (pet.notes) H += 80;
+    if (medicalNotes.length > 0) H += medicalNotes.length * 60 + 40;
     H += 120;    // teléfono + QR + padding
 
     canvas.width = W;
@@ -267,10 +277,14 @@ export default function LostPosterPage({
     }
 
  // Notas médicas
-    if (pet.notes) {
+    if (medicalNotes.length > 0) {
+      const allText = medicalNotes
+        .map(r => [r.title, r.description, r.notes].filter(Boolean).join(" · "))
+        .join(" | ");
+
       ctx.fillStyle = "#fff7ed";
       ctx.beginPath();
-      ctx.roundRect(40, y + 8, W - 80, 60, 10);
+      ctx.roundRect(40, y + 8, W - 80, medicalNotes.length * 60 + 20, 10);
       ctx.fill();
       ctx.strokeStyle = "#fed7aa";
       ctx.lineWidth = 1;
@@ -284,7 +298,7 @@ export default function LostPosterPage({
       ctx.fillStyle = "#1c1917";
       ctx.font = "13px Arial";
       const maxWidth = W - 100;
-      const words = pet.notes.split(" ");
+      const words = allText.split(" ");
       let line = "";
       let lineY = y + 48;
       for (const word of words) {
@@ -298,8 +312,8 @@ export default function LostPosterPage({
         }
       }
       ctx.fillText(line.trim(), W / 2, lineY);
-      y = lineY + 16
-      }
+      y = lineY + 20;
+    }
 
     // Teléfono y QR
     y += 16;
@@ -559,10 +573,24 @@ export default function LostPosterPage({
         )}
 
         {/* Notas médicas */}
-        {pet.notes && (
-          <div className="mx-6 mt-4 bg-orange-50 border border-orange-200 rounded-xl p-3 text-center">
-            <p className="text-xs font-black text-orange-500 uppercase tracking-widest mb-1">⚠️ Información importante</p>
-            <p className="text-stone-700 text-sm leading-relaxed">{pet.notes}</p>
+        {medicalNotes.length > 0 && (
+          <div className="mx-6 mt-4 bg-orange-50 border border-orange-200 rounded-xl p-3">
+            <p className="text-xs font-black text-orange-500 uppercase tracking-widest mb-2 text-center">
+              ⚠️ Información importante
+            </p>
+            {medicalNotes.map((record, idx) => (
+              <div key={idx} className={idx > 0 ? "mt-2 pt-2 border-t border-orange-100" : ""}>
+                {record.title && (
+                  <p className="text-xs font-bold text-stone-700 text-center">{record.title}</p>
+                )}
+                {record.description && (
+                  <p className="text-stone-700 text-sm leading-relaxed text-center">{record.description}</p>
+                )}
+                {record.notes && (
+                  <p className="text-stone-500 text-xs text-center mt-0.5">{record.notes}</p>
+                )}
+              </div>
+            ))}
           </div>
         )}
 

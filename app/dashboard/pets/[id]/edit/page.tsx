@@ -36,6 +36,7 @@ export default function EditPetPage({
   const [showPhone, setShowPhone] = useState(true);
   const [showAddress, setShowAddress] = useState(true);
   const [showOwners, setShowOwners] = useState(true);
+  const [showMedicalNotes, setShowMedicalNotes] = useState(pet?.show_medical_notes || false);
   const [isLost, setIsLost] = useState(false);
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -83,6 +84,7 @@ export default function EditPetPage({
         setShowOwners(data.show_owners);
         setIsLost(data.is_lost);
         setPhotoUrl(data.photo_url || null);
+        setShowMedicalNotes(data.show_medical_notes || false);
       }
 
       setLoading(false);
@@ -209,6 +211,7 @@ export default function EditPetPage({
       show_phone: showPhone,
       show_address: showAddress,
       show_owners: showOwners,
+      show_medical_notes: showMedicalNotes,
       is_lost: isLost,
       photo_url: uploadedPhotoUrl,
     }).eq("id", id);
@@ -392,6 +395,7 @@ export default function EditPetPage({
             { label: "Mostrar teléfono", state: showPhone, setter: setShowPhone, icon: "📞" },
             { label: "Mostrar dirección", state: showAddress, setter: setShowAddress, icon: "📍" },
             { label: "Mostrar propietarios", state: showOwners, setter: setShowOwners, icon: "👤" },
+            { label: "Mostrar notas médicas", state: showMedicalNotes, setter: setShowMedicalNotes, icon: "🏥" },
           ].map((item, idx) => (
             <label key={idx} className="flex items-center justify-between p-3 bg-white border border-zinc-200 rounded-xl active:scale-[0.98] transition-transform shadow-sm">
               <div className="flex items-center gap-3">
