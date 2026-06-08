@@ -57,10 +57,10 @@
           <span style="font-weight:700;color:#111;">✓</span> Sin app para el que encuentra
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888;">
-          <span style="font-weight:700;color:#111;">✓</span> Modo perdido activable
+          <span style="font-weight:700;color:#111;">✓</span> Modo perdido + cartel imprimible
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888;">
-          <span style="font-weight:700;color:#111;">✓</span> Cartilla sanitaria digital
+          <span style="font-weight:700;color:#111;">✓</span> Recordatorios de vacunas por email
         </div>
       </div>
     </div>
@@ -72,7 +72,7 @@
   <div class="trust-item"><span>🚚</span> Envío en 24–48h</div>
   <div class="trust-item"><span>🔒</span> Pago seguro</div>
   <div class="trust-item"><span>♻️</span> Packaging eco-friendly</div>
-  <div class="trust-item"><span>📱</span> App incluida</div>
+  <div class="trust-item"><span>🔔</span> Recordatorios de salud</div>
   <div class="trust-item"><span>⭐</span> +500 mascotas protegidas</div>
 </div>
 
@@ -156,22 +156,25 @@
 <section class="section fade-in" id="funcionalidades">
   <p class="section-label">Más que una placa</p>
   <h2 class="section-title">Una app completa<br>para tu mascota</h2>
-  <p class="section-sub">La placa es el acceso. La aplicación es el verdadero valor. Todo incluido con tu compra.</p>
+  <p class="section-sub">La placa es el acceso. La aplicación es el verdadero valor: perfil público, modo perdido, cartilla sanitaria y recordatorios de salud. Todo incluido.</p>
 
   <div class="features-grid">
+
+    <!-- PERFIL PÚBLICO -->
     <div class="feature-card fade-in">
       <span class="feature-icon">🔗</span>
       <div class="feature-title">Perfil público personalizable</div>
-      <div class="feature-desc">Tú decides qué información se muestra. Nombre, foto, dirección, notas especiales de salud... El escaneador verá exactamente lo que quieres que vea.</div>
+      <div class="feature-desc">Tú decides qué información se muestra. Teléfono, dirección y nombre del propietario se pueden ocultar con un toque. El escaneador ve solo lo que tú quieres.</div>
       <div style="margin-top:16px;background:var(--off-white);border-radius:12px;padding:14px 16px;font-size:13px;color:#666;">
         <strong style="color:#111;">URL personalizable:</strong> dog-id.app/Zeus
       </div>
     </div>
 
+    <!-- CONTACTO DIRECTO -->
     <div class="feature-card fade-in" style="transition-delay:.1s">
       <span class="feature-icon">📞</span>
       <div class="feature-title">Contacto directo en un clic</div>
-      <div class="feature-desc">Sin rodeos. Tres botones de acción inmediata para que quien encuentre a tu mascota pueda contactarte al instante.</div>
+      <div class="feature-desc">Sin rodeos. Tres botones de acción inmediata para que quien encuentre a tu mascota pueda contactarte al instante. Sin instalar ninguna app.</div>
       <div class="comm-demo">
         <div class="comm-btn call">📞 Llamar</div>
         <div class="comm-btn whatsapp">💬 WhatsApp</div>
@@ -179,26 +182,72 @@
       </div>
     </div>
 
+    <!-- MODO PERDIDO EXPANDIDO -->
     <div class="feature-card lost fade-in">
       <span class="feature-icon">🚨</span>
-      <div class="feature-title">Modo Perdido — Alerta inmediata</div>
-      <div class="feature-desc">Con un solo toque en la app, el perfil público se convierte en un cartel de búsqueda rojo. Cualquier persona que escanee la placa verá la alerta y podrá ayudarte a encontrar a tu mascota.</div>
-      <div class="lost-demo">
+      <div class="feature-title">Modo Perdido — Tu aliado en el peor momento</div>
+      <div class="feature-desc">Con un solo toque el perfil se convierte en cartel de búsqueda rojo. Cuando el estrés no te deja pensar, la app ya lo tiene todo preparado.</div>
+      <div class="lost-demo" style="margin-bottom:14px;">
         <span class="lost-badge">🚨 PERDIDO</span>
         <span class="lost-text">Última localización: Cerca de esta área</span>
       </div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#555;">
+          <span style="flex-shrink:0;">📍</span>
+          <span><strong style="color:#111;">GPS → dirección legible.</strong> Captura tu posición con un toque y la convierte automáticamente en texto para el cartel.</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#555;">
+          <span style="flex-shrink:0;">🖨️</span>
+          <span><strong style="color:#111;">Cartel listo para imprimir.</strong> Con foto, nombre, teléfono y QR incluidos. Sin editar nada si no quieres.</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#555;">
+          <span style="flex-shrink:0;">✏️</span>
+          <span><strong style="color:#111;">Mensaje y recompensa editables.</strong> Personaliza el texto del cartel y añade una recompensa si lo deseas.</span>
+        </div>
+      </div>
     </div>
 
+    <!-- CARTILLA SANITARIA + RECORDATORIOS -->
     <div class="feature-card fade-in" style="transition-delay:.1s">
       <span class="feature-icon">📋</span>
-      <div class="feature-title">Cartilla sanitaria digital</div>
-      <div class="feature-desc">Sube fotos del pasaporte europeo, vacunas y desparasitaciones. Imprescindible para viajes. Tu veterinario puede consultarlo desde cualquier lugar sin necesidad de llevar papeles.</div>
-      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+      <div class="feature-title">Cartilla sanitaria digital con recordatorios</div>
+      <div class="feature-desc">Sube fotos del pasaporte europeo, vacunas y desparasitaciones. Imprescindible para viajes. Tu veterinario lo consulta desde cualquier lugar sin papeles.</div>
+      <div style="margin-top:14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:14px 16px;">
+        <div style="font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:6px;">🔔 Recordatorios automáticos por email</div>
+        <div style="font-size:13px;color:#1e40af;line-height:1.6;">Recibirás avisos antes de que caduquen las vacunas y desparasitaciones para que nunca pierdas el calendario de salud de tu mascota.</div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
         <span style="background:var(--off-white);padding:5px 12px;border-radius:50px;font-size:12px;font-weight:600;">💉 Vacunas</span>
         <span style="background:var(--off-white);padding:5px 12px;border-radius:50px;font-size:12px;font-weight:600;">🐛 Desparasitación</span>
         <span style="background:var(--off-white);padding:5px 12px;border-radius:50px;font-size:12px;font-weight:600;">📘 Pasaporte EU</span>
       </div>
     </div>
+
+    <!-- VARIAS MASCOTAS -->
+    <div class="feature-card fade-in">
+      <span class="feature-icon">🐾</span>
+      <div class="feature-title">Varias mascotas, una cuenta</div>
+      <div class="feature-desc">Registra todos tus animales bajo el mismo correo electrónico. Cada placa QR queda vinculada individualmente con su propio perfil, historial y Modo Perdido independiente.</div>
+      <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div style="background:var(--bone);border-radius:50px;padding:8px 16px;font-size:13px;font-weight:600;">🐶 Perro</div>
+        <div style="font-size:18px;color:#ccc;">+</div>
+        <div style="background:#e8f4fd;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:600;">🐱 Gato</div>
+        <div style="font-size:18px;color:#ccc;">+</div>
+        <div style="background:#f0fdf4;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:600;">🐾 Más...</div>
+      </div>
+    </div>
+
+    <!-- QR PERMANENTE -->
+    <div class="feature-card fade-in" style="transition-delay:.1s;background:#1c1c1e;border-color:#1c1c1e;">
+      <span class="feature-icon">🔄</span>
+      <div class="feature-title" style="color:white;">¿Pierdes la placa? No pierdes nada más</div>
+      <div class="feature-desc" style="color:#a0a0a0;">Tu QR está vinculado permanentemente a tu correo. Si la placa se pierde o daña, solicitas una nueva y queda asociada a tu mascota con todos sus datos y historial intactos.</div>
+      <div style="margin-top:16px;background:rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;">
+        <div style="font-size:13px;font-weight:700;color:#f59e0b;margin-bottom:4px;">✓ Historial siempre a salvo</div>
+        <div style="font-size:13px;color:#d1d1d1;line-height:1.6;">Vacunas, desparasitaciones, fotos y datos del perfil permanecen intactos aunque cambies de placa.</div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -328,16 +377,5 @@
 </div>
 
 <script src="/landing/script.js"></script>
-<div id="cookie-banner" class="cookie-banner">
-  <p>
-    Usamos cookies propias y de terceros para mejorar tu experiencia y analizar el uso del sitio.
-    <a href="/landing/legal/politica-de-cookies.html">Más información</a>.
-  </p>
-  <div class="cookie-buttons">
-    <button id="cookie-accept">Aceptar</button>
-    <button id="cookie-decline">Rechazar</button>
-  </div>
-</div>
-
 </body>
 </html>
