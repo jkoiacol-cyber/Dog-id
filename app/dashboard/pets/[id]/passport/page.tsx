@@ -791,7 +791,7 @@ const guardarEdicionParasito = async () => {
                                   .update({ show_in_lost: !n.show_in_lost })
                                   .eq("id", n.id);
                                 // refrescar datos
-                                refreshPet();
+                                reloadPet();
                               }}
                               className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out`}
                               style={{ backgroundColor: n.show_in_lost ? "#16a34a" : "#d1d5db" }}
