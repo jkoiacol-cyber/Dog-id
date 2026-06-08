@@ -786,12 +786,19 @@ const guardarEdicionParasito = async () => {
                             </span>
                             <button
                               onClick={async () => {
+                                const newValue = !n.show_in_lost;
+                                // Actualizar estado local inmediatamente sin recargar
+                                setPet((prev: any) => ({
+                                  ...prev,
+                                  records: prev.records.map((r: any) =>
+                                    r.id === n.id ? { ...r, show_in_lost: newValue } : r
+                                  ),
+                                }));
+                                // Guardar en BD en segundo plano
                                 await supabase
                                   .from("pet_records")
-                                  .update({ show_in_lost: !n.show_in_lost })
+                                  .update({ show_in_lost: newValue })
                                   .eq("id", n.id);
-                                // refrescar datos
-                                reloadPet();
                               }}
                               className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out`}
                               style={{ backgroundColor: n.show_in_lost ? "#16a34a" : "#d1d5db" }}
