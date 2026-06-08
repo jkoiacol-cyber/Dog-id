@@ -299,6 +299,7 @@ export default function LostPosterPage({
       }
       ctx.fillText(line.trim(), W / 2, lineY);
       y = lineY + 16
+      }
 
     // Teléfono y QR
     y += 16;
@@ -617,4 +618,4 @@ export default function LostPosterPage({
       </div>
     </div>
   );
-}
+}}
