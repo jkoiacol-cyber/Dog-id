@@ -36,7 +36,7 @@ export default function EditPetPage({
   const [showPhone, setShowPhone] = useState(true);
   const [showAddress, setShowAddress] = useState(true);
   const [showOwners, setShowOwners] = useState(true);
-  const [showMedicalNotes, setShowMedicalNotes] = useState(pet?.show_medical_notes || false);
+  const [showMedicalNotes, setShowMedicalNotes] = useState(false);
   const [isLost, setIsLost] = useState(false);
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
