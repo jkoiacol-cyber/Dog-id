@@ -1,6 +1,7 @@
 //C:\Users\nikom\Desktop\Proyecto_Dog-id\dog-id\app\pets\[slug]\page.tsx
 import { supabase } from "@/lib/supabase";
 import LocationButton from "@/components/LocationButton";
+export const revalidate = 0;
 
 export default async function PublicPetPage(
   props: {
