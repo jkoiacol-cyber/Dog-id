@@ -60,7 +60,7 @@ export default function PassportPage({
   const [editingParasite, setEditingParasite] = useState<any>(null);
 
   const [showAddNote, setShowAddNote] = useState(false);
-  const [newNote, setNewNote] = useState({ title: "", description: "" });
+  const [newNote, setNewNote] = useState({ title: "", description: "", show_in_lost: false });
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingNote, setEditingNote] = useState<any>(null);
 
@@ -281,10 +281,11 @@ const guardarEdicionParasito = async () => {
       title: newNote.title,
       description: newNote.description || null,
       date: new Date().toISOString().split("T")[0],
+      show_in_lost: newNote.show_in_lost,
     });
     if (error) { alert("Error guardando nota: " + error.message); return; }
     setShowAddNote(false);
-    setNewNote({ title: "", description: "" });
+    setNewNote({ title: "", description: "", show_in_lost: false });
     reloadPet();
   };
 
@@ -778,6 +779,30 @@ const guardarEdicionParasito = async () => {
                               {new Date(n.date).toLocaleDateString()}
                             </span>
                           </div>
+
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-100">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                              Mostrar en perfil público y cartel perdido
+                            </span>
+                            <button
+                              onClick={async () => {
+                                await supabase
+                                  .from("pet_records")
+                                  .update({ show_in_lost: !n.show_in_lost })
+                                  .eq("id", n.id);
+                                // refrescar datos
+                                refreshPet();
+                              }}
+                              className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out`}
+                              style={{ backgroundColor: n.show_in_lost ? "#16a34a" : "#d1d5db" }}
+                            >
+                              <span
+                                className="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ease-in-out"
+                                style={{ transform: n.show_in_lost ? "translateX(20px)" : "translateX(0px)" }}
+                              />
+                            </button>
+                          </div>
+
                         </div>
                       )}
                     </div>
@@ -790,7 +815,7 @@ const guardarEdicionParasito = async () => {
             )}
           </div>
         )}
-      </div> {/* <--- ESTE DIV FALTABA PARA CERRAR EL ACORDEÓN */}
+      </div> 
 
       {/* MODAL: Añadir nota */}
       {showAddNote && (
@@ -817,6 +842,24 @@ const guardarEdicionParasito = async () => {
                 onChange={(e) => setNewNote({ ...newNote, description: e.target.value })}
               />
             </div>
+
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="text-xs font-bold text-zinc-700">Mostrar en perfil público</p>
+                <p className="text-[10px] text-zinc-400">Visible en QR público y cartel de perdido</p>
+              </div>
+              <button
+                onClick={() => setNewNote({ ...newNote, show_in_lost: !newNote.show_in_lost })}
+                className="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out"
+                style={{ backgroundColor: newNote.show_in_lost ? "#16a34a" : "#d1d5db" }}
+              >
+                <span
+                  className="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ease-in-out"
+                  style={{ transform: newNote.show_in_lost ? "translateX(20px)" : "translateX(0px)" }}
+                />
+              </button>
+            </div>
+
             <button onClick={guardarNota} className="w-full py-2 bg-green-600 text-white rounded-xl font-semibold">Guardar nota</button>
             <button onClick={() => setShowAddNote(false)} className="w-full py-2 bg-stone-300 rounded-xl text-sm">Cancelar</button>
           </div>
