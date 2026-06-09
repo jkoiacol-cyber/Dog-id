@@ -32,9 +32,6 @@ export default function PassportPage({
 
   const [loading, setLoading] = useState(true);
   const [pet, setPet] = useState<any>(null);
-  const [zoomLevel, setZoomLevel] = useState(0);
-
-
   const [showUpload, setShowUpload] = useState(false);
   const [pageNumber, setPageNumber] = useState(0);
   const [file, setFile] = useState<File | null>(null);
@@ -880,12 +877,33 @@ const guardarEdicionParasito = async () => {
             <h3 className="text-lg font-semibold">Subir página de cartilla</h3>
             <div className="space-y-2">
               <label className="text-sm font-medium">Número de página</label>
-              <input type="number" min="0" className="w-full border rounded-lg p-2" value={pageNumber} onChange={(e) => setPageNumber(Number(e.target.value))} />
+              <input type="number" min="0" step="1" className="w-full border rounded-lg p-2" value={pageNumber} onChange={(e) => setPageNumber(parseInt(e.target.value, 10) || 0)} />
               <p className="text-xs text-stone-500">La portada debe ser la página 0.</p>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Imagen</label>
-              <input type="file" accept="image/*" className="block w-full text-sm text-stone-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-stone-900 file:text-white hover:file:bg-stone-700" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-stone-300 rounded-xl cursor-pointer bg-stone-50 active:bg-stone-100 transition-colors">
+                {file ? (
+                  <div className="flex flex-col items-center gap-1 px-2 text-center">
+                    <span className="text-2xl">✅</span>
+                    <span className="text-sm font-medium text-stone-700 truncate max-w-[200px]">{file.name}</span>
+                    <span className="text-xs text-stone-400">{(file.size / 1024).toFixed(0)} KB — toca para cambiar</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-stone-400">
+                    <span className="text-3xl">📷</span>
+                    <span className="text-sm font-medium text-stone-600">Toca para elegir foto</span>
+                    <span className="text-xs text-stone-400">Cámara o galería</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                />
+              </label>
             </div>
             <div className="flex gap-2 pt-2">
               <button onClick={() => { setShowUpload(false); setFile(null); }} className="flex-1 py-2 border rounded-lg">Cancelar</button>
