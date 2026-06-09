@@ -877,7 +877,7 @@ const guardarEdicionParasito = async () => {
             <h3 className="text-lg font-semibold">Subir página de cartilla</h3>
             <div className="space-y-2">
               <label className="text-sm font-medium">Número de página</label>
-              <input type="number" min="0" step="1" className="w-full border rounded-lg p-2" value={pageNumber} onChange={(e) => setPageNumber(parseInt(e.target.value, 10) || 0)} />
+              <input type="text" inputMode="numeric" pattern="[0-9]*" min="0" step="1" className="w-full border rounded-lg p-2" value={pageNumber} onChange={(e) => setPageNumber(parseInt(e.target.value, 10) || 0)} />
               <p className="text-xs text-stone-500">La portada debe ser la página 0.</p>
             </div>
             <div className="space-y-2">
@@ -899,7 +899,6 @@ const guardarEdicionParasito = async () => {
                 <input
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   className="hidden"
                   onChange={(e) => setFile(e.target.files?.[0] || null)}
                 />
