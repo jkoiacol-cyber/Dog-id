@@ -882,27 +882,43 @@ const guardarEdicionParasito = async () => {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Imagen</label>
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-stone-300 rounded-xl cursor-pointer bg-stone-50 active:bg-stone-100 transition-colors">
-                {file ? (
-                  <div className="flex flex-col items-center gap-1 px-2 text-center">
-                    <span className="text-2xl">✅</span>
-                    <span className="text-sm font-medium text-stone-700 truncate max-w-[200px]">{file.name}</span>
-                    <span className="text-xs text-stone-400">{(file.size / 1024).toFixed(0)} KB — toca para cambiar</span>
+
+              {file ? (
+                <div className="flex items-center gap-3 p-3 bg-stone-50 border rounded-xl">
+                  <span className="text-2xl">✅</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-stone-700 truncate">{file.name}</p>
+                    <p className="text-xs text-stone-400">{(file.size / 1024).toFixed(0)} KB</p>
                   </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-stone-400">
-                    <span className="text-3xl">📷</span>
-                    <span className="text-sm font-medium text-stone-600">Toca para elegir foto</span>
-                    <span className="text-xs text-stone-400">Cámara o galería</span>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                />
-              </label>
+                  <button onClick={() => setFile(null)} className="text-stone-400 text-lg px-2">✕</button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  {/* Botón cámara */}
+                  <label className="flex-1 flex flex-col items-center justify-center gap-1 py-4 border-2 border-dashed border-stone-300 rounded-xl cursor-pointer bg-stone-50 active:bg-stone-100 transition-colors">
+                    <span className="text-2xl">📷</span>
+                    <span className="text-xs font-medium text-stone-600">Cámara</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                  {/* Botón galería */}
+                  <label className="flex-1 flex flex-col items-center justify-center gap-1 py-4 border-2 border-dashed border-stone-300 rounded-xl cursor-pointer bg-stone-50 active:bg-stone-100 transition-colors">
+                    <span className="text-2xl">🖼️</span>
+                    <span className="text-xs font-medium text-stone-600">Galería</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 pt-2">
               <button onClick={() => { setShowUpload(false); setFile(null); }} className="flex-1 py-2 border rounded-lg">Cancelar</button>
