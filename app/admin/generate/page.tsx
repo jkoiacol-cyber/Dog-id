@@ -82,24 +82,34 @@ export default function AdminGeneratePage() {
 // -------------------------------------------------------------
 function GenerateTab() {
   const [hasExpiry, setHasExpiry] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [usedTokens, setUsedTokens] = useState<string[]>([]);
   const [generated, setGenerated] = useState<{
     slug: string; secretId: string; token: string;
     qrDataUrl: string; reused: boolean;
   } | null>(null);
 
   const generateQR = async () => {
+    if (generating) return;
+    setGenerating(true);
     let slug = "", secretId = "", token = "";
     let reused = false;
 
-    // PASO 1: Placa libre con token activa
-    const { data: freeWithToken } = await supabase
+    // PASO 1: Placa libre con token activa (excluyendo tokens ya generados esta sesión)
+    let query = supabase
       .from("tags")
       .select("id, slug, secret_id, token")
       .is("pet_id", null)
       .not("token", "is", null)
       .eq("status", "active")
-      .order("created_at", { ascending: true })
-      .limit(1).single();
+      .order("created_at", { ascending: true });
+
+    // Excluir tokens ya mostrados en esta sesión
+    if (usedTokens.length > 0) {
+      query = query.not("token", "in", `(${usedTokens.join(",")})`);
+    }
+
+    const { data: freeWithToken } = await query.limit(1).single();
 
     if (freeWithToken) {
       // Resetear has_expiry según lo que el admin eligió ahora
@@ -158,7 +168,9 @@ function GenerateTab() {
       color: { dark: "#000000", light: "#ffffff" },
     });
 
+    setUsedTokens(prev => [...prev, token]);
     setGenerated({ slug, secretId, token, qrDataUrl, reused });
+    setGenerating(false);
   };
 
   return (
@@ -197,9 +209,10 @@ function GenerateTab() {
 
       <button
         onClick={generateQR}
-        className="w-full bg-stone-900 text-white py-4 rounded-xl font-bold active:scale-95"
+        disabled={generating}
+        className="w-full bg-stone-900 text-white py-4 rounded-xl font-bold active:scale-95 disabled:opacity-50"
       >
-        Generar nueva placa QR
+        {generating ? "Generando..." : generated ? "Generar otra placa" : "Generar nueva placa QR"}
       </button>
 
       {generated && (
