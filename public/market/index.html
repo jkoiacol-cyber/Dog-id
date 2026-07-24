@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimarket - Lista de la Compra Inteligente</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbar for minimalist clean look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Soft animations */
+        .fade-in {
+            animation: fadeIn 0.25s ease-out forwards;
+        }
+        .slide-up {
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(12px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        /* Checkbox custom animation */
+        .strike-through {
+            position: relative;
+        }
+        .strike-through::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 0;
+            height: 2px;
+            background: #94a3b8;
+            transition: width 0.25s ease-in-out;
+        }
+        .checked .strike-through::after {
+            width: 100%;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mercadona: {
+                            DEFAULT: '#009c5a',
+                            dark: '#007d48',
+                            orange: '#ee7200',
+                            light: '#e6f5ee'
+                        },
+                        lidl: {
+                            blue: '#0050aa',
+                            yellow: '#fff000',
+                            red: '#e30613',
+                            light: '#e6eef7'
+                        },
+                        ahorramas: {
+                            DEFAULT: '#e4002b',
+                            green: '#00823e',
+                            light: '#fde6e8'
+                        },
+                        carrefour: {
+                            blue: '#003896',
+                            red: '#e2131a',
+                            light: '#e6ebf5'
+                        },
+                        dia: {
+                            DEFAULT: '#e21118',
+                            light: '#fde7e8'
+                        },
+                        aldi: {
+                            blue: '#002c77',
+                            orange: '#e37222',
+                            lightblue: '#00a0e2',
+                            light: '#e6ebf2'
+                        }
+                    },
+                    borderRadius: {
+                        '3xl': '1.5rem',
+                        '4xl': '2rem',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full flex flex-col antialiased text-slate-800">
+
+    <!-- Header / Navbar Principal -->
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 py-3.5 flex items-center justify-between shadow-sm">
+        <div class="flex items-center space-x-2.5 cursor-pointer" onclick="navigateTo('dashboard')">
+            <div class="bg-gradient-to-tr from-emerald-500 to-teal-600 p-2 rounded-xl text-white shadow-md shadow-emerald-100">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
+                    Optimarket
+                    <span class="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full uppercase tracking-wider">v1.0</span>
+                </h1>
+                <p class="text-[10px] text-slate-500 font-medium">Ruta de compra optimizada</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <!-- Limpieza Manual Rápida -->
+            <button onclick="cleanOldCompletedProducts(true)" class="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors relative group" title="Limpiar completados (+30 días)">
+                <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                <span class="absolute right-0 top-full mt-2 w-48 bg-slate-800 text-white text-[11px] rounded p-2 hidden group-hover:block z-50 shadow-lg pointer-events-none">
+                    Limpia productos de la papelera con más de 30 días.
+                </span>
+            </button>
+            <button onclick="showInfoModal()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+                <i data-lucide="help-circle" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Notificación flotante (Toasts) -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-sm opacity-0 pointer-events-none transition-all duration-300 transform translate-y-4">
+        <i data-lucide="info" class="w-4 h-4 text-emerald-400" id="toast-icon"></i>
+        <span id="toast-text">Notificación</span>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 max-w-lg w-full mx-auto p-4 pb-24 overflow-y-auto">
+
+        <!-- ================= PAGE: DASHBOARD ================= -->
+        <section id="page-dashboard" class="space-y-6 slide-up">
+            <!-- Banner Introductorio -->
+            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-3xl p-5 shadow-xl shadow-slate-200 relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
+                <div class="absolute right-4 top-4 opacity-10">
+                    <i data-lucide="shopping-cart" class="w-24 h-24"></i>
+                </div>
+                <h2 class="text-xl font-bold mb-1">Mis Supermercados</h2>
+                <p class="text-xs text-slate-300 leading-relaxed max-w-[85%]">
+                    Crea listas organizadas por establecimiento y dirección física. Planifica y optimiza tu ruta de compra por pasillos en tiempo real.
+                </p>
+                <div class="mt-4 flex items-center gap-3">
+                    <span id="global-stats-supermarkets" class="text-[11px] bg-white/10 text-white font-medium px-2.5 py-1 rounded-full border border-white/5">0 Supermercados</span>
+                    <span id="global-stats-products" class="text-[11px] bg-emerald-500/20 text-emerald-300 font-semibold px-2.5 py-1 rounded-full border border-emerald-500/10">0 Pendientes</span>
+                </div>
+            </div>
+
+            <!-- Cabecera de listado -->
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">Mis Establecimientos</h3>
+                <button onclick="openAddSupermarketModal()" class="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 transition-all px-3 py-1.5 rounded-xl">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Añadir Súper
+                </button>
+            </div>
+
+            <!-- Listado de Supermercados -->
+            <div id="supermarket-list" class="space-y-3.5">
+                <!-- Se rellena dinámicamente -->
+            </div>
+
+            <!-- Estado Vacío Supermercados -->
+            <div id="supermarket-empty-state" class="hidden flex flex-col items-center justify-center py-12 text-center">
+                <div class="bg-slate-100 p-4 rounded-full text-slate-400 mb-3">
+                    <i data-lucide="store" class="w-8 h-8"></i>
+                </div>
+                <h4 class="text-slate-800 font-semibold text-sm">No tienes supermercados registrados</h4>
+                <p class="text-slate-500 text-xs mt-1 max-w-[260px]">Añade tu primer supermercado para empezar a crear tus listas de compra personalizadas.</p>
+                <button onclick="openAddSupermarketModal()" class="mt-4 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors px-4 py-2 rounded-xl shadow-sm">
+                    Añadir nuevo supermercado
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE: SUPERMARKET DETAIL ================= -->
+        <section id="page-supermarket-detail" class="hidden space-y-5 slide-up">
+            <!-- Botón Volver -->
+            <div class="flex items-center justify-between">
+                <button onclick="navigateTo('dashboard')" class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 transition-all px-3 py-1.5 rounded-lg">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Volver a Tiendas
+                </button>
+                <button onclick="deleteCurrentSupermarket()" class="text-xs font-medium text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition-colors flex items-center gap-1">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    Eliminar Súper
+                </button>
+            </div>
+
+            <!-- Banner del Supermercado Personalizado (Dinámico) -->
+            <div id="detail-supermarket-banner" class="relative rounded-3xl p-6 text-white shadow-xl overflow-hidden transition-all duration-300">
+                <!-- Logo & Brand styling in background -->
+                <div class="absolute right-4 bottom-2 opacity-15 transform translate-y-2 pointer-events-none" id="banner-brand-logo-bg">
+                    <!-- SVG o Logo Gigante -->
+                </div>
+                
+                <div class="relative z-10 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <!-- Brand Badge -->
+                        <span id="detail-brand-badge" class="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-white/20 border border-white/10">
+                            MERCADONA
+                        </span>
+                        <!-- Status text -->
+                        <span id="detail-items-count-badge" class="text-[11px] font-semibold text-white/90">
+                            0 pendientes
+                        </span>
+                    </div>
+
+                    <!-- Dirección Editable Directamente -->
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-white/70 block">Dirección / Establecimiento</label>
+                        <div class="flex items-center gap-1.5 group">
+                            <input type="text" id="detail-address-input" onchange="updateCurrentSupermarketAddress(this.value)" class="bg-white/10 hover:bg-white/15 focus:bg-white/25 focus:ring-1 focus:ring-white/40 font-semibold text-base rounded-lg px-2 py-1 w-full border-none focus:outline-none transition-all placeholder-white/50 text-white" placeholder="Ej. Calle Quevedo, 14">
+                            <button class="text-white/60 hover:text-white transition-colors" title="Editar dirección">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selector de modo / Filtro de Optimización -->
+            <div class="bg-white border border-slate-100 rounded-2xl p-1 flex shadow-sm">
+                <button id="tab-btn-normal" onclick="switchDetailTab('normal')" class="flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 bg-slate-900 text-white shadow-sm">
+                    <i data-lucide="list-todo" class="w-4 h-4"></i>
+                    Lista Normal
+                </button>
+                <button id="tab-btn-optimized" onclick="switchDetailTab('optimized')" class="flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-900">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    Ruta Optimizada ⚡
+                    <span class="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-full">Pro</span>
+                </button>
+            </div>
+
+            <!-- ================= VIEW: NORMAL LIST ================= -->
+            <div id="view-normal-list" class="space-y-5">
+                <!-- Formulario Añadir Producto -->
+                <form id="add-product-form" onsubmit="handleAddProduct(event)" class="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-3">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Añadir nuevo producto</h4>
+                    <div class="grid grid-cols-12 gap-2">
+                        <!-- Nombre del producto -->
+                        <div class="col-span-7">
+                            <input type="text" id="new-product-name" required placeholder="Leche, Arroz, Detergente..." class="w-full text-sm bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3 py-2.5 outline-none transition-all">
+                        </div>
+                        <!-- Pasillo / Ubicación -->
+                        <div class="col-span-5 relative">
+                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                            </span>
+                            <input type="text" id="new-product-aisle" placeholder="Pasillo (Ej: 7)" class="w-full text-sm bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl pl-7 pr-2 py-2.5 outline-none transition-all" list="aisle-suggestions">
+                            <datalist id="aisle-suggestions">
+                                <option value="Pasillo 1">
+                                <option value="Pasillo 2">
+                                <option value="Pasillo 3">
+                                <option value="Pasillo 4">
+                                <option value="Pasillo 5">
+                                <option value="Pasillo 6">
+                                <option value="Pasillo 7">
+                                <option value="Frutería">
+                                <option value="Carnicería">
+                                <option value="Lácteos">
+                                <option value="Congelados">
+                                <option value="Panadería">
+                            </datalist>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-2.5 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-1.5">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Añadir a la Lista
+                    </button>
+                </form>
+
+                <!-- Listado Pendientes -->
+                <div class="space-y-2.5">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        Pendientes de compra
+                        <span id="badge-pending-count" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
+                    </h4>
+                    <div id="pending-products-list" class="space-y-2">
+                        <!-- Relleno dinámico -->
+                    </div>
+                    <div id="pending-empty-state" class="hidden py-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-center">
+                        <div class="text-slate-300 p-2.5 bg-white rounded-full shadow-sm mb-2">
+                            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                        </div>
+                        <p class="text-slate-700 font-semibold text-xs">¡No quedan pendientes!</p>
+                        <p class="text-slate-400 text-[11px] mt-0.5">Escribe arriba para añadir productos.</p>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <hr class="border-slate-100">
+
+                <!-- Listado Completados (Historial de 30 días) -->
+                <div class="space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            Completados (Últimos 30 días)
+                            <span id="badge-completed-count" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
+                        </h4>
+                        <!-- Botón vaciar completados del supermercado actual -->
+                        <button onclick="clearCompletedInCurrentSupermarket()" class="text-[10px] text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1">
+                            <i data-lucide="trash" class="w-3 h-3"></i>
+                            Vaciar completados
+                        </button>
+                    </div>
+                    <div id="completed-products-list" class="space-y-2 opacity-85">
+                        <!-- Relleno dinámico -->
+                    </div>
+                    <div id="completed-empty-state" class="hidden py-6 bg-slate-50/50 border border-dashed border-slate-200/60 rounded-2xl flex flex-col items-center justify-center text-center">
+                        <p class="text-slate-400 text-xs">No hay productos en el carro de la compra.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: OPTIMIZED ROUTE ================= -->
+            <div id="view-optimized-route" class="hidden space-y-4">
+                
+                <!-- Explicación de la optimización -->
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
+                    <div class="text-amber-600 mt-0.5">
+                        <i data-lucide="zap" class="w-5 h-5 fill-amber-500/20"></i>
+                    </div>
+                    <div class="space-y-0.5">
+                        <h4 class="text-xs font-bold text-amber-900">Ruta de Recorrido Optimizado</h4>
+                        <p class="text-[11px] text-amber-700 leading-relaxed">
+                            Agrupamos tus productos por pasillos y los ordenamos para que realices un recorrido continuo (del Pasillo menor al mayor). ¡Evita despistes y cruzar el súper varias veces!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Línea de tiempo visual del recorrido -->
+                <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm space-y-6">
+                    
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <div class="bg-amber-100 text-amber-800 p-1.5 rounded-lg">
+                                <i data-lucide="route" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 block">Orden óptimo</span>
+                                <span id="optimized-stats-aisles" class="text-[10px] text-slate-400">3 paradas en total</span>
+                            </div>
+                        </div>
+                        <span class="text-[10px] bg-slate-100 text-slate-700 px-2 py-1 rounded-lg font-bold uppercase tracking-wider">Aisle-Sorting v1</span>
+                    </div>
+
+                    <!-- Contenedor dinámico de pasos del recorrido -->
+                    <div id="optimized-timeline-container" class="relative pl-6 space-y-6">
+                        <!-- Línea vertical punteada de fondo -->
+                        <div class="absolute left-2.5 top-2 bottom-2 w-0.5 border-l-2 border-dashed border-slate-200"></div>
+
+                        <!-- Pasos del recorrido (Relleno dinámico) -->
+                    </div>
+
+                    <!-- Estado Vacío Optimización -->
+                    <div id="optimized-empty-state" class="hidden py-8 flex flex-col items-center justify-center text-center">
+                        <div class="text-slate-300 p-2.5 bg-slate-50 rounded-full mb-2">
+                            <i data-lucide="smile" class="w-6 h-6"></i>
+                        </div>
+                        <p class="text-slate-700 font-semibold text-xs">Sin productos pendientes con pasillo asignado</p>
+                        <p class="text-slate-400 text-[11px] mt-0.5 max-w-[260px]">Para ver el recorrido optimizado, añade productos con su pasillo (ej: "Pasillo 1", "Pasillo 3").</p>
+                    </div>
+
+                </div>
+
+                <!-- Consejos para el futuro -->
+                <div class="bg-slate-100 rounded-2xl p-4 text-center">
+                    <p class="text-[10px] text-slate-500 leading-relaxed font-medium">
+                        💡 <b>Próximamente:</b> Integración con mapas interactivos de cada supermercado físico según la dirección para recalcular tu ruta si cambian la distribución de pasillos.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer Fijo (Solo como firma/soporte estético) -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 py-3 px-4 z-30 flex items-center justify-center gap-1.5 shadow-md">
+        <span class="text-xs text-slate-400 font-medium">Hecho con ❤️ para una compra eficiente</span>
+        <span class="text-slate-300">•</span>
+        <span class="text-xs text-slate-500 font-semibold">Optimarket 2026</span>
+    </footer>
+
+
+    <!-- ======================================================== -->
+    <!-- MODALS / VENTANAS EMERGENTES -->
+    <!-- ======================================================== -->
+
+    <!-- MODAL: AÑADIR SUPERMERCADO -->
+    <div id="modal-add-supermarket" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl transform scale-95 transition-all duration-300 space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="bg-slate-100 p-2 rounded-xl text-slate-800">
+                        <i data-lucide="store" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900">Añadir Supermercado</h3>
+                </div>
+                <button onclick="closeAddSupermarketModal()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="add-supermarket-form" onsubmit="handleAddSupermarket(event)" class="space-y-4">
+                <!-- Marca de Supermercado -->
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Cadena / Marca</label>
+                    <select id="new-super-brand" required onchange="handleBrandSelectChange(this.value)" class="w-full text-sm bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3 py-2.5 outline-none transition-all">
+                        <option value="mercadona">Mercadona 🟢🍊</option>
+                        <option value="lidl">Lidl 🔵🟡🔴</option>
+                        <option value="ahorramas">Ahorramas 🔴🟢</option>
+                        <option value="carrefour">Carrefour 🔵🔴</option>
+                        <option value="dia">Dia 🔴⚪</option>
+                        <option value="aldi">Aldi 🔵🟠</option>
+                        <option value="otro">Otro (Personalizar) ✨</option>
+                    </select>
+                </div>
+
+                <!-- Campo Nombre Personalizado (Sólo si elige 'Otro') -->
+                <div id="custom-brand-name-group" class="space-y-1.5 hidden">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Nombre de la Marca</label>
+                    <input type="text" id="new-super-custom-name" placeholder="Ej. El Corte Inglés, Alcampo..." class="w-full text-sm bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3 py-2.5 outline-none transition-all">
+                </div>
+
+                <!-- Dirección Física -->
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Dirección / Calle / Barrio</label>
+                    <input type="text" id="new-super-address" required placeholder="Ej. Calle de Quevedo, 14 o Calle Londres" class="w-full text-sm bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3 py-2.5 outline-none transition-all">
+                    <p class="text-[10px] text-slate-400 leading-relaxed">
+                        Es de vital importancia poner la dirección exacta para mapear y optimizar la distribución de los pasillos en el futuro.
+                    </p>
+                </div>
+
+                <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm py-3 rounded-xl transition-colors shadow-lg shadow-slate-100 flex items-center justify-center gap-1.5">
+                    <i data-lucide="check" class="w-4.5 h-4.5"></i>
+                    Crear Supermercado
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MODAL: INFO / AYUDA -->
+    <div id="modal-info" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl transform scale-95 transition-all duration-300 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
+                    <i data-lucide="info" class="text-emerald-500 w-5 h-5"></i>
+                    Información sobre Optimarket
+                </h3>
+                <button onclick="closeInfoModal()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="text-slate-600 text-xs space-y-3.5 leading-relaxed">
+                <p>
+                    ¡Te damos la bienvenida a <b>Optimarket</b>! Esta aplicación ha sido diseñada con un enfoque minimalista y contemporáneo para facilitar tus compras diarias.
+                </p>
+                <div class="space-y-2">
+                    <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Conceptos Clave:</h4>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li><b>Múltiples Establecimientos:</b> Puedes registrar un mismo supermercado con diferentes direcciones físicas (ej: <i>Calle Quevedo</i> y <i>Calle Londres</i>). Cada una tendrá su propia lista y distribución.</li>
+                        <li><b>Personalización de Marca:</b> Los banners de cada supermercado adoptarán sus colores corporativos e identidad gráfica.</li>
+                        <li><b>Auto-limpieza (30 días):</b> Conforme marcas productos en el súper, pasan a la sección de <i>Completados</i>. Para mantener la base de datos limpia, los productos se eliminan automáticamente tras 30 días.</li>
+                        <li><b>Futuro - Recorrido Optimizado ⚡:</b> Puedes asignar a cada producto un pasillo (ej: <i>Pasillo 1</i>). La app organizará la lista en un orden secuencial perfecto para que completes tu compra en tiempo récord.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button onclick="closeInfoModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl transition-colors">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ======================================================== -->
+    <!-- LOGIC / JAVASCRIPT -->
+    <!-- ======================================================== -->
+    <script>
+        // --- BASE DE DATOS (LOCAL STORAGE) ---
+        // Estructura de supermercados: { id, brand, customName, address, createdAt }
+        // Estructura de productos: { id, superId, name, aisle, completed, completedAt, createdAt }
+
+        let db = {
+            supermarkets: [],
+            products: []
+        };
+
+        // Identificadores de supermercado seleccionado actualmente
+        let currentSupermarketId = null;
+        let activeDetailTab = 'normal'; // 'normal' o 'optimized'
+
+        // Inicialización y carga de la BD
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDatabase();
+            cleanOldCompletedProducts(false); // Limpieza automática silenciosa al arrancar
+            renderDashboard();
+            lucide.createIcons();
+        });
+
+        function loadDatabase() {
+            const data = localStorage.getItem('optimarket_db');
+            if (data) {
+                try {
+                    db = JSON.parse(data);
+                } catch (e) {
+                    console.error("Error al parsear base de datos local", e);
+                    initializeMockData();
+                }
+            } else {
+                initializeMockData();
+            }
+        }
+
+        function saveDatabase() {
+            localStorage.setItem('optimarket_db', JSON.stringify(db));
+            updateGlobalStats();
+        }
+
+        // Datos iniciales de demostración solicitados por el usuario
+        function initializeMockData() {
+            const now = new Date();
+            
+            // Creamos supermercados de ejemplo
+            const m1 = {
+                id: 'super-mercadona-quevedo',
+                brand: 'mercadona',
+                customName: '',
+                address: 'Calle Quevedo, 14, Madrid',
+                createdAt: now.toISOString()
+            };
+            const m2 = {
+                id: 'super-lidl-alcala',
+                brand: 'lidl',
+                customName: '',
+                address: 'Calle Alcalá, 230, Madrid',
+                createdAt: now.toISOString()
+            };
+            const m3 = {
+                id: 'super-ahorramas-america',
+                brand: 'ahorramas',
+                customName: '',
+                address: 'Avenida de América, 45, Madrid',
+                createdAt: now.toISOString()
+            };
+
+            db.supermarkets = [m1, m2, m3];
+
+            // Creamos productos de ejemplo
+            db.products = [
+                // Mercadona Calle Quevedo
+                { id: 'p-1', superId: 'super-mercadona-quevedo', name: 'Leche semidesnatada', aisle: 'Pasillo 7', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { id: 'p-2', superId: 'super-mercadona-quevedo', name: 'Arroz redondo', aisle: 'Pasillo 3', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { id: 'p-3', superId: 'super-mercadona-quevedo', name: 'Pasta dental de menta', aisle: 'Pasillo 1', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { 
+                    id: 'p-4', 
+                    superId: 'super-mercadona-quevedo', 
+                    name: 'Tomate frito casero', 
+                    aisle: 'Pasillo 4', 
+                    completed: true, 
+                    completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // Hace 2 días
+                    createdAt: now.toISOString() 
+                },
+                
+                // Lidl Calle Alcalá
+                { id: 'p-5', superId: 'super-lidl-alcala', name: 'Carne de pechuga de pollo', aisle: 'Pasillo 12', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { id: 'p-6', superId: 'super-lidl-alcala', name: 'Coca-Cola Zero', aisle: 'Pasillo 5', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { id: 'p-7', superId: 'super-lidl-alcala', name: 'Aceite de oliva virgen extra', aisle: 'Pasillo 2', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { 
+                    id: 'p-8', 
+                    superId: 'super-lidl-alcala', 
+                    name: 'Chocolate negro 85%', 
+                    aisle: 'Pasillo 8', 
+                    completed: true, 
+                    completedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // Hace 10 días
+                    createdAt: now.toISOString() 
+                },
+
+                // Ahorramas Avenida de América
+                { id: 'p-9', superId: 'super-ahorramas-america', name: 'Patatas fritas crujientes', aisle: 'Pasillo 6', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { id: 'p-10', superId: 'super-ahorramas-america', name: 'Carne de res tierna', aisle: 'Pasillo 12', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { id: 'p-11', superId: 'super-ahorramas-america', name: 'Carne de cerdo magra', aisle: 'Pasillo 12', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { 
+                    id: 'p-12', 
+                    superId: 'super-ahorramas-america', 
+                    name: 'Pan de molde rústico', 
+                    aisle: 'Pasillo 1', 
+                    completed: true, 
+                    completedAt: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(), // Hace 28 días (a punto de expirar)
+                    createdAt: now.toISOString() 
+                }
+            ];
+
+            saveDatabase();
+        }
+
+        // --- MANEJO DE RUTAS / PÁGINAS ---
+        function navigateTo(pageId) {
+            // Ocultar todas las páginas
+            document.getElementById('page-dashboard').classList.add('hidden');
+            document.getElementById('page-supermarket-detail').classList.add('hidden');
+
+            // Mostrar página seleccionada
+            if (pageId === 'dashboard') {
+                document.getElementById('page-dashboard').classList.remove('hidden');
+                renderDashboard();
+            } else if (pageId === 'detail') {
+                document.getElementById('page-supermarket-detail').classList.remove('hidden');
+                renderSupermarketDetail();
+            }
+
+            // Scroll arriba
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message, isAlert = false) {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastText.textContent = message;
+            if (isAlert) {
+                toastIcon.setAttribute('data-lucide', 'alert-circle');
+                toastIcon.className = 'w-4 h-4 text-amber-400';
+            } else {
+                toastIcon.setAttribute('data-lucide', 'info');
+                toastIcon.className = 'w-4 h-4 text-emerald-400';
+            }
+            lucide.createIcons();
+
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+            }, 3500);
+        }
+
+        // --- SISTEMA DE EXPIRACIÓN DE 30 DÍAS ---
+        // Borra de la BD los productos completados hace más de 30 días
+        function cleanOldCompletedProducts(manualClick = false) {
+            const beforeCount = db.products.length;
+            const limitTime = 30 * 24 * 60 * 60 * 1000; // 30 días en ms
+            const now = Date.now();
+
+            db.products = db.products.filter(product => {
+                if (!product.completed) return true;
+                const completedTime = new Date(product.completedAt).getTime();
+                const diff = now - completedTime;
+                return diff < limitTime;
+            });
+
+            const deletedCount = beforeCount - db.products.length;
+            if (deletedCount > 0) {
+                saveDatabase();
+                if (manualClick) {
+                    showToast(`Se han eliminado ${deletedCount} productos de la base de datos completados hace más de 30 días.`, false);
+                }
+            } else if (manualClick) {
+                showToast("No hay productos archivados con más de 30 días de antigüedad para eliminar.", true);
+            }
+        }
+
+        // Calcular días restantes de un producto completado
+        function getDaysRemaining(completedAtString) {
+            const limitTime = 30 * 24 * 60 * 60 * 1000;
+            const completedTime = new Date(completedAtString).getTime();
+            const now = Date.now();
+            const elapsed = now - completedTime;
+            const remainingMs = limitTime - elapsed;
+            const remainingDays = Math.max(0, Math.ceil(remainingMs / (24 * 60 * 60 * 1000)));
+            return remainingDays;
+        }
+
+        // --- RENDERING: DASHBOARD ---
+        function renderDashboard() {
+            const listContainer = document.getElementById('supermarket-list');
+            const emptyState = document.getElementById('supermarket-empty-state');
+            
+            listContainer.innerHTML = '';
+
+            if (db.supermarkets.length === 0) {
+                emptyState.classList.remove('hidden');
+                listContainer.classList.add('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                listContainer.classList.remove('hidden');
+
+                db.supermarkets.forEach(supermarket => {
+                    // Contamos estadísticas de este super
+                    const superProducts = db.products.filter(p => p.superId === supermarket.id);
+                    const pendingCount = superProducts.filter(p => !p.completed).length;
+                    const completedCount = superProducts.filter(p => p.completed).length;
+                    const totalCount = superProducts.length;
+
+                    const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+                    // Formatear Nombre de Marca para el título del card
+                    const brandMeta = getBrandMetadata(supermarket.brand, supermarket.customName);
+
+                    const card = document.createElement('div');
+                    card.className = "bg-white border border-slate-100 hover:border-slate-200 p-5 rounded-3xl shadow-sm hover:shadow-md transition-all cursor-pointer relative group overflow-hidden flex flex-col justify-between";
+                    card.setAttribute('onclick', `openSupermarket('${supermarket.id}')`);
+
+                    card.innerHTML = `
+                        <!-- Accent line based on brand -->
+                        <div class="absolute left-0 top-0 bottom-0 w-1.5 ${brandMeta.borderBgClass}"></div>
+                        
+                        <div class="space-y-3.5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="p-2 rounded-xl ${brandMeta.bgClass} ${brandMeta.textClass}">
+                                        <i data-lucide="${brandMeta.icon}" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800 text-sm group-hover:text-slate-900 transition-colors">${brandMeta.displayName}</h4>
+                                        <span class="text-[10px] text-slate-400 flex items-center gap-0.5">
+                                            <i data-lucide="map-pin" class="w-3 h-3 inline"></i>
+                                            ${supermarket.address || 'Sin dirección registrada'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">
+                                    ${pendingCount} pend.
+                                </span>
+                            </div>
+
+                            <!-- Progress Bar -->
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between text-[10px] text-slate-400 font-medium">
+                                    <span>Progreso de compra</span>
+                                    <span>${completedCount}/${totalCount} (${percent}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                    <div class="h-full ${brandMeta.borderBgClass} transition-all duration-300" style="width: ${percent}%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Action -->
+                        <div class="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
+                            <span class="text-slate-400">Ver listado de productos</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform"></i>
+                        </div>
+                    `;
+
+                    listContainer.appendChild(card);
+                });
+            }
+
+            updateGlobalStats();
+        }
+
+        function updateGlobalStats() {
+            const totalSupers = db.supermarkets.length;
+            const totalPending = db.products.filter(p => !p.completed).length;
+
+            document.getElementById('global-stats-supermarkets').textContent = `${totalSupers} Supermercado${totalSupers !== 1 ? 's' : ''}`;
+            document.getElementById('global-stats-products').textContent = `${totalPending} Pendiente${totalPending !== 1 ? 's' : ''}`;
+        }
+
+        // --- BRAND METADATA UTILITY ---
+        // Devuelve colores corporativos, iconos y nombres según la marca
+        function getBrandMetadata(brand, customName = '') {
+            const meta = {
+                displayName: 'Supermercado',
+                bgClass: 'bg-slate-100',
+                textClass: 'text-slate-800',
+                borderBgClass: 'bg-slate-800',
+                icon: 'store',
+                bannerGradient: 'from-slate-800 to-slate-900',
+                logoSvg: ''
+            };
+
+            switch (brand) {
+                case 'mercadona':
+                    meta.displayName = 'Mercadona';
+                    meta.bgClass = 'bg-mercadona-light';
+                    meta.textClass = 'text-mercadona-dark';
+                    meta.borderBgClass = 'bg-mercadona';
+                    meta.bannerGradient = 'from-mercadona to-emerald-800';
+                    meta.icon = 'shopping-bag';
+                    meta.logoSvg = `
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                            <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" fill="none" />
+                            <text x="50" y="58" font-size="28" font-weight="900" text-anchor="middle" font-family="sans-serif">M</text>
+                        </svg>
+                    `;
+                    break;
+                case 'lidl':
+                    meta.displayName = 'Lidl';
+                    meta.bgClass = 'bg-lidl-light';
+                    meta.textClass = 'text-lidl-blue';
+                    meta.borderBgClass = 'bg-lidl-blue';
+                    meta.bannerGradient = 'from-[#0050aa] to-[#003d82]';
+                    meta.icon = 'store';
+                    meta.logoSvg = `
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                            <circle cx="50" cy="50" r="40" fill="currentColor"/>
+                            <circle cx="50" cy="50" r="30" fill="#fff000" class="opacity-20"/>
+                            <text x="50" y="58" font-size="28" font-weight="900" text-anchor="middle" fill="#e30613">L</text>
+                        </svg>
+                    `;
+                    break;
+                case 'ahorramas':
+                    meta.displayName = 'Ahorramas';
+                    meta.bgClass = 'bg-ahorramas-light';
+                    meta.textClass = 'text-ahorramas';
+                    meta.borderBgClass = 'bg-ahorramas';
+                    meta.bannerGradient = 'from-ahorramas to-red-800';
+                    meta.icon = 'shopping-cart';
+                    meta.logoSvg = `
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                            <path d="M10,80 L50,10 L90,80 Z" stroke="currentColor" stroke-width="8" fill="none" />
+                            <text x="50" y="70" font-size="24" font-weight="900" text-anchor="middle">A</text>
+                        </svg>
+                    `;
+                    break;
+                case 'carrefour':
+                    meta.displayName = 'Carrefour';
+                    meta.bgClass = 'bg-carrefour-light';
+                    meta.textClass = 'text-carrefour-blue';
+                    meta.borderBgClass = 'bg-carrefour-blue';
+                    meta.bannerGradient = 'from-[#003896] to-[#002766]';
+                    meta.icon = 'tag';
+                    meta.logoSvg = `
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                            <text x="50" y="65" font-size="50" font-weight="900" text-anchor="middle">C</text>
+                        </svg>
+                    `;
+                    break;
+                case 'dia':
+                    meta.displayName = 'Dia';
+                    meta.bgClass = 'bg-dia-light';
+                    meta.textClass = 'text-dia';
+                    meta.borderBgClass = 'bg-dia';
+                    meta.bannerGradient = 'from-dia to-[#a60b0e]';
+                    meta.icon = 'store';
+                    meta.logoSvg = `
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                            <rect x="15" y="15" width="70" height="70" rx="10" stroke="currentColor" stroke-width="8" fill="none" />
+                            <text x="50" y="62" font-size="36" font-weight="900" text-anchor="middle">D</text>
+                        </svg>
+                    `;
+                    break;
+                case 'aldi':
+                    meta.displayName = 'Aldi';
+                    meta.bgClass = 'bg-aldi-light';
+                    meta.textClass = 'text-aldi-blue';
+                    meta.borderBgClass = 'bg-aldi-blue';
+                    meta.bannerGradient = 'from-aldi-blue to-[#001944]';
+                    meta.icon = 'package';
+                    meta.logoSvg = `
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                            <polygon points="15,15 85,15 70,85 15,85" stroke="currentColor" stroke-width="8" fill="none" />
+                            <text x="45" y="60" font-size="28" font-weight="900" text-anchor="middle">A</text>
+                        </svg>
+                    `;
+                    break;
+                case 'otro':
+                    meta.displayName = customName || 'Mi Súper';
+                    meta.bgClass = 'bg-slate-100';
+                    meta.textClass = 'text-slate-800';
+                    meta.borderBgClass = 'bg-slate-800';
+                    meta.bannerGradient = 'from-slate-800 to-slate-900';
+                    meta.icon = 'store';
+                    meta.logoSvg = `
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                            <i data-lucide="store" class="w-16 h-16"></i>
+                        </svg>
+                    `;
+                    break;
+            }
+
+            return meta;
+        }
+
+        // --- RENDERING: SUPERMARKET DETAIL PAGE ---
+        function openSupermarket(id) {
+            currentSupermarketId = id;
+            activeDetailTab = 'normal'; // Por defecto empezamos en listado normal
+            navigateTo('detail');
+        }
+
+        function renderSupermarketDetail() {
+            const superId = currentSupermarketId;
+            const supermarket = db.supermarkets.find(s => s.id === superId);
+            if (!supermarket) {
+                navigateTo('dashboard');
+                return;
+            }
+
+            // Actualizar Banner
+            const brandMeta = getBrandMetadata(supermarket.brand, supermarket.customName);
+            const banner = document.getElementById('detail-supermarket-banner');
+            banner.className = `relative rounded-3xl p-6 text-white shadow-xl overflow-hidden transition-all duration-300 bg-gradient-to-r ${brandMeta.bannerGradient}`;
+            
+            document.getElementById('detail-brand-badge').textContent = brandMeta.displayName;
+            document.getElementById('banner-brand-logo-bg').innerHTML = brandMeta.logoSvg;
+
+            // Dirección
+            const addressInput = document.getElementById('detail-address-input');
+            addressInput.value = supermarket.address;
+
+            // Renderizar la pestaña activa
+            if (activeDetailTab === 'normal') {
+                document.getElementById('view-normal-list').classList.remove('hidden');
+                document.getElementById('view-optimized-route').classList.add('hidden');
+                
+                document.getElementById('tab-btn-normal').className = "flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 bg-slate-900 text-white shadow-sm";
+                document.getElementById('tab-btn-optimized').className = "flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-900";
+                
+                renderNormalList();
+            } else {
+                document.getElementById('view-normal-list').classList.add('hidden');
+                document.getElementById('view-optimized-route').classList.remove('hidden');
+                
+                document.getElementById('tab-btn-normal').className = "flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-900";
+                document.getElementById('tab-btn-optimized').className = "flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 bg-amber-500 text-white shadow-sm";
+                
+                renderOptimizedRoute();
+            }
+
+            // Actualizar contador del banner
+            const pendingProducts = db.products.filter(p => p.superId === superId && !p.completed);
+            document.getElementById('detail-items-count-badge').textContent = `${pendingProducts.length} pendiente${pendingProducts.length !== 1 ? 's' : ''}`;
+        }
+
+        // Cambio de pestañas
+        function switchDetailTab(tab) {
+            activeDetailTab = tab;
+            renderSupermarketDetail();
+        }
+
+        // --- RENDERING: VIEW LISTA NORMAL ---
+        function renderNormalList() {
+            const superId = currentSupermarketId;
+            const superProducts = db.products.filter(p => p.superId === superId);
+            
+            const pendingProducts = superProducts.filter(p => !p.completed);
+            const completedProducts = superProducts.filter(p => p.completed);
+
+            // Actualizar insignias de recuento
+            document.getElementById('badge-pending-count').textContent = pendingProducts.length;
+            document.getElementById('badge-completed-count').textContent = completedProducts.length;
+
+            // Rellenar lista Pendientes
+            const pendingListContainer = document.getElementById('pending-products-list');
+            const pendingEmptyState = document.getElementById('pending-empty-state');
+            pendingListContainer.innerHTML = '';
+
+            if (pendingProducts.length === 0) {
+                pendingEmptyState.classList.remove('hidden');
+            } else {
+                pendingEmptyState.classList.add('hidden');
+                pendingProducts.forEach(product => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "flex items-center justify-between p-3.5 bg-white border border-slate-100 hover:border-slate-200 rounded-2xl shadow-sm transition-all group";
+                    itemDiv.innerHTML = `
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <!-- Checkbox interactivo -->
+                            <button onclick="toggleProductCompleted('${product.id}')" class="w-6 h-6 rounded-full border-2 border-slate-200 hover:border-emerald-500 flex items-center justify-center text-transparent hover:text-emerald-500 transition-all flex-shrink-0">
+                                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <div class="min-w-0 flex-1">
+                                <span class="text-sm font-semibold text-slate-800 break-words">${product.name}</span>
+                                ${product.aisle ? `
+                                    <span class="inline-flex items-center gap-0.5 text-[9px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-full border border-amber-200/50 mt-1 ml-1">
+                                        <i data-lucide="map-pin" class="w-2.5 h-2.5"></i>
+                                        ${product.aisle}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="editProductPrompt('${product.id}')" class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors" title="Editar producto">
+                                <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="deleteProduct('${product.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar de la lista">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    `;
+                    pendingListContainer.appendChild(itemDiv);
+                });
+            }
+
+            // Rellenar lista Completados
+            const completedListContainer = document.getElementById('completed-products-list');
+            const completedEmptyState = document.getElementById('completed-empty-state');
+            completedListContainer.innerHTML = '';
+
+            if (completedProducts.length === 0) {
+                completedEmptyState.classList.remove('hidden');
+            } else {
+                completedEmptyState.classList.add('hidden');
+                completedProducts.forEach(product => {
+                    const daysRemaining = getDaysRemaining(product.completedAt);
+                    
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-100/60 rounded-xl transition-all checked group";
+                    itemDiv.innerHTML = `
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <!-- Checkbox ya completado -->
+                            <button onclick="toggleProductCompleted('${product.id}')" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-500 flex items-center justify-center text-white transition-all flex-shrink-0">
+                                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <div class="min-w-0 flex-1">
+                                <span class="text-sm font-medium text-slate-400 line-through strike-through break-words">${product.name}</span>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-[9px] text-slate-400">
+                                        Completado: ${formatDate(product.completedAt)}
+                                    </span>
+                                    <span class="text-[9px] bg-slate-200/50 text-slate-500 px-1.5 py-0.2 rounded font-medium">
+                                        Quedan ${daysRemaining} días
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="deleteProduct('${product.id}')" class="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="Eliminar permanente">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </button>
+                    `;
+                    completedListContainer.appendChild(itemDiv);
+                });
+            }
+
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        // --- RENDERING: VIEW RUTA OPTIMIZADA (THE FUTURISTIC FEATURE!) ---
+        function renderOptimizedRoute() {
+            const superId = currentSupermarketId;
+            const pendingProducts = db.products.filter(p => p.superId === superId && !p.completed);
+
+            const timelineContainer = document.getElementById('optimized-timeline-container');
+            const optimizedEmptyState = document.getElementById('optimized-empty-state');
+
+            timelineContainer.innerHTML = '';
+
+            // Filtrar productos con pasillo y agruparlos
+            const productsWithAisle = pendingProducts.filter(p => p.aisle && p.aisle.trim() !== '');
+
+            if (productsWithAisle.length === 0) {
+                optimizedEmptyState.classList.remove('hidden');
+                timelineContainer.classList.add('hidden');
+                document.getElementById('optimized-stats-aisles').textContent = "0 paradas en el súper";
+                return;
+            }
+
+            optimizedEmptyState.classList.add('hidden');
+            timelineContainer.classList.remove('hidden');
+
+            // Agrupar por pasillo normalizado
+            // Para ordenar correctamente, normalizamos y obtenemos el número del pasillo si existe
+            const aisleGroups = {};
+
+            productsWithAisle.forEach(product => {
+                const aisleName = product.aisle.trim();
+                if (!aisleGroups[aisleName]) {
+                    aisleGroups[aisleName] = [];
+                }
+                aisleGroups[aisleName].push(product);
+            });
+
+            // Función para ordenar pasillos numéricamente
+            const sortedAisleNames = Object.keys(aisleGroups).sort((a, b) => {
+                const numA = parseInt(a.replace(/\D/g, '')) || 999;
+                const numB = parseInt(b.replace(/\D/g, '')) || 999;
+                
+                // Si ambos tienen números, ordenar por número
+                if (numA !== 999 || numB !== 999) {
+                    return numA - numB;
+                }
+                // Si no, ordenar alfabéticamente
+                return a.localeCompare(b);
+            });
+
+            document.getElementById('optimized-stats-aisles').textContent = `${sortedAisleNames.length} parada${sortedAisleNames.length !== 1 ? 's' : ''} en total`;
+
+            // Volver a dibujar la línea punteada de fondo
+            const line = document.createElement('div');
+            line.className = "absolute left-2.5 top-2 bottom-2 w-0.5 border-l-2 border-dashed border-slate-200 pointer-events-none";
+            timelineContainer.appendChild(line);
+
+            // Crear los pasos del recorrido
+            sortedAisleNames.forEach((aisleName, index) => {
+                const productsInAisle = aisleGroups[aisleName];
+                const stepDiv = document.createElement('div');
+                stepDiv.className = "relative flex gap-4 items-start slide-up";
+
+                // Indicador circular del paso con número
+                stepDiv.innerHTML = `
+                    <div class="absolute -left-5 top-1 w-5 h-5 rounded-full bg-amber-500 border-4 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-1 ring-amber-300">
+                    </div>
+                    <div class="flex-1 bg-gradient-to-tr from-slate-50 to-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <h5 class="text-xs font-bold text-amber-800 flex items-center gap-1">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                                ${aisleName}
+                            </h5>
+                            <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">
+                                ${productsInAisle.length} prod.
+                            </span>
+                        </div>
+                        <div class="space-y-2">
+                            ${productsInAisle.map(product => `
+                                <div class="flex items-center justify-between p-2 hover:bg-slate-50/80 rounded-xl transition-colors">
+                                    <span class="text-xs font-semibold text-slate-800">${product.name}</span>
+                                    <button onclick="toggleProductCompleted('${product.id}')" class="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-0.5">
+                                        <i data-lucide="shopping-cart" class="w-3 h-3"></i>
+                                        Meter al carro
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                timelineContainer.appendChild(stepDiv);
+            });
+
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        // --- ACCIONES DE PRODUCTOS ---
+        function handleAddProduct(event) {
+            event.preventDefault();
+            const nameInput = document.getElementById('new-product-name');
+            const aisleInput = document.getElementById('new-product-aisle');
+
+            const name = nameInput.value.trim();
+            const aisle = aisleInput.value.trim();
+
+            if (!name) return;
+
+            const newProduct = {
+                id: 'prod-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+                superId: currentSupermarketId,
+                name: name,
+                aisle: aisle,
+                completed: false,
+                completedAt: null,
+                createdAt: new Date().toISOString()
+            };
+
+            db.products.push(newProduct);
+            saveDatabase();
+
+            nameInput.value = '';
+            aisleInput.value = '';
+
+            renderSupermarketDetail();
+            showToast(`"${name}" añadido.`);
+        }
+
+        function toggleProductCompleted(productId) {
+            const product = db.products.find(p => p.id === productId);
+            if (!product) return;
+
+            product.completed = !product.completed;
+            if (product.completed) {
+                product.completedAt = new Date().toISOString();
+                showToast(`"${product.name}" pasado al carro de la compra.`, false);
+            } else {
+                product.completedAt = null;
+                showToast(`"${product.name}" devuelto a la lista.`, false);
+            }
+
+            saveDatabase();
+            renderSupermarketDetail();
+        }
+
+        function editProductPrompt(productId) {
+            const product = db.products.find(p => p.id === productId);
+            if (!product) return;
+
+            const newName = prompt("Editar nombre del producto:", product.name);
+            if (newName === null) return; // cancelado
+            
+            const cleanName = newName.trim();
+            if (!cleanName) {
+                showToast("El nombre del producto no puede estar vacío.", true);
+                return;
+            }
+
+            const newAisle = prompt("Editar pasillo (ej. Pasillo 3, Congelados...):", product.aisle || '');
+            if (newAisle === null) return;
+
+            product.name = cleanName;
+            product.aisle = newAisle.trim();
+
+            saveDatabase();
+            renderSupermarketDetail();
+            showToast("Producto actualizado con éxito.");
+        }
+
+        function deleteProduct(productId) {
+            const product = db.products.find(p => p.id === productId);
+            if (!product) return;
+
+            const name = product.name;
+            db.products = db.products.filter(p => p.id !== productId);
+            
+            saveDatabase();
+            renderSupermarketDetail();
+            showToast(`"${name}" eliminado.`);
+        }
+
+        function clearCompletedInCurrentSupermarket() {
+            if (!confirm("¿Seguro que deseas eliminar de forma permanente TODOS los productos completados de este supermercado?")) return;
+
+            const beforeCount = db.products.length;
+            db.products = db.products.filter(p => !(p.superId === currentSupermarketId && p.completed));
+
+            const deleted = beforeCount - db.products.length;
+            saveDatabase();
+            renderSupermarketDetail();
+            showToast(`Se eliminaron ${deleted} productos del carro.`);
+        }
+
+        // --- ACCIONES DE SUPERMERCADOS ---
+        function handleBrandSelectChange(val) {
+            const customGroup = document.getElementById('custom-brand-name-group');
+            if (val === 'otro') {
+                customGroup.classList.remove('hidden');
+                document.getElementById('new-super-custom-name').setAttribute('required', 'true');
+            } else {
+                customGroup.classList.add('hidden');
+                document.getElementById('new-super-custom-name').removeAttribute('required');
+            }
+        }
+
+        function openAddSupermarketModal() {
+            const modal = document.getElementById('modal-add-supermarket');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            const inner = modal.querySelector('.transform');
+            inner.classList.remove('scale-95');
+            inner.classList.add('scale-100');
+        }
+
+        function closeAddSupermarketModal() {
+            const modal = document.getElementById('modal-add-supermarket');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            const inner = modal.querySelector('.transform');
+            inner.classList.remove('scale-100');
+            inner.classList.add('scale-95');
+
+            // Resetear form
+            document.getElementById('add-supermarket-form').reset();
+            document.getElementById('custom-brand-name-group').classList.add('hidden');
+        }
+
+        function handleAddSupermarket(event) {
+            event.preventDefault();
+
+            const brand = document.getElementById('new-super-brand').value;
+            const customName = document.getElementById('new-super-custom-name').value.trim();
+            const address = document.getElementById('new-super-address').value.trim();
+
+            const id = 'super-' + brand + '-' + Date.now();
+
+            const newSuper = {
+                id: id,
+                brand: brand,
+                customName: brand === 'otro' ? customName : '',
+                address: address,
+                createdAt: new Date().toISOString()
+            };
+
+            db.supermarkets.push(newSuper);
+            saveDatabase();
+            closeAddSupermarketModal();
+            renderDashboard();
+
+            showToast("Establecimiento creado correctamente.");
+        }
+
+        function updateCurrentSupermarketAddress(newVal) {
+            const supermarket = db.supermarkets.find(s => s.id === currentSupermarketId);
+            if (!supermarket) return;
+
+            const cleanAddress = newVal.trim();
+            if (!cleanAddress) {
+                showToast("La dirección no puede estar vacía.", true);
+                renderSupermarketDetail(); // restore
+                return;
+            }
+
+            supermarket.address = cleanAddress;
+            saveDatabase();
+            showToast("Dirección física actualizada.");
+        }
+
+        function deleteCurrentSupermarket() {
+            const supermarket = db.supermarkets.find(s => s.id === currentSupermarketId);
+            if (!supermarket) return;
+
+            const nameMeta = getBrandMetadata(supermarket.brand, supermarket.customName);
+            const fullName = `${nameMeta.displayName} - ${supermarket.address}`;
+
+            if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente el supermercado:\n"${fullName}"?\n\nTambién se borrarán todos sus productos asociados.`)) {
+                return;
+            }
+
+            // Eliminar súper
+            db.supermarkets = db.supermarkets.filter(s => s.id !== currentSupermarketId);
+            // Eliminar productos de ese súper
+            db.products = db.products.filter(p => p.superId !== currentSupermarketId);
+
+            saveDatabase();
+            navigateTo('dashboard');
+            showToast("Supermercado eliminado con éxito.");
+        }
+
+        // --- AYUDAS Y FECHAS ---
+        function showInfoModal() {
+            const modal = document.getElementById('modal-info');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            const inner = modal.querySelector('.transform');
+            inner.classList.remove('scale-95');
+            inner.classList.add('scale-100');
+        }
+
+        function closeInfoModal() {
+            const modal = document.getElementById('modal-info');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            const inner = modal.querySelector('.transform');
+            inner.classList.remove('scale-100');
+            inner.classList.add('scale-95');
+        }
+
+        function formatDate(isoString) {
+            if (!isoString) return '';
+            const d = new Date(isoString);
+            return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+    </script>
+</body>
+</html>
