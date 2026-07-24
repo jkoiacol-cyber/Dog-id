@@ -123,19 +123,12 @@
             <div>
                 <h1 class="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
                     Optimarket
-                    <span class="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full uppercase tracking-wider">v1.0</span>
+                    <span class="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full uppercase tracking-wider">v1.1</span>
                 </h1>
-                <p class="text-[10px] text-slate-500 font-medium">Ruta de compra optimizada</p>
+                <p class="text-[10px] text-slate-500 font-medium">Lista & Pasillos Inteligentes</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
-            <!-- Limpieza Manual Rápida -->
-            <button onclick="cleanOldCompletedProducts(true)" class="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors relative group" title="Limpiar completados (+30 días)">
-                <i data-lucide="shield-alert" class="w-5 h-5"></i>
-                <span class="absolute right-0 top-full mt-2 w-48 bg-slate-800 text-white text-[11px] rounded p-2 hidden group-hover:block z-50 shadow-lg pointer-events-none">
-                    Limpia productos de la papelera con más de 30 días.
-                </span>
-            </button>
             <button onclick="showInfoModal()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
                 <i data-lucide="help-circle" class="w-5 h-5"></i>
             </button>
@@ -143,67 +136,100 @@
     </header>
 
     <!-- Notificación flotante (Toasts) -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-sm opacity-0 pointer-events-none transition-all duration-300 transform translate-y-4">
+    <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs opacity-0 pointer-events-none transition-all duration-300 transform translate-y-4">
         <i data-lucide="info" class="w-4 h-4 text-emerald-400" id="toast-icon"></i>
         <span id="toast-text">Notificación</span>
     </div>
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 max-w-lg w-full mx-auto p-4 pb-24 overflow-y-auto">
+    <main class="flex-1 max-w-lg w-full mx-auto p-4 pb-28 overflow-y-auto">
 
         <!-- ================= PAGE: DASHBOARD ================= -->
-        <section id="page-dashboard" class="space-y-6 slide-up">
-            <!-- Banner Introductorio -->
-            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-3xl p-5 shadow-xl shadow-slate-200 relative overflow-hidden">
+        <section id="page-dashboard" class="space-y-5 slide-up">
+            
+            <!-- Banner / Tarjeta de Resumen -->
+            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-3xl p-5 shadow-xl relative overflow-hidden">
                 <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
-                <div class="absolute right-4 top-4 opacity-10">
-                    <i data-lucide="shopping-cart" class="w-24 h-24"></i>
-                </div>
-                <h2 class="text-xl font-bold mb-1">Mis Supermercados</h2>
-                <p class="text-xs text-slate-300 leading-relaxed max-w-[85%]">
-                    Crea listas organizadas por establecimiento y dirección física. Planifica y optimiza tu ruta de compra por pasillos en tiempo real.
+                <h2 class="text-lg font-bold mb-1">Mi Compra Inteligente</h2>
+                <p class="text-xs text-slate-300 leading-relaxed max-w-[90%]">
+                    Guarda tus listas por supermercado físico. La app recordará automáticamente en qué pasillo recoges cada producto para optimizar tus futuras compras.
                 </p>
                 <div class="mt-4 flex items-center gap-3">
-                    <span id="global-stats-supermarkets" class="text-[11px] bg-white/10 text-white font-medium px-2.5 py-1 rounded-full border border-white/5">0 Supermercados</span>
+                    <span id="global-stats-supermarkets" class="text-[11px] bg-white/10 text-white font-medium px-2.5 py-1 rounded-full border border-white/5">3 Supermercados</span>
                     <span id="global-stats-products" class="text-[11px] bg-emerald-500/20 text-emerald-300 font-semibold px-2.5 py-1 rounded-full border border-emerald-500/10">0 Pendientes</span>
                 </div>
             </div>
 
-            <!-- Cabecera de listado -->
-            <div class="flex items-center justify-between">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">Mis Establecimientos</h3>
-                <button onclick="openAddSupermarketModal()" class="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 transition-all px-3 py-1.5 rounded-xl">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    Añadir Súper
+            <!-- Selector de Vista (Requerimiento de botones en el Banner/Cabecera de Mis Supermercados) -->
+            <div class="bg-white border border-slate-100 rounded-2xl p-1 flex shadow-sm">
+                <button id="dashboard-tab-supers" onclick="switchDashboardTab('supermarkets')" class="flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 bg-slate-900 text-white shadow-sm">
+                    <i data-lucide="store" class="w-4 h-4"></i>
+                    Ver Supermercados
+                </button>
+                <button id="dashboard-tab-products" onclick="switchDashboardTab('all_products')" class="flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-900">
+                    <i data-lucide="align-justify" class="w-4 h-4"></i>
+                    Todos los Productos
+                    <span id="dashboard-tab-pending-badge" class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full">0</span>
                 </button>
             </div>
 
-            <!-- Listado de Supermercados -->
-            <div id="supermarket-list" class="space-y-3.5">
-                <!-- Se rellena dinámicamente -->
-            </div>
-
-            <!-- Estado Vacío Supermercados -->
-            <div id="supermarket-empty-state" class="hidden flex flex-col items-center justify-center py-12 text-center">
-                <div class="bg-slate-100 p-4 rounded-full text-slate-400 mb-3">
-                    <i data-lucide="store" class="w-8 h-8"></i>
+            <!-- SUB-VIEW 1: VISTA DE SUPERMERCADOS (TARJETAS) -->
+            <div id="subview-supermarkets" class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Establecimientos registrados</h3>
+                    <button onclick="openAddSupermarketModal()" class="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-all">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Añadir Súper
+                    </button>
                 </div>
-                <h4 class="text-slate-800 font-semibold text-sm">No tienes supermercados registrados</h4>
-                <p class="text-slate-500 text-xs mt-1 max-w-[260px]">Añade tu primer supermercado para empezar a crear tus listas de compra personalizadas.</p>
-                <button onclick="openAddSupermarketModal()" class="mt-4 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors px-4 py-2 rounded-xl shadow-sm">
-                    Añadir nuevo supermercado
-                </button>
+
+                <div id="supermarket-list" class="space-y-3.5">
+                    <!-- Relleno dinámico -->
+                </div>
+
+                <div id="supermarket-empty-state" class="hidden flex flex-col items-center justify-center py-12 text-center bg-white border border-slate-100 rounded-3xl p-6">
+                    <div class="bg-slate-100 p-4 rounded-full text-slate-400 mb-3">
+                        <i data-lucide="store" class="w-8 h-8"></i>
+                    </div>
+                    <h4 class="text-slate-800 font-semibold text-sm">No tienes supermercados registrados</h4>
+                    <p class="text-slate-500 text-xs mt-1 max-w-[260px]">Añade tu primer supermercado para empezar a crear tus listas de compra.</p>
+                    <button onclick="openAddSupermarketModal()" class="mt-4 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors px-4 py-2.5 rounded-xl shadow-sm">
+                        Añadir nuevo supermercado
+                    </button>
+                </div>
             </div>
+
+            <!-- SUB-VIEW 2: VISTA GLOBAL DE TODOS LOS PRODUCTOS PENDIENTES -->
+            <div id="subview-all-products" class="hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Todos los productos pendientes</h3>
+                    <span class="text-[10px] text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">Vista unificada</span>
+                </div>
+
+                <div id="global-products-list" class="space-y-2.5">
+                    <!-- Relleno dinámico -->
+                </div>
+
+                <div id="global-products-empty-state" class="hidden py-12 bg-white border border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                    <div class="text-emerald-500 p-3 bg-emerald-50 rounded-full mb-3">
+                        <i data-lucide="check-circle" class="w-8 h-8"></i>
+                    </div>
+                    <p class="text-slate-800 font-bold text-sm">¡No tienes nada pendiente de comprar!</p>
+                    <p class="text-slate-500 text-xs mt-1 max-w-[280px]">Visita tus supermercados para añadir productos o crea una nueva lista.</p>
+                </div>
+            </div>
+
         </section>
 
 
         <!-- ================= PAGE: SUPERMARKET DETAIL ================= -->
         <section id="page-supermarket-detail" class="hidden space-y-5 slide-up">
-            <!-- Botón Volver -->
+            
+            <!-- Botón Volver / Eliminar -->
             <div class="flex items-center justify-between">
                 <button onclick="navigateTo('dashboard')" class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 transition-all px-3 py-1.5 rounded-lg">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                    Volver a Tiendas
+                    Volver
                 </button>
                 <button onclick="deleteCurrentSupermarket()" class="text-xs font-medium text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition-colors flex items-center gap-1">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -213,18 +239,15 @@
 
             <!-- Banner del Supermercado Personalizado (Dinámico) -->
             <div id="detail-supermarket-banner" class="relative rounded-3xl p-6 text-white shadow-xl overflow-hidden transition-all duration-300">
-                <!-- Logo & Brand styling in background -->
                 <div class="absolute right-4 bottom-2 opacity-15 transform translate-y-2 pointer-events-none" id="banner-brand-logo-bg">
                     <!-- SVG o Logo Gigante -->
                 </div>
                 
                 <div class="relative z-10 space-y-3">
                     <div class="flex items-center justify-between">
-                        <!-- Brand Badge -->
                         <span id="detail-brand-badge" class="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-white/20 border border-white/10">
                             MERCADONA
                         </span>
-                        <!-- Status text -->
                         <span id="detail-items-count-badge" class="text-[11px] font-semibold text-white/90">
                             0 pendientes
                         </span>
@@ -234,7 +257,7 @@
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold uppercase tracking-wider text-white/70 block">Dirección / Establecimiento</label>
                         <div class="flex items-center gap-1.5 group">
-                            <input type="text" id="detail-address-input" onchange="updateCurrentSupermarketAddress(this.value)" class="bg-white/10 hover:bg-white/15 focus:bg-white/25 focus:ring-1 focus:ring-white/40 font-semibold text-base rounded-lg px-2 py-1 w-full border-none focus:outline-none transition-all placeholder-white/50 text-white" placeholder="Ej. Calle Quevedo, 14">
+                            <input type="text" id="detail-address-input" onchange="updateCurrentSupermarketAddress(this.value)" class="bg-white/10 hover:bg-white/15 focus:bg-white/25 focus:ring-1 focus:ring-white/40 font-semibold text-sm rounded-lg px-2 py-1 w-full border-none focus:outline-none transition-all placeholder-white/50 text-white" placeholder="Ej. Calle Quevedo, 14">
                             <button class="text-white/60 hover:text-white transition-colors" title="Editar dirección">
                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                             </button>
@@ -252,46 +275,28 @@
                 <button id="tab-btn-optimized" onclick="switchDetailTab('optimized')" class="flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-900">
                     <i data-lucide="sparkles" class="w-4 h-4"></i>
                     Ruta Optimizada ⚡
-                    <span class="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-full">Pro</span>
                 </button>
             </div>
 
             <!-- ================= VIEW: NORMAL LIST ================= -->
             <div id="view-normal-list" class="space-y-5">
-                <!-- Formulario Añadir Producto -->
+                
+                <!-- Formulario Añadir Producto (Sin Pasillo porque no lo sabemos aún!) -->
                 <form id="add-product-form" onsubmit="handleAddProduct(event)" class="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-3">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Añadir nuevo producto</h4>
-                    <div class="grid grid-cols-12 gap-2">
-                        <!-- Nombre del producto -->
-                        <div class="col-span-7">
-                            <input type="text" id="new-product-name" required placeholder="Leche, Arroz, Detergente..." class="w-full text-sm bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3 py-2.5 outline-none transition-all">
-                        </div>
-                        <!-- Pasillo / Ubicación -->
-                        <div class="col-span-5 relative">
-                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
-                            </span>
-                            <input type="text" id="new-product-aisle" placeholder="Pasillo (Ej: 7)" class="w-full text-sm bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl pl-7 pr-2 py-2.5 outline-none transition-all" list="aisle-suggestions">
-                            <datalist id="aisle-suggestions">
-                                <option value="Pasillo 1">
-                                <option value="Pasillo 2">
-                                <option value="Pasillo 3">
-                                <option value="Pasillo 4">
-                                <option value="Pasillo 5">
-                                <option value="Pasillo 6">
-                                <option value="Pasillo 7">
-                                <option value="Frutería">
-                                <option value="Carnicería">
-                                <option value="Lácteos">
-                                <option value="Congelados">
-                                <option value="Panadería">
-                            </datalist>
-                        </div>
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Añadir ingrediente / producto</h4>
+                        <span class="text-[9px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-semibold">Pasillo auto-asociado</span>
                     </div>
-                    <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-2.5 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-1.5">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        Añadir a la Lista
-                    </button>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-product-name" required placeholder="Escribe el producto a comprar..." class="w-full text-sm bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 outline-none transition-all">
+                        <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs px-4 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-1">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Añadir
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-slate-400">
+                        💡 No te preocupes por el pasillo. La app buscará en tu historial para asignarlo, y si es nuevo, te lo preguntará de forma rápida cuando lo cojas de la estantería.
+                    </p>
                 </form>
 
                 <!-- Listado Pendientes -->
@@ -308,31 +313,33 @@
                             <i data-lucide="check-circle-2" class="w-6 h-6"></i>
                         </div>
                         <p class="text-slate-700 font-semibold text-xs">¡No quedan pendientes!</p>
-                        <p class="text-slate-400 text-[11px] mt-0.5">Escribe arriba para añadir productos.</p>
+                        <p class="text-slate-400 text-[11px] mt-0.5">Escribe arriba para añadir productos a comprar.</p>
                     </div>
                 </div>
 
                 <!-- Divider -->
                 <hr class="border-slate-100">
 
-                <!-- Listado Completados (Historial de 30 días) -->
+                <!-- Listado Completados (Historial de compras habituales) -->
                 <div class="space-y-2.5">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                            Completados (Últimos 30 días)
-                            <span id="badge-completed-count" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
-                        </h4>
-                        <!-- Botón vaciar completados del supermercado actual -->
+                        <div class="space-y-0.5">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                Productos Comprados / Recuperables
+                                <span id="badge-completed-count" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
+                            </h4>
+                            <p class="text-[9px] text-slate-400 leading-none">Toca uno para devolverlo a pendientes (sin duplicados)</p>
+                        </div>
                         <button onclick="clearCompletedInCurrentSupermarket()" class="text-[10px] text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1">
                             <i data-lucide="trash" class="w-3 h-3"></i>
-                            Vaciar completados
+                            Limpiar todo
                         </button>
                     </div>
                     <div id="completed-products-list" class="space-y-2 opacity-85">
                         <!-- Relleno dinámico -->
                     </div>
                     <div id="completed-empty-state" class="hidden py-6 bg-slate-50/50 border border-dashed border-slate-200/60 rounded-2xl flex flex-col items-center justify-center text-center">
-                        <p class="text-slate-400 text-xs">No hay productos en el carro de la compra.</p>
+                        <p class="text-slate-400 text-xs">No hay productos en el historial.</p>
                     </div>
                 </div>
             </div>
@@ -346,9 +353,9 @@
                         <i data-lucide="zap" class="w-5 h-5 fill-amber-500/20"></i>
                     </div>
                     <div class="space-y-0.5">
-                        <h4 class="text-xs font-bold text-amber-900">Ruta de Recorrido Optimizado</h4>
+                        <h4 class="text-xs font-bold text-amber-900">Tu Ruta Óptima en este súper</h4>
                         <p class="text-[11px] text-amber-700 leading-relaxed">
-                            Agrupamos tus productos por pasillos y los ordenamos para que realices un recorrido continuo (del Pasillo menor al mayor). ¡Evita despistes y cruzar el súper varias veces!
+                            Organizamos automáticamente los productos de menor a mayor pasillo para que hagas un recorrido localizado y sin distracciones.
                         </p>
                     </div>
                 </div>
@@ -362,11 +369,11 @@
                                 <i data-lucide="route" class="w-4 h-4"></i>
                             </div>
                             <div>
-                                <span class="text-xs font-bold text-slate-800 block">Orden óptimo</span>
-                                <span id="optimized-stats-aisles" class="text-[10px] text-slate-400">3 paradas en total</span>
+                                <span class="text-xs font-bold text-slate-800 block">Orden de los pasillos</span>
+                                <span id="optimized-stats-aisles" class="text-[10px] text-slate-400">0 paradas</span>
                             </div>
                         </div>
-                        <span class="text-[10px] bg-slate-100 text-slate-700 px-2 py-1 rounded-lg font-bold uppercase tracking-wider">Aisle-Sorting v1</span>
+                        <span class="text-[9px] bg-slate-100 text-slate-600 px-2 py-1 rounded-lg font-bold">RECORRIDO</span>
                     </div>
 
                     <!-- Contenedor dinámico de pasos del recorrido -->
@@ -380,36 +387,104 @@
                     <!-- Estado Vacío Optimización -->
                     <div id="optimized-empty-state" class="hidden py-8 flex flex-col items-center justify-center text-center">
                         <div class="text-slate-300 p-2.5 bg-slate-50 rounded-full mb-2">
-                            <i data-lucide="smile" class="w-6 h-6"></i>
+                            <i data-lucide="route" class="w-6 h-6"></i>
                         </div>
-                        <p class="text-slate-700 font-semibold text-xs">Sin productos pendientes con pasillo asignado</p>
-                        <p class="text-slate-400 text-[11px] mt-0.5 max-w-[260px]">Para ver el recorrido optimizado, añade productos con su pasillo (ej: "Pasillo 1", "Pasillo 3").</p>
+                        <p class="text-slate-700 font-semibold text-xs">Sin productos clasificados por pasillo</p>
+                        <p class="text-slate-400 text-[11px] mt-0.5 max-w-[260px]">Los pasillos se irán aprendiendo automáticamente cuando metas los productos al carro en el supermercado físico.</p>
                     </div>
 
-                </div>
-
-                <!-- Consejos para el futuro -->
-                <div class="bg-slate-100 rounded-2xl p-4 text-center">
-                    <p class="text-[10px] text-slate-500 leading-relaxed font-medium">
-                        💡 <b>Próximamente:</b> Integración con mapas interactivos de cada supermercado físico según la dirección para recalcular tu ruta si cambian la distribución de pasillos.
-                    </p>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <!-- Footer Fijo (Solo como firma/soporte estético) -->
-    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 py-3 px-4 z-30 flex items-center justify-center gap-1.5 shadow-md">
-        <span class="text-xs text-slate-400 font-medium">Hecho con ❤️ para una compra eficiente</span>
-        <span class="text-slate-300">•</span>
-        <span class="text-xs text-slate-500 font-semibold">Optimarket 2026</span>
+    <!-- Footer Fijo (Navegación / Información) -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 py-3.5 px-4 z-30 flex items-center justify-between shadow-lg max-w-lg mx-auto">
+        <button onclick="navigateTo('dashboard')" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-slate-900 transition-colors flex-1">
+            <i data-lucide="home" class="w-5 h-5"></i>
+            <span class="text-[9px] font-bold">Inicio</span>
+        </button>
+        <button onclick="openAddSupermarketModal()" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-slate-900 transition-colors flex-1">
+            <div class="-mt-8 bg-emerald-600 text-white p-3.5 rounded-full shadow-lg border-4 border-white hover:bg-emerald-700 transition-colors">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[9px] font-bold text-slate-600 mt-1">Añadir Tienda</span>
+        </button>
+        <button onclick="showInfoModal()" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-slate-900 transition-colors flex-1">
+            <i data-lucide="info" class="w-5 h-5"></i>
+            <span class="text-[9px] font-bold">Ayuda</span>
+        </button>
     </footer>
 
 
     <!-- ======================================================== -->
     <!-- MODALS / VENTANAS EMERGENTES -->
     <!-- ======================================================== -->
+
+    <!-- MODAL: PREGUNTAR PASILLO AL COMPLETAR PRODUCTO -->
+    <div id="modal-ask-aisle" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl transform scale-95 transition-all duration-300 space-y-4">
+            
+            <div class="text-center space-y-2">
+                <div class="mx-auto w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center border border-amber-100">
+                    <i data-lucide="map-pin" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-sm font-bold text-slate-900">¿En qué pasillo lo has cogido?</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Es la primera vez que completas "<span id="ask-aisle-product-name" class="font-bold text-slate-800"></span>" en esta tienda. Pon el pasillo para recordarlo automáticamente la próxima vez.
+                </p>
+            </div>
+
+            <!-- Entrada de pasillo -->
+            <div class="space-y-3">
+                <input type="text" id="ask-aisle-input" placeholder="Ej. Pasillo 3, Frutería, Lácteos..." class="w-full text-sm bg-slate-50 border border-slate-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-xl px-3 py-2.5 outline-none transition-all text-center font-semibold text-slate-800" list="modal-aisle-suggestions">
+                <datalist id="modal-aisle-suggestions">
+                    <option value="Pasillo 1">
+                    <option value="Pasillo 2">
+                    <option value="Pasillo 3">
+                    <option value="Pasillo 4">
+                    <option value="Pasillo 5">
+                    <option value="Pasillo 6">
+                    <option value="Pasillo 7">
+                    <option value="Frutería">
+                    <option value="Carnicería">
+                    <option value="Lácteos">
+                    <option value="Congelados">
+                    <option value="Panadería">
+                    <option value="Perfumería">
+                    <option value="Bebidas">
+                </datalist>
+
+                <!-- Botones rápidos de sugerencia táctil para móviles -->
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Accesos rápidos</label>
+                    <div class="flex flex-wrap gap-1.5 justify-center">
+                        <button type="button" onclick="setAskAisleValue('Pasillo 1')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg">Pasillo 1</button>
+                        <button type="button" onclick="setAskAisleValue('Pasillo 2')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg">Pasillo 2</button>
+                        <button type="button" onclick="setAskAisleValue('Pasillo 3')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg">Pasillo 3</button>
+                        <button type="button" onclick="setAskAisleValue('Pasillo 4')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg">Pasillo 4</button>
+                        <button type="button" onclick="setAskAisleValue('Pasillo 5')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg">Pasillo 5</button>
+                        <button type="button" onclick="setAskAisleValue('Pasillo 6')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg">Pasillo 6</button>
+                        <button type="button" onclick="setAskAisleValue('Pasillo 7')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg">Pasillo 7</button>
+                        <button type="button" onclick="setAskAisleValue('Frutería')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg">🍎 Frutería</button>
+                        <button type="button" onclick="setAskAisleValue('Lácteos')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg">🥛 Lácteos</button>
+                        <button type="button" onclick="setAskAisleValue('Carnicería')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded-lg">🥩 Carnes</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="submitAskAisle(false)" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs py-3 rounded-xl transition-colors">
+                    Saltar (Sin pasillo)
+                </button>
+                <button id="ask-aisle-save-btn" onclick="submitAskAisle(true)" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3 rounded-xl transition-colors shadow-sm">
+                    Guardar y Completar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL: AÑADIR SUPERMERCADO -->
     <div id="modal-add-supermarket" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
@@ -452,11 +527,11 @@
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Dirección / Calle / Barrio</label>
                     <input type="text" id="new-super-address" required placeholder="Ej. Calle de Quevedo, 14 o Calle Londres" class="w-full text-sm bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3 py-2.5 outline-none transition-all">
                     <p class="text-[10px] text-slate-400 leading-relaxed">
-                        Es de vital importancia poner la dirección exacta para mapear y optimizar la distribución de los pasillos en el futuro.
+                        Es muy importante colocar la dirección correcta; cada supermercado (aunque sea de la misma marca) puede tener una distribución de pasillos única.
                     </p>
                 </div>
 
-                <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm py-3 rounded-xl transition-colors shadow-lg shadow-slate-100 flex items-center justify-center gap-1.5">
+                <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm py-3 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-1.5">
                     <i data-lucide="check" class="w-4.5 h-4.5"></i>
                     Crear Supermercado
                 </button>
@@ -464,14 +539,13 @@
         </div>
     </div>
 
-
     <!-- MODAL: INFO / AYUDA -->
     <div id="modal-info" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
         <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl transform scale-95 transition-all duration-300 space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
                     <i data-lucide="info" class="text-emerald-500 w-5 h-5"></i>
-                    Información sobre Optimarket
+                    Acerca de Optimarket
                 </h3>
                 <button onclick="closeInfoModal()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -480,21 +554,21 @@
             
             <div class="text-slate-600 text-xs space-y-3.5 leading-relaxed">
                 <p>
-                    ¡Te damos la bienvenida a <b>Optimarket</b>! Esta aplicación ha sido diseñada con un enfoque minimalista y contemporáneo para facilitar tus compras diarias.
+                    ¡Te damos la bienvenida a <b>Optimarket v1.1</b>! Una aplicación optimizada para hacer tu compra en el supermercado más rápida y cómoda.
                 </p>
                 <div class="space-y-2">
-                    <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Conceptos Clave:</h4>
+                    <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Novedades y Funcionamiento:</h4>
                     <ul class="list-disc pl-4 space-y-1">
-                        <li><b>Múltiples Establecimientos:</b> Puedes registrar un mismo supermercado con diferentes direcciones físicas (ej: <i>Calle Quevedo</i> y <i>Calle Londres</i>). Cada una tendrá su propia lista y distribución.</li>
-                        <li><b>Personalización de Marca:</b> Los banners de cada supermercado adoptarán sus colores corporativos e identidad gráfica.</li>
-                        <li><b>Auto-limpieza (30 días):</b> Conforme marcas productos en el súper, pasan a la sección de <i>Completados</i>. Para mantener la base de datos limpia, los productos se eliminan automáticamente tras 30 días.</li>
-                        <li><b>Futuro - Recorrido Optimizado ⚡:</b> Puedes asignar a cada producto un pasillo (ej: <i>Pasillo 1</i>). La app organizará la lista en un orden secuencial perfecto para que completes tu compra en tiempo récord.</li>
+                        <li><b>Mapeo Inteligente Silencioso:</b> No necesitas escribir los pasillos al hacer tu lista de compra en casa. La app se encarga de preguntarte en qué pasillo estás únicamente cuando recoges un producto por primera vez en el supermercado físico.</li>
+                        <li><b>Predicción de Texto / Inteligencia Coincidente:</b> La app normaliza los textos. Si una vez compraste "pasta dental" en el Pasillo 2, y la siguiente escribes "pasta dental Colgate" o "pasta dental fluocardi", la app sabrá automáticamente que está en el Pasillo 2.</li>
+                        <li><b>Historial Recuperable sin Duplicados:</b> Los productos completados no se borran tras 30 días. Se guardan de forma única en el historial (se limpian los duplicados obsoletos). Si necesitas volver a comprar algo, ¡búscalo en completados, tócalo y regresará a pendientes!</li>
+                        <li><b>Vista Unificada de Productos:</b> El selector del Dashboard te permite alternar entre ver tus "Supermercados" o ver una lista global de "Todos los Productos" pendientes de todas tus tiendas, ideal para cuando decidas comprarlo todo de una vez.</li>
                     </ul>
                 </div>
             </div>
 
             <button onclick="closeInfoModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl transition-colors">
-                Entendido
+                ¡Entendido!
             </button>
         </div>
     </div>
@@ -507,20 +581,25 @@
         // --- BASE DE DATOS (LOCAL STORAGE) ---
         // Estructura de supermercados: { id, brand, customName, address, createdAt }
         // Estructura de productos: { id, superId, name, aisle, completed, completedAt, createdAt }
+        // Estructura de learnedAisles: { superId: { "normalized_product_name": "Pasillo Name" } }
 
         let db = {
             supermarkets: [],
-            products: []
+            products: [],
+            learnedAisles: {} // Registro de aprendizaje permanente de pasillos
         };
 
-        // Identificadores de supermercado seleccionado actualmente
+        // Identificadores de estado de navegación
         let currentSupermarketId = null;
         let activeDetailTab = 'normal'; // 'normal' o 'optimized'
+        let activeDashboardTab = 'supermarkets'; // 'supermarkets' o 'all_products'
+
+        // Guardado temporal para el modal de pregunta de pasillo
+        let productPendingToComplete = null;
 
         // Inicialización y carga de la BD
         window.addEventListener('DOMContentLoaded', () => {
             loadDatabase();
-            cleanOldCompletedProducts(false); // Limpieza automática silenciosa al arrancar
             renderDashboard();
             lucide.createIcons();
         });
@@ -530,6 +609,10 @@
             if (data) {
                 try {
                     db = JSON.parse(data);
+                    // Asegurar retrocompatibilidad para learnedAisles
+                    if (!db.learnedAisles) {
+                        db.learnedAisles = {};
+                    }
                 } catch (e) {
                     console.error("Error al parsear base de datos local", e);
                     initializeMockData();
@@ -542,6 +625,62 @@
         function saveDatabase() {
             localStorage.setItem('optimarket_db', JSON.stringify(db));
             updateGlobalStats();
+        }
+
+        // Normalización de texto en Español (quitar acentos, mayúsculas y espacios sobrantes)
+        function normalizeText(str) {
+            if (!str) return '';
+            return str.toLowerCase()
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "") // quita acentos
+                      .trim();
+        }
+
+        // --- ALGORITMO DE INTELIGENCIA DE COINCIDENCIAS (SMART MATCHING) ---
+        // Busca si un producto ya tiene un pasillo registrado de forma inteligente
+        function findLearnedAisle(superId, productName) {
+            if (!db.learnedAisles || !db.learnedAisles[superId]) return '';
+            
+            const normInput = normalizeText(productName);
+            const map = db.learnedAisles[superId];
+
+            // 1. Coincidencia directa exacta
+            if (map[normInput]) {
+                return map[normInput];
+            }
+
+            // 2. Coincidencia inteligente cruzada por palabras clave/subcadenas
+            // Para resolver "pasta dental Colgate" con "pasta dental", o "arroz largo 2kg" con "arroz largo"
+            let bestMatch = '';
+            let maxLen = 0;
+
+            for (const key of Object.keys(map)) {
+                // Si la cadena aprendida está contenida en lo que escribe el usuario,
+                // o si lo que escribe el usuario está contenido en la cadena aprendida:
+                if (normInput.includes(key) || key.includes(normInput)) {
+                    // Seleccionamos la coincidencia con el nombre más largo para ser más específicos
+                    if (key.length > maxLen) {
+                        maxLen = key.length;
+                        bestMatch = map[key];
+                    }
+                }
+            }
+
+            return bestMatch;
+        }
+
+        // Aprende un pasillo para un producto en un súper específico
+        function learnAisle(superId, productName, aisleName) {
+            if (!db.learnedAisles) {
+                db.learnedAisles = {};
+            }
+            if (!db.learnedAisles[superId]) {
+                db.learnedAisles[superId] = {};
+            }
+
+            const normName = normalizeText(productName);
+            db.learnedAisles[superId][normName] = aisleName;
+            saveDatabase();
         }
 
         // Datos iniciales de demostración solicitados por el usuario
@@ -573,61 +712,69 @@
 
             db.supermarkets = [m1, m2, m3];
 
+            // Inicializar mapa de pasillos aprendidos para que ya funcione el Smart Auto-Fill nada más empezar la demo!
+            db.learnedAisles = {
+                'super-mercadona-quevedo': {
+                    'leche': 'Pasillo 7',
+                    'leche semidesnatada': 'Pasillo 7',
+                    'arroz': 'Pasillo 3',
+                    'arroz redondo': 'Pasillo 3',
+                    'pasta dental': 'Pasillo 1',
+                    'pasta dental de menta': 'Pasillo 1',
+                    'tomate frito': 'Pasillo 4'
+                },
+                'super-lidl-alcala': {
+                    'carne de pollo': 'Pasillo 12',
+                    'carne de pechuga de pollo': 'Pasillo 12',
+                    'coca-cola': 'Pasillo 5',
+                    'coca-cola zero': 'Pasillo 5',
+                    'aceite': 'Pasillo 2',
+                    'aceite de oliva': 'Pasillo 2'
+                },
+                'super-ahorramas-america': {
+                    'patatas': 'Pasillo 6',
+                    'patatas fritas': 'Pasillo 6',
+                    'carne de res': 'Pasillo 12',
+                    'carne de cerdo': 'Pasillo 12',
+                    'pan de molde': 'Pasillo 1'
+                }
+            };
+
             // Creamos productos de ejemplo
             db.products = [
                 // Mercadona Calle Quevedo
                 { id: 'p-1', superId: 'super-mercadona-quevedo', name: 'Leche semidesnatada', aisle: 'Pasillo 7', completed: false, completedAt: null, createdAt: now.toISOString() },
                 { id: 'p-2', superId: 'super-mercadona-quevedo', name: 'Arroz redondo', aisle: 'Pasillo 3', completed: false, completedAt: null, createdAt: now.toISOString() },
-                { id: 'p-3', superId: 'super-mercadona-quevedo', name: 'Pasta dental de menta', aisle: 'Pasillo 1', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { id: 'p-3', superId: 'super-mercadona-quevedo', name: 'Pasta dental Colgate', aisle: 'Pasillo 1', completed: false, completedAt: null, createdAt: now.toISOString() }, // Pasta dental Colgate coincidirá con pasta dental!
                 { 
                     id: 'p-4', 
                     superId: 'super-mercadona-quevedo', 
                     name: 'Tomate frito casero', 
                     aisle: 'Pasillo 4', 
                     completed: true, 
-                    completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // Hace 2 días
+                    completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
                     createdAt: now.toISOString() 
                 },
                 
                 // Lidl Calle Alcalá
                 { id: 'p-5', superId: 'super-lidl-alcala', name: 'Carne de pechuga de pollo', aisle: 'Pasillo 12', completed: false, completedAt: null, createdAt: now.toISOString() },
-                { id: 'p-6', superId: 'super-lidl-alcala', name: 'Coca-Cola Zero', aisle: 'Pasillo 5', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { id: 'p-6', superId: 'super-lidl-alcala', name: 'Coca-Cola Zero 2L', aisle: 'Pasillo 5', completed: false, completedAt: null, createdAt: now.toISOString() },
                 { id: 'p-7', superId: 'super-lidl-alcala', name: 'Aceite de oliva virgen extra', aisle: 'Pasillo 2', completed: false, completedAt: null, createdAt: now.toISOString() },
-                { 
-                    id: 'p-8', 
-                    superId: 'super-lidl-alcala', 
-                    name: 'Chocolate negro 85%', 
-                    aisle: 'Pasillo 8', 
-                    completed: true, 
-                    completedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // Hace 10 días
-                    createdAt: now.toISOString() 
-                },
 
                 // Ahorramas Avenida de América
-                { id: 'p-9', superId: 'super-ahorramas-america', name: 'Patatas fritas crujientes', aisle: 'Pasillo 6', completed: false, completedAt: null, createdAt: now.toISOString() },
-                { id: 'p-10', superId: 'super-ahorramas-america', name: 'Carne de res tierna', aisle: 'Pasillo 12', completed: false, completedAt: null, createdAt: now.toISOString() },
-                { id: 'p-11', superId: 'super-ahorramas-america', name: 'Carne de cerdo magra', aisle: 'Pasillo 12', completed: false, completedAt: null, createdAt: now.toISOString() },
-                { 
-                    id: 'p-12', 
-                    superId: 'super-ahorramas-america', 
-                    name: 'Pan de molde rústico', 
-                    aisle: 'Pasillo 1', 
-                    completed: true, 
-                    completedAt: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(), // Hace 28 días (a punto de expirar)
-                    createdAt: now.toISOString() 
-                }
+                { id: 'p-9', superId: 'super-ahorramas-america', name: 'Patatas fritas rústicas', aisle: 'Pasillo 6', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { id: 'p-10', superId: 'super-ahorramas-america', name: 'Carne de res tierna 500g', aisle: 'Pasillo 12', completed: false, completedAt: null, createdAt: now.toISOString() },
+                { id: 'p-11', superId: 'super-ahorramas-america', name: 'Carne de cerdo magra', aisle: 'Pasillo 12', completed: false, completedAt: null, createdAt: now.toISOString() }
             ];
 
             saveDatabase();
         }
 
-        // --- MANEJO DE RUTAS / PÁGINAS ---
+        // --- SISTEMA DE NAVEGACIÓN ---
         function navigateTo(pageId) {
-            // Ocultar todas las páginas
             document.getElementById('page-dashboard').classList.add('hidden');
             document.getElementById('page-supermarket-detail').classList.add('hidden');
 
-            // Mostrar página seleccionada
             if (pageId === 'dashboard') {
                 document.getElementById('page-dashboard').classList.remove('hidden');
                 renderDashboard();
@@ -636,7 +783,6 @@
                 renderSupermarketDetail();
             }
 
-            // Scroll arriba
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setTimeout(() => lucide.createIcons(), 50);
         }
@@ -652,7 +798,7 @@
                 toastIcon.setAttribute('data-lucide', 'alert-circle');
                 toastIcon.className = 'w-4 h-4 text-amber-400';
             } else {
-                toastIcon.setAttribute('data-lucide', 'info');
+                toastIcon.setAttribute('data-lucide', 'check-circle');
                 toastIcon.className = 'w-4 h-4 text-emerald-400';
             }
             lucide.createIcons();
@@ -663,51 +809,43 @@
             setTimeout(() => {
                 toast.classList.remove('opacity-100', 'translate-y-0');
                 toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
-            }, 3500);
+            }, 3000);
         }
 
-        // --- SISTEMA DE EXPIRACIÓN DE 30 DÍAS ---
-        // Borra de la BD los productos completados hace más de 30 días
-        function cleanOldCompletedProducts(manualClick = false) {
-            const beforeCount = db.products.length;
-            const limitTime = 30 * 24 * 60 * 60 * 1000; // 30 días en ms
-            const now = Date.now();
+        // --- DASHBOARD NAVIGATION TABS ---
+        function switchDashboardTab(tab) {
+            activeDashboardTab = tab;
+            
+            const btnSupers = document.getElementById('dashboard-tab-supers');
+            const btnProducts = document.getElementById('dashboard-tab-products');
+            const viewSupers = document.getElementById('subview-supermarkets');
+            const viewProducts = document.getElementById('subview-all-products');
 
-            db.products = db.products.filter(product => {
-                if (!product.completed) return true;
-                const completedTime = new Date(product.completedAt).getTime();
-                const diff = now - completedTime;
-                return diff < limitTime;
-            });
-
-            const deletedCount = beforeCount - db.products.length;
-            if (deletedCount > 0) {
-                saveDatabase();
-                if (manualClick) {
-                    showToast(`Se han eliminado ${deletedCount} productos de la base de datos completados hace más de 30 días.`, false);
-                }
-            } else if (manualClick) {
-                showToast("No hay productos archivados con más de 30 días de antigüedad para eliminar.", true);
+            if (tab === 'supermarkets') {
+                btnSupers.className = "flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 bg-slate-900 text-white shadow-sm";
+                btnProducts.className = "flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-900";
+                viewSupers.classList.remove('hidden');
+                viewProducts.classList.add('hidden');
+                renderDashboard();
+            } else {
+                btnSupers.className = "flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-900";
+                btnProducts.className = "flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 bg-slate-900 text-white shadow-sm";
+                viewSupers.classList.add('hidden');
+                viewProducts.classList.remove('hidden');
+                renderAllProductsView();
             }
+            setTimeout(() => lucide.createIcons(), 50);
         }
 
-        // Calcular días restantes de un producto completado
-        function getDaysRemaining(completedAtString) {
-            const limitTime = 30 * 24 * 60 * 60 * 1000;
-            const completedTime = new Date(completedAtString).getTime();
-            const now = Date.now();
-            const elapsed = now - completedTime;
-            const remainingMs = limitTime - elapsed;
-            const remainingDays = Math.max(0, Math.ceil(remainingMs / (24 * 60 * 60 * 1000)));
-            return remainingDays;
-        }
-
-        // --- RENDERING: DASHBOARD ---
+        // --- RENDERING: DASHBOARD (SUPERMERCADOS) ---
         function renderDashboard() {
             const listContainer = document.getElementById('supermarket-list');
             const emptyState = document.getElementById('supermarket-empty-state');
             
             listContainer.innerHTML = '';
+
+            const totalPendingGlobal = db.products.filter(p => !p.completed).length;
+            document.getElementById('dashboard-tab-pending-badge').textContent = totalPendingGlobal;
 
             if (db.supermarkets.length === 0) {
                 emptyState.classList.remove('hidden');
@@ -717,15 +855,12 @@
                 listContainer.classList.remove('hidden');
 
                 db.supermarkets.forEach(supermarket => {
-                    // Contamos estadísticas de este super
                     const superProducts = db.products.filter(p => p.superId === supermarket.id);
                     const pendingCount = superProducts.filter(p => !p.completed).length;
                     const completedCount = superProducts.filter(p => p.completed).length;
                     const totalCount = superProducts.length;
 
                     const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-
-                    // Formatear Nombre de Marca para el título del card
                     const brandMeta = getBrandMetadata(supermarket.brand, supermarket.customName);
 
                     const card = document.createElement('div');
@@ -733,7 +868,7 @@
                     card.setAttribute('onclick', `openSupermarket('${supermarket.id}')`);
 
                     card.innerHTML = `
-                        <!-- Accent line based on brand -->
+                        <!-- Accent brand stripe -->
                         <div class="absolute left-0 top-0 bottom-0 w-1.5 ${brandMeta.borderBgClass}"></div>
                         
                         <div class="space-y-3.5">
@@ -744,33 +879,33 @@
                                     </div>
                                     <div>
                                         <h4 class="font-bold text-slate-800 text-sm group-hover:text-slate-900 transition-colors">${brandMeta.displayName}</h4>
-                                        <span class="text-[10px] text-slate-400 flex items-center gap-0.5">
-                                            <i data-lucide="map-pin" class="w-3 h-3 inline"></i>
-                                            ${supermarket.address || 'Sin dirección registrada'}
+                                        <span class="text-[10px] text-slate-400 flex items-center gap-0.5 mt-0.5">
+                                            <i data-lucide="map-pin" class="w-2.5 h-2.5 inline text-slate-300"></i>
+                                            ${supermarket.address}
                                         </span>
                                     </div>
                                 </div>
                                 <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">
-                                    ${pendingCount} pend.
+                                    ${pendingCount} pza${pendingCount !== 1 ? 's' : ''}
                                 </span>
                             </div>
 
                             <!-- Progress Bar -->
                             <div class="space-y-1.5">
                                 <div class="flex justify-between text-[10px] text-slate-400 font-medium">
-                                    <span>Progreso de compra</span>
+                                    <span>Progreso en el carro</span>
                                     <span>${completedCount}/${totalCount} (${percent}%)</span>
                                 </div>
-                                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
                                     <div class="h-full ${brandMeta.borderBgClass} transition-all duration-300" style="width: ${percent}%"></div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Card Action -->
-                        <div class="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
-                            <span class="text-slate-400">Ver listado de productos</span>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform"></i>
+                        <div class="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-slate-500 group-hover:text-slate-900 transition-colors">
+                            <span>Ver mi lista de la compra</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 group-hover:translate-x-0.5 transition-transform"></i>
                         </div>
                     `;
 
@@ -779,6 +914,67 @@
             }
 
             updateGlobalStats();
+        }
+
+        // --- SUB-VIEW: TODOS LOS PRODUCTOS PENDIENTES (VISTA UNIFICADA) ---
+        function renderAllProductsView() {
+            const container = document.getElementById('global-products-list');
+            const emptyState = document.getElementById('global-products-empty-state');
+            
+            container.innerHTML = '';
+
+            const pendingProducts = db.products.filter(p => !p.completed);
+
+            if (pendingProducts.length === 0) {
+                emptyState.classList.remove('hidden');
+                container.classList.add('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                container.classList.remove('hidden');
+
+                pendingProducts.forEach(product => {
+                    const supermarket = db.supermarkets.find(s => s.id === product.superId);
+                    const brandMeta = getBrandMetadata(supermarket ? supermarket.brand : 'otro', supermarket ? supermarket.customName : '');
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "flex items-center justify-between p-3.5 bg-white border border-slate-100 hover:border-slate-200 rounded-2xl shadow-sm transition-all group";
+                    
+                    itemDiv.innerHTML = `
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <!-- Checkbox interactivo -->
+                            <button onclick="toggleProductCompletedFromGlobal('${product.id}')" class="w-6 h-6 rounded-full border-2 border-slate-200 hover:border-emerald-500 flex items-center justify-center text-transparent hover:text-emerald-500 transition-all flex-shrink-0">
+                                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <div class="min-w-0 flex-1">
+                                <span class="text-sm font-semibold text-slate-800 break-words">${product.name}</span>
+                                <div class="flex flex-wrap gap-1.5 mt-1.5 items-center">
+                                    <!-- Insignia del supermercado con sus colores -->
+                                    <span class="inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full ${brandMeta.bgClass} ${brandMeta.textClass}">
+                                        <i data-lucide="${brandMeta.icon}" class="w-2.5 h-2.5"></i>
+                                        ${brandMeta.displayName} (${supermarket ? supermarket.address.split(',')[0] : ''})
+                                    </span>
+                                    <!-- Insignia del pasillo -->
+                                    ${product.aisle ? `
+                                        <span class="inline-flex items-center gap-0.5 text-[9px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-full border border-amber-200/50">
+                                            <i data-lucide="map-pin" class="w-2.5 h-2.5"></i>
+                                            ${product.aisle}
+                                        </span>
+                                    ` : `
+                                        <span class="inline-flex items-center gap-0.5 text-[9px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full">
+                                            <i data-lucide="help-circle" class="w-2.5 h-2.5"></i>
+                                            Sin pasillo
+                                        </span>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="openSupermarket('${product.superId}')" class="p-2 text-slate-400 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all" title="Ir a la tienda">
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </button>
+                    `;
+                    container.appendChild(itemDiv);
+                });
+            }
         }
 
         function updateGlobalStats() {
@@ -790,7 +986,6 @@
         }
 
         // --- BRAND METADATA UTILITY ---
-        // Devuelve colores corporativos, iconos y nombres según la marca
         function getBrandMetadata(brand, customName = '') {
             const meta = {
                 displayName: 'Supermercado',
@@ -811,7 +1006,7 @@
                     meta.bannerGradient = 'from-mercadona to-emerald-800';
                     meta.icon = 'shopping-bag';
                     meta.logoSvg = `
-                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/15 fill-current">
                             <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" fill="none" />
                             <text x="50" y="58" font-size="28" font-weight="900" text-anchor="middle" font-family="sans-serif">M</text>
                         </svg>
@@ -825,9 +1020,8 @@
                     meta.bannerGradient = 'from-[#0050aa] to-[#003d82]';
                     meta.icon = 'store';
                     meta.logoSvg = `
-                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/15 fill-current">
                             <circle cx="50" cy="50" r="40" fill="currentColor"/>
-                            <circle cx="50" cy="50" r="30" fill="#fff000" class="opacity-20"/>
                             <text x="50" y="58" font-size="28" font-weight="900" text-anchor="middle" fill="#e30613">L</text>
                         </svg>
                     `;
@@ -840,7 +1034,7 @@
                     meta.bannerGradient = 'from-ahorramas to-red-800';
                     meta.icon = 'shopping-cart';
                     meta.logoSvg = `
-                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/15 fill-current">
                             <path d="M10,80 L50,10 L90,80 Z" stroke="currentColor" stroke-width="8" fill="none" />
                             <text x="50" y="70" font-size="24" font-weight="900" text-anchor="middle">A</text>
                         </svg>
@@ -854,7 +1048,7 @@
                     meta.bannerGradient = 'from-[#003896] to-[#002766]';
                     meta.icon = 'tag';
                     meta.logoSvg = `
-                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/15 fill-current">
                             <text x="50" y="65" font-size="50" font-weight="900" text-anchor="middle">C</text>
                         </svg>
                     `;
@@ -867,7 +1061,7 @@
                     meta.bannerGradient = 'from-dia to-[#a60b0e]';
                     meta.icon = 'store';
                     meta.logoSvg = `
-                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/15 fill-current">
                             <rect x="15" y="15" width="70" height="70" rx="10" stroke="currentColor" stroke-width="8" fill="none" />
                             <text x="50" y="62" font-size="36" font-weight="900" text-anchor="middle">D</text>
                         </svg>
@@ -881,7 +1075,7 @@
                     meta.bannerGradient = 'from-aldi-blue to-[#001944]';
                     meta.icon = 'package';
                     meta.logoSvg = `
-                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/15 fill-current">
                             <polygon points="15,15 85,15 70,85 15,85" stroke="currentColor" stroke-width="8" fill="none" />
                             <text x="45" y="60" font-size="28" font-weight="900" text-anchor="middle">A</text>
                         </svg>
@@ -895,8 +1089,8 @@
                     meta.bannerGradient = 'from-slate-800 to-slate-900';
                     meta.icon = 'store';
                     meta.logoSvg = `
-                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/10 fill-current">
-                            <i data-lucide="store" class="w-16 h-16"></i>
+                        <svg viewBox="0 0 100 100" class="w-20 h-20 text-white/15 fill-current">
+                            <text x="50" y="62" font-size="28" font-weight="900" text-anchor="middle">✏️</text>
                         </svg>
                     `;
                     break;
@@ -908,7 +1102,7 @@
         // --- RENDERING: SUPERMARKET DETAIL PAGE ---
         function openSupermarket(id) {
             currentSupermarketId = id;
-            activeDetailTab = 'normal'; // Por defecto empezamos en listado normal
+            activeDetailTab = 'normal'; // Empezamos en listado normal
             navigateTo('detail');
         }
 
@@ -956,13 +1150,12 @@
             document.getElementById('detail-items-count-badge').textContent = `${pendingProducts.length} pendiente${pendingProducts.length !== 1 ? 's' : ''}`;
         }
 
-        // Cambio de pestañas
         function switchDetailTab(tab) {
             activeDetailTab = tab;
             renderSupermarketDetail();
         }
 
-        // --- RENDERING: VIEW LISTA NORMAL ---
+        // --- RENDERING: LISTA NORMAL (PENDIENTES Y COMPRADOS HISTÓRICOS) ---
         function renderNormalList() {
             const superId = currentSupermarketId;
             const superProducts = db.products.filter(p => p.superId === superId);
@@ -989,7 +1182,7 @@
                     itemDiv.innerHTML = `
                         <div class="flex items-center gap-3 flex-1 min-w-0">
                             <!-- Checkbox interactivo -->
-                            <button onclick="toggleProductCompleted('${product.id}')" class="w-6 h-6 rounded-full border-2 border-slate-200 hover:border-emerald-500 flex items-center justify-center text-transparent hover:text-emerald-500 transition-all flex-shrink-0">
+                            <button onclick="checkProductToggled('${product.id}')" class="w-6 h-6 rounded-full border-2 border-slate-200 hover:border-emerald-500 flex items-center justify-center text-transparent hover:text-emerald-500 transition-all flex-shrink-0">
                                 <i data-lucide="check" class="w-3.5 h-3.5"></i>
                             </button>
                             <div class="min-w-0 flex-1">
@@ -999,11 +1192,16 @@
                                         <i data-lucide="map-pin" class="w-2.5 h-2.5"></i>
                                         ${product.aisle}
                                     </span>
-                                ` : ''}
+                                ` : `
+                                    <span class="inline-flex items-center gap-0.5 text-[9px] bg-slate-50 text-slate-400 px-2 py-0.5 rounded-full mt-1 ml-1 border border-slate-100">
+                                        <i data-lucide="help-circle" class="w-2.5 h-2.5"></i>
+                                        Sin pasillo (se aprende en el súper)
+                                    </span>
+                                `}
                             </div>
                         </div>
                         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="editProductPrompt('${product.id}')" class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors" title="Editar producto">
+                            <button onclick="editProductPrompt('${product.id}')" class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors" title="Editar producto/pasillo">
                                 <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
                             </button>
                             <button onclick="deleteProduct('${product.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar de la lista">
@@ -1015,7 +1213,7 @@
                 });
             }
 
-            // Rellenar lista Completados
+            // Rellenar lista Completados (Historial permanente sin duplicados)
             const completedListContainer = document.getElementById('completed-products-list');
             const completedEmptyState = document.getElementById('completed-empty-state');
             completedListContainer.innerHTML = '';
@@ -1025,29 +1223,31 @@
             } else {
                 completedEmptyState.classList.add('hidden');
                 completedProducts.forEach(product => {
-                    const daysRemaining = getDaysRemaining(product.completedAt);
-                    
                     const itemDiv = document.createElement('div');
-                    itemDiv.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-100/60 rounded-xl transition-all checked group";
+                    itemDiv.className = "flex items-center justify-between p-3 bg-slate-100/60 border border-slate-200/40 rounded-xl transition-all cursor-pointer hover:bg-emerald-50 hover:border-emerald-100 group";
+                    itemDiv.setAttribute('onclick', `toggleProductCompleted('${product.id}')`);
+                    
                     itemDiv.innerHTML = `
                         <div class="flex items-center gap-3 flex-1 min-w-0">
                             <!-- Checkbox ya completado -->
-                            <button onclick="toggleProductCompleted('${product.id}')" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-500 flex items-center justify-center text-white transition-all flex-shrink-0">
-                                <i data-lucide="check" class="w-3.5 h-3.5"></i>
-                            </button>
+                            <div class="w-5 h-5 rounded-full bg-slate-300 group-hover:bg-emerald-500 flex items-center justify-center text-white transition-all flex-shrink-0">
+                                <i data-lucide="check" class="w-3 h-3"></i>
+                            </div>
                             <div class="min-w-0 flex-1">
-                                <span class="text-sm font-medium text-slate-400 line-through strike-through break-words">${product.name}</span>
+                                <span class="text-xs font-semibold text-slate-400 line-through group-hover:no-underline group-hover:text-emerald-800 transition-all break-words">${product.name}</span>
                                 <div class="flex items-center gap-2 mt-0.5">
-                                    <span class="text-[9px] text-slate-400">
-                                        Completado: ${formatDate(product.completedAt)}
-                                    </span>
-                                    <span class="text-[9px] bg-slate-200/50 text-slate-500 px-1.5 py-0.2 rounded font-medium">
-                                        Quedan ${daysRemaining} días
+                                    ${product.aisle ? `
+                                        <span class="text-[8px] bg-amber-50 text-amber-700 font-bold px-1.5 py-0.2 rounded border border-amber-100">
+                                            ${product.aisle}
+                                        </span>
+                                    ` : ''}
+                                    <span class="text-[8px] text-slate-400 font-medium">
+                                        Historial (Toca para comprar de nuevo 🔄)
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <button onclick="deleteProduct('${product.id}')" class="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="Eliminar permanente">
+                        <button onclick="event.stopPropagation(); deleteProduct('${product.id}')" class="p-1 text-slate-300 hover:text-red-500 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="Eliminar permanente">
                             <i data-lucide="x" class="w-3.5 h-3.5"></i>
                         </button>
                     `;
@@ -1058,7 +1258,7 @@
             setTimeout(() => lucide.createIcons(), 50);
         }
 
-        // --- RENDERING: VIEW RUTA OPTIMIZADA (THE FUTURISTIC FEATURE!) ---
+        // --- RENDERING: VIEW RUTA OPTIMIZADA ---
         function renderOptimizedRoute() {
             const superId = currentSupermarketId;
             const pendingProducts = db.products.filter(p => p.superId === superId && !p.completed);
@@ -1081,10 +1281,8 @@
             optimizedEmptyState.classList.add('hidden');
             timelineContainer.classList.remove('hidden');
 
-            // Agrupar por pasillo normalizado
-            // Para ordenar correctamente, normalizamos y obtenemos el número del pasillo si existe
+            // Agrupar por pasillo
             const aisleGroups = {};
-
             productsWithAisle.forEach(product => {
                 const aisleName = product.aisle.trim();
                 if (!aisleGroups[aisleName]) {
@@ -1093,7 +1291,7 @@
                 aisleGroups[aisleName].push(product);
             });
 
-            // Función para ordenar pasillos numéricamente
+            // Función para ordenar pasillos numéricamente de menor a mayor
             const sortedAisleNames = Object.keys(aisleGroups).sort((a, b) => {
                 const numA = parseInt(a.replace(/\D/g, '')) || 999;
                 const numB = parseInt(b.replace(/\D/g, '')) || 999;
@@ -1102,13 +1300,13 @@
                 if (numA !== 999 || numB !== 999) {
                     return numA - numB;
                 }
-                // Si no, ordenar alfabéticamente
+                // Si no, ordenar alfabéticamente (por ej. Frutería, Lácteos, etc.)
                 return a.localeCompare(b);
             });
 
             document.getElementById('optimized-stats-aisles').textContent = `${sortedAisleNames.length} parada${sortedAisleNames.length !== 1 ? 's' : ''} en total`;
 
-            // Volver a dibujar la línea punteada de fondo
+            // Volver a dibujar la línea vertical punteada de fondo
             const line = document.createElement('div');
             line.className = "absolute left-2.5 top-2 bottom-2 w-0.5 border-l-2 border-dashed border-slate-200 pointer-events-none";
             timelineContainer.appendChild(line);
@@ -1119,9 +1317,9 @@
                 const stepDiv = document.createElement('div');
                 stepDiv.className = "relative flex gap-4 items-start slide-up";
 
-                // Indicador circular del paso con número
                 stepDiv.innerHTML = `
                     <div class="absolute -left-5 top-1 w-5 h-5 rounded-full bg-amber-500 border-4 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-1 ring-amber-300">
+                        ${index + 1}
                     </div>
                     <div class="flex-1 bg-gradient-to-tr from-slate-50 to-white border border-slate-100 p-4 rounded-2xl shadow-sm space-y-2.5">
                         <div class="flex items-center justify-between">
@@ -1129,17 +1327,17 @@
                                 <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
                                 ${aisleName}
                             </h5>
-                            <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">
-                                ${productsInAisle.length} prod.
+                            <span class="text-[9px] bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full font-bold">
+                                Parada ${index + 1}
                             </span>
                         </div>
-                        <div class="space-y-2">
+                        <div class="space-y-1.5">
                             ${productsInAisle.map(product => `
                                 <div class="flex items-center justify-between p-2 hover:bg-slate-50/80 rounded-xl transition-colors">
                                     <span class="text-xs font-semibold text-slate-800">${product.name}</span>
-                                    <button onclick="toggleProductCompleted('${product.id}')" class="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-0.5">
+                                    <button onclick="checkProductToggled('${product.id}')" class="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-0.5">
                                         <i data-lucide="shopping-cart" class="w-3 h-3"></i>
-                                        Meter al carro
+                                        Meter
                                     </button>
                                 </div>
                             `).join('')}
@@ -1153,22 +1351,95 @@
             setTimeout(() => lucide.createIcons(), 50);
         }
 
-        // --- ACCIONES DE PRODUCTOS ---
+        // --- SISTEMA PREGUNTAR PASILLO AL COMPLETAR (LAS PRIMERAS VECES) ---
+        function checkProductToggled(productId) {
+            const product = db.products.find(p => p.id === productId);
+            if (!product) return;
+
+            // Si el producto no tiene pasillo y no lo hemos aprendido, preguntamos de forma rápida
+            if (!product.aisle || product.aisle.trim() === '') {
+                // Buscamos si ya se aprendió algo coincidente en segundo plano mientras tanto
+                const learned = findLearnedAisle(product.superId, product.name);
+                if (learned) {
+                    // Si se ha aprendido, se lo asignamos directamente y completamos de inmediato, sin molestar!
+                    product.aisle = learned;
+                    toggleProductCompleted(productId);
+                    showToast(`"${product.name}" completado. Pasillo '${learned}' auto-asociado.`);
+                } else {
+                    // Si realmente no hay nada aprendido, abrimos el modal interactivo
+                    openAskAisleModal(product);
+                }
+            } else {
+                // Si ya tiene pasillo asignado, completamos directamente
+                toggleProductCompleted(productId);
+            }
+        }
+
+        function openAskAisleModal(product) {
+            productPendingToComplete = product;
+            document.getElementById('ask-aisle-product-name').textContent = product.name;
+            document.getElementById('ask-aisle-input').value = '';
+
+            const modal = document.getElementById('modal-ask-aisle');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            const inner = modal.querySelector('.transform');
+            inner.classList.remove('scale-95');
+            inner.classList.add('scale-100');
+            
+            // Foco en el input
+            setTimeout(() => document.getElementById('ask-aisle-input').focus(), 150);
+        }
+
+        function closeAskAisleModal() {
+            const modal = document.getElementById('modal-ask-aisle');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            const inner = modal.querySelector('.transform');
+            inner.classList.remove('scale-100');
+            inner.classList.add('scale-95');
+            productPendingToComplete = null;
+        }
+
+        function setAskAisleValue(val) {
+            document.getElementById('ask-aisle-input').value = val;
+            document.getElementById('ask-aisle-input').focus();
+        }
+
+        function submitAskAisle(saveAisle) {
+            if (!productPendingToComplete) return;
+
+            const product = productPendingToComplete;
+            const aisleInput = document.getElementById('ask-aisle-input').value.trim();
+
+            if (saveAisle && aisleInput !== '') {
+                // Guardar pasillo en el producto
+                product.aisle = aisleInput;
+                // Registrar aprendizaje permanente para que no vuelva a preguntar por este ingrediente
+                learnAisle(product.superId, product.name, aisleInput);
+            }
+
+            // Cerrar modal y completar producto
+            const prodId = product.id;
+            closeAskAisleModal();
+            toggleProductCompleted(prodId);
+        }
+
+        // --- GESTIÓN DE ACCIONES DE PRODUCTOS ---
         function handleAddProduct(event) {
             event.preventDefault();
             const nameInput = document.getElementById('new-product-name');
-            const aisleInput = document.getElementById('new-product-aisle');
-
             const name = nameInput.value.trim();
-            const aisle = aisleInput.value.trim();
 
             if (!name) return;
+
+            // --- INTELIGENCIA DE AUTO-RELLENO DE PASILLO ---
+            // Buscamos si ya hemos comprado este tipo de ingrediente anteriormente en esta tienda
+            const suggestedAisle = findLearnedAisle(currentSupermarketId, name);
 
             const newProduct = {
                 id: 'prod-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
                 superId: currentSupermarketId,
                 name: name,
-                aisle: aisle,
+                aisle: suggestedAisle, // Se auto-asocia si ya se aprendió
                 completed: false,
                 completedAt: null,
                 createdAt: new Date().toISOString()
@@ -1178,10 +1449,14 @@
             saveDatabase();
 
             nameInput.value = '';
-            aisleInput.value = '';
 
             renderSupermarketDetail();
-            showToast(`"${name}" añadido.`);
+            
+            if (suggestedAisle) {
+                showToast(`"${name}" añadido. Se auto-asignó '${suggestedAisle}' según tu historial.`);
+            } else {
+                showToast(`"${name}" añadido a la lista.`);
+            }
         }
 
         function toggleProductCompleted(productId) {
@@ -1189,16 +1464,58 @@
             if (!product) return;
 
             product.completed = !product.completed;
+            
             if (product.completed) {
                 product.completedAt = new Date().toISOString();
-                showToast(`"${product.name}" pasado al carro de la compra.`, false);
+
+                // --- REQUERIMIENTO: EVITAR DUPLICADOS EN LA LISTA DE COMPLETADOS ---
+                // Para mantener el historial como un catálogo limpio de "compras habituales",
+                // si ya hay un producto con el mismo nombre normalizado marcado como "completado"
+                // en este supermercado, eliminamos el más antiguo y mantenemos el nuevo al principio.
+                const normName = normalizeText(product.name);
+                db.products = db.products.filter(p => {
+                    // Conservamos el que estamos completando ahora mismo (por ID)
+                    if (p.id === product.id) return true;
+                    // Filtramos/eliminamos otros que coincidan en nombre, súper y estén completados
+                    const otherNorm = normalizeText(p.name);
+                    return !(p.superId === product.superId && p.completed && otherNorm === normName);
+                });
+
+                showToast(`"${product.name}" guardado en completados.`, false);
             } else {
                 product.completedAt = null;
-                showToast(`"${product.name}" devuelto a la lista.`, false);
+                showToast(`"${product.name}" devuelto a la lista de pendientes.`, false);
             }
 
             saveDatabase();
-            renderSupermarketDetail();
+
+            // Si estamos en la vista detalle
+            if (currentSupermarketId) {
+                renderSupermarketDetail();
+            } else {
+                // Si estamos en el Dashboard (vista unificada)
+                renderAllProductsView();
+            }
+        }
+
+        // Tacha e interactúa desde la pestaña de Todos los Productos del Dashboard
+        function toggleProductCompletedFromGlobal(productId) {
+            const product = db.products.find(p => p.id === productId);
+            if (!product) return;
+
+            // Si no tiene pasillo, tenemos que abrir el modal pero necesitamos el contexto de su supermercado
+            if (!product.aisle || product.aisle.trim() === '') {
+                const learned = findLearnedAisle(product.superId, product.name);
+                if (learned) {
+                    product.aisle = learned;
+                    toggleProductCompleted(productId);
+                } else {
+                    // Abre modal de pasillo
+                    openAskAisleModal(product);
+                }
+            } else {
+                toggleProductCompleted(productId);
+            }
         }
 
         function editProductPrompt(productId) {
@@ -1206,23 +1523,28 @@
             if (!product) return;
 
             const newName = prompt("Editar nombre del producto:", product.name);
-            if (newName === null) return; // cancelado
+            if (newName === null) return;
             
             const cleanName = newName.trim();
             if (!cleanName) {
-                showToast("El nombre del producto no puede estar vacío.", true);
+                showToast("El nombre no puede estar vacío.", true);
                 return;
             }
 
-            const newAisle = prompt("Editar pasillo (ej. Pasillo 3, Congelados...):", product.aisle || '');
+            const newAisle = prompt("Editar pasillo (ej. Pasillo 3, Lácteos, etc. Dejar vacío para redefinir):", product.aisle || '');
             if (newAisle === null) return;
 
             product.name = cleanName;
             product.aisle = newAisle.trim();
 
+            // Si modificó o añadió un pasillo manualmente, lo aprendemos también
+            if (product.aisle !== '') {
+                learnAisle(product.superId, product.name, product.aisle);
+            }
+
             saveDatabase();
             renderSupermarketDetail();
-            showToast("Producto actualizado con éxito.");
+            showToast("Producto actualizado.");
         }
 
         function deleteProduct(productId) {
@@ -1233,12 +1555,16 @@
             db.products = db.products.filter(p => p.id !== productId);
             
             saveDatabase();
-            renderSupermarketDetail();
+            if (currentSupermarketId) {
+                renderSupermarketDetail();
+            } else {
+                renderAllProductsView();
+            }
             showToast(`"${name}" eliminado.`);
         }
 
         function clearCompletedInCurrentSupermarket() {
-            if (!confirm("¿Seguro que deseas eliminar de forma permanente TODOS los productos completados de este supermercado?")) return;
+            if (!confirm("¿Deseas vaciar por completo el historial de productos comprados de este supermercado?")) return;
 
             const beforeCount = db.products.length;
             db.products = db.products.filter(p => !(p.superId === currentSupermarketId && p.completed));
@@ -1246,10 +1572,10 @@
             const deleted = beforeCount - db.products.length;
             saveDatabase();
             renderSupermarketDetail();
-            showToast(`Se eliminaron ${deleted} productos del carro.`);
+            showToast(`Se eliminaron ${deleted} productos del historial.`);
         }
 
-        // --- ACCIONES DE SUPERMERCADOS ---
+        // --- GESTIÓN DE ACCIONES DE SUPERMERCADOS ---
         function handleBrandSelectChange(val) {
             const customGroup = document.getElementById('custom-brand-name-group');
             if (val === 'otro') {
@@ -1276,7 +1602,6 @@
             inner.classList.remove('scale-100');
             inner.classList.add('scale-95');
 
-            // Resetear form
             document.getElementById('add-supermarket-form').reset();
             document.getElementById('custom-brand-name-group').classList.add('hidden');
         }
@@ -1301,9 +1626,12 @@
             db.supermarkets.push(newSuper);
             saveDatabase();
             closeAddSupermarketModal();
-            renderDashboard();
+            
+            // Forzar volver a la vista de supermercados e ir al dashboard
+            switchDashboardTab('supermarkets');
+            navigateTo('dashboard');
 
-            showToast("Establecimiento creado correctamente.");
+            showToast(`Establecimiento "${brand === 'otro' ? customName : brand.toUpperCase()}" creado.`);
         }
 
         function updateCurrentSupermarketAddress(newVal) {
@@ -1313,13 +1641,13 @@
             const cleanAddress = newVal.trim();
             if (!cleanAddress) {
                 showToast("La dirección no puede estar vacía.", true);
-                renderSupermarketDetail(); // restore
+                renderSupermarketDetail();
                 return;
             }
 
             supermarket.address = cleanAddress;
             saveDatabase();
-            showToast("Dirección física actualizada.");
+            showToast("Dirección física guardada con éxito.");
         }
 
         function deleteCurrentSupermarket() {
@@ -1329,7 +1657,7 @@
             const nameMeta = getBrandMetadata(supermarket.brand, supermarket.customName);
             const fullName = `${nameMeta.displayName} - ${supermarket.address}`;
 
-            if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente el supermercado:\n"${fullName}"?\n\nTambién se borrarán todos sus productos asociados.`)) {
+            if (!confirm(`¿Estás seguro de que deseas eliminar el supermercado:\n"${fullName}"?\n\nSe borrará todo su historial de productos y aprendizaje.`)) {
                 return;
             }
 
@@ -1337,13 +1665,17 @@
             db.supermarkets = db.supermarkets.filter(s => s.id !== currentSupermarketId);
             // Eliminar productos de ese súper
             db.products = db.products.filter(p => p.superId !== currentSupermarketId);
+            // Eliminar aprendizaje
+            if (db.learnedAisles && db.learnedAisles[currentSupermarketId]) {
+                delete db.learnedAisles[currentSupermarketId];
+            }
 
             saveDatabase();
             navigateTo('dashboard');
-            showToast("Supermercado eliminado con éxito.");
+            showToast("Supermercado eliminado.");
         }
 
-        // --- AYUDAS Y FECHAS ---
+        // --- AYUDAS Y MODAL INFORMATIVO ---
         function showInfoModal() {
             const modal = document.getElementById('modal-info');
             modal.classList.remove('opacity-0', 'pointer-events-none');
@@ -1358,12 +1690,6 @@
             const inner = modal.querySelector('.transform');
             inner.classList.remove('scale-100');
             inner.classList.add('scale-95');
-        }
-
-        function formatDate(isoString) {
-            if (!isoString) return '';
-            const d = new Date(isoString);
-            return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
         }
     </script>
 </body>
