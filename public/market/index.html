@@ -1258,13 +1258,22 @@
 
         // --- CALCULADORA / TOTALIZADORES EN CALIENTE POR SUPERMERCADO ---
         function calculateSupermarketTotals(superId) {
+            const supermarket = db.supermarkets.find(s => s.id === superId);
+            const resetTime = supermarket && supermarket.lastResetAt ? new Date(supermarket.lastResetAt).getTime() : 0;
+
             const superProducts = db.products.filter(p => p.superId === superId);
             
             const pendingProducts = superProducts.filter(p => !p.completed);
             const completedProducts = superProducts.filter(p => p.completed);
 
+            // Sólamente sumamos al carro los productos completados DESPUÉS del último reinicio de gastos
+            const completedInCurrentTrip = completedProducts.filter(p => {
+                if (!p.completedAt) return false;
+                return new Date(p.completedAt).getTime() >= resetTime;
+            });
+
             const pendingSum = pendingProducts.reduce((acc, curr) => acc + ((parseFloat(curr.price) || 0) * (parseInt(curr.quantity) || 1)), 0);
-            const completedSum = completedProducts.reduce((acc, curr) => acc + ((parseFloat(curr.price) || 0) * (parseInt(curr.quantity) || 1)), 0);
+            const completedSum = completedInCurrentTrip.reduce((acc, curr) => acc + ((parseFloat(curr.price) || 0) * (parseInt(curr.quantity) || 1)), 0);
             const totalSum = pendingSum + completedSum;
 
             document.getElementById('detail-total-pending').textContent = formatPrice(pendingSum);
@@ -1468,14 +1477,17 @@
 
         // --- REINICIAR GASTOS POR SUPERMERCADO ---
         function resetSupermarketSpending() {
-            if (!confirm("¿Deseas reiniciar el contador de gastos de este supermercado? Se eliminarán de forma permanente todos los productos ya completados (historial) de esta tienda para empezar un nuevo periodo a cero, pero conservarás tus supermercados y tus productos pendientes actuales.")) return;
+            const supermarket = db.supermarkets.find(s => s.id === currentSupermarketId);
+            if (!supermarket) return;
+
+            if (!confirm("¿Deseas reiniciar la SUMA TOTAL de este supermercado? Se pondrá a cero el contador de gastos de los productos ya comprados para poder empezar un nuevo mes, pero conservarás absolutamente todo tu historial de productos con sus precios y pasillos intactos para volver a comprarlos cuando quieras.")) return;
             
-            // Eliminar de forma definitiva los productos completados de este supermercado
-            db.products = db.products.filter(p => !(p.superId === currentSupermarketId && p.completed));
+            // Registramos la fecha y hora de corte de gastos de este supermercado
+            supermarket.lastResetAt = new Date().toISOString();
             
             saveDatabase();
             renderSupermarketDetail();
-            showToast("Gastos e historial de comprados reiniciados a cero. 🔄");
+            showToast("Contador de gastos de este supermercado reiniciado a cero. 🔄");
         }
 
         // --- RUTA OPTIMIZADA POR PASILLOS ---
@@ -2216,5 +2228,5 @@
             inner.classList.add('scale-95');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a255e9eadc35db84',t:'MTc4NTc2NjMwOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a255f7475f2af771',t:'MTc4NTc2Njg1Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
