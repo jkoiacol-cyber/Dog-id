@@ -346,6 +346,13 @@
                         <p class="text-slate-700 font-semibold text-xs">¡No quedan pendientes!</p>
                         <p class="text-slate-400 text-[11px] mt-0.5">Escribe arriba para añadir productos.</p>
                     </div>
+
+                    <!-- Terminar compra: pasa "En el Carro" a "Suma Total" y deja el carro a cero -->
+                    <button id="finish-shopping-btn" onclick="finishShopping()" class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:hover:bg-emerald-600 text-white font-bold text-xs py-3 rounded-2xl shadow-sm transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="check-check" class="w-4 h-4"></i>
+                        Terminar compra
+                        <span id="finish-shopping-amount" class="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-extrabold">0,00 €</span>
+                    </button>
                 </div>
 
                 <!-- Divider -->
@@ -795,6 +802,13 @@
                         if (!s.brand) s.brand = 'otro';
                         if (!s.address) s.address = 'Sin dirección';
                         if (!s.customName) s.customName = '';
+                        // MIGRACIÓN: "Suma Total" pasa a ser un histórico acumulado e independiente
+                        // (antes se calculaba en caliente como pendiente + carro, lo que provocaba
+                        // que se perdiera histórico al recuperar productos ya comprados).
+                        if (typeof s.accumulatedSpent !== 'number' || isNaN(s.accumulatedSpent)) {
+                            s.accumulatedSpent = 0;
+                        }
+                        if (s.lastResetAt === undefined) s.lastResetAt = null;
                     });
 
                 } catch (e) {
@@ -914,6 +928,8 @@
                 brand: 'mercadona',
                 customName: '',
                 address: 'Calle Quevedo, 14, Madrid',
+                accumulatedSpent: 0,
+                lastResetAt: null,
                 createdAt: now.toISOString()
             };
             const m2 = {
@@ -921,6 +937,8 @@
                 brand: 'lidl',
                 customName: '',
                 address: 'Calle Alcalá, 230, Madrid',
+                accumulatedSpent: 0,
+                lastResetAt: null,
                 createdAt: now.toISOString()
             };
             const m3 = {
@@ -928,6 +946,8 @@
                 brand: 'ahorramas',
                 customName: '',
                 address: 'Avenida de América, 45, Madrid',
+                accumulatedSpent: 0,
+                lastResetAt: null,
                 createdAt: now.toISOString()
             };
 
@@ -1257,28 +1277,71 @@
         }
 
         // --- CALCULADORA / TOTALIZADORES EN CALIENTE POR SUPERMERCADO ---
+        // "Pendiente": suma en vivo de los productos aún no comprados.
+        // "En el Carro": suma en vivo de lo comprado en el viaje actual (desde el último "Terminar compra" o reinicio).
+        // "Suma Total": histórico ACUMULADO e independiente. Sólo crece al pulsar "Terminar compra"
+        //               y sólo se pone a cero con el botón de reinicio manual. No se recalcula en
+        //               caliente para evitar perder histórico al recuperar productos ya comprados.
         function calculateSupermarketTotals(superId) {
             const supermarket = db.supermarkets.find(s => s.id === superId);
-            const resetTime = supermarket && supermarket.lastResetAt ? new Date(supermarket.lastResetAt).getTime() : 0;
+            if (!supermarket) return { pendingSum: 0, cartSum: 0, totalSum: 0 };
+
+            const resetTime = supermarket.lastResetAt ? new Date(supermarket.lastResetAt).getTime() : 0;
 
             const superProducts = db.products.filter(p => p.superId === superId);
             
             const pendingProducts = superProducts.filter(p => !p.completed);
             const completedProducts = superProducts.filter(p => p.completed);
 
-            // Sólamente sumamos al carro los productos completados DESPUÉS del último reinicio de gastos
+            // Sólamente sumamos al carro los productos completados DESPUÉS del último "Terminar compra"/reinicio
             const completedInCurrentTrip = completedProducts.filter(p => {
                 if (!p.completedAt) return false;
                 return new Date(p.completedAt).getTime() >= resetTime;
             });
 
             const pendingSum = pendingProducts.reduce((acc, curr) => acc + ((parseFloat(curr.price) || 0) * (parseInt(curr.quantity) || 1)), 0);
-            const completedSum = completedInCurrentTrip.reduce((acc, curr) => acc + ((parseFloat(curr.price) || 0) * (parseInt(curr.quantity) || 1)), 0);
-            const totalSum = pendingSum + completedSum;
+            const cartSum = completedInCurrentTrip.reduce((acc, curr) => acc + ((parseFloat(curr.price) || 0) * (parseInt(curr.quantity) || 1)), 0);
+            const totalSum = supermarket.accumulatedSpent || 0;
 
             document.getElementById('detail-total-pending').textContent = formatPrice(pendingSum);
-            document.getElementById('detail-total-completed').textContent = formatPrice(completedSum);
+            document.getElementById('detail-total-completed').textContent = formatPrice(cartSum);
             document.getElementById('detail-total-all').textContent = formatPrice(totalSum);
+
+            // Actualizar estado del botón "Terminar compra"
+            const finishBtn = document.getElementById('finish-shopping-btn');
+            if (finishBtn) {
+                const amountEl = document.getElementById('finish-shopping-amount');
+                if (amountEl) amountEl.textContent = formatPrice(cartSum);
+                finishBtn.disabled = cartSum <= 0;
+                finishBtn.classList.toggle('opacity-40', cartSum <= 0);
+                finishBtn.classList.toggle('cursor-not-allowed', cartSum <= 0);
+            }
+
+            return { pendingSum, cartSum, totalSum };
+        }
+
+        // --- TERMINAR COMPRA ---
+        // Pasa el importe de "En el Carro" al histórico "Suma Total" y deja "En el Carro" a cero,
+        // sin tocar el historial de productos (siguen disponibles para recuperarlos).
+        function finishShopping() {
+            const supermarket = db.supermarkets.find(s => s.id === currentSupermarketId);
+            if (!supermarket) return;
+
+            const { cartSum } = calculateSupermarketTotals(currentSupermarketId);
+
+            if (cartSum <= 0) {
+                showToast("Aún no hay productos en el carro para cerrar la compra.", false);
+                return;
+            }
+
+            supermarket.accumulatedSpent = (supermarket.accumulatedSpent || 0) + cartSum;
+            // Movemos el corte del "viaje" a ahora mismo: lo comprado hasta ahora deja de contar
+            // como "En el Carro" pero permanece intacto en el Historial de Compras.
+            supermarket.lastResetAt = new Date().toISOString();
+
+            saveDatabase();
+            renderSupermarketDetail();
+            showToast(`Compra terminada: ${formatPrice(cartSum)} añadidos a la Suma Total. 🧾`);
         }
 
         // --- RENDERING: SUPERMARKET DETAIL PAGE ---
@@ -1482,7 +1545,9 @@
 
             if (!confirm("¿Deseas reiniciar la SUMA TOTAL de este supermercado? Se pondrá a cero el contador de gastos de los productos ya comprados para poder empezar un nuevo mes, pero conservarás absolutamente todo tu historial de productos con sus precios y pasillos intactos para volver a comprarlos cuando quieras.")) return;
             
-            // Registramos la fecha y hora de corte de gastos de este supermercado
+            // Ponemos a cero el histórico acumulado y registramos la fecha y hora de corte
+            // para que "En el Carro" también arranque de nuevo desde cero.
+            supermarket.accumulatedSpent = 0;
             supermarket.lastResetAt = new Date().toISOString();
             
             saveDatabase();
@@ -2011,6 +2076,8 @@
                 customName: brand === 'otro' ? customName : '',
                 customColor: customColor,
                 address: address,
+                accumulatedSpent: 0,
+                lastResetAt: null,
                 createdAt: new Date().toISOString()
             };
 
