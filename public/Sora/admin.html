@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Welcome Aruba TV</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background: #0f172a; color: #f8fafc; padding: 40px 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 700px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { font-size: 1.8rem; margin-bottom: 20px; text-align: center; color: #38bdf8; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.95rem; margin-bottom: 8px; color: #cbd5e1; }
+        input, select, textarea { width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 1rem; }
+        input:focus, select:focus { outline: none; border-color: #38bdf8; }
+        .btn { display: block; width: 100%; padding: 14px; background: #0ea5e9; color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.3s; margin-top: 20px; }
+        .btn:hover { background: #0284c7; }
+        .result-box { margin-top: 30px; background: rgba(0, 0, 0, 0.5); padding: 20px; border-radius: 10px; word-break: break-all; display: none; }
+        .result-box h3 { color: #38bdf8; margin-bottom: 10px; font-size: 1.1rem; }
+        .result-link { color: #93c5fd; text-decoration: none; display: block; margin-bottom: 15px; }
+        .actions-flex { display: flex; gap: 10px; }
+    </style>
+</head>
+    <body>
+
+        <div class="container">
+            <h1>Panel de Control - Smart TV Aruba</h1>
+            
+            <form id="configForm">
+                <div class="form-group">
+                    <label>Nombre del Huésped / Familia:</label>
+                    <input type="text" id="guestName" value="Familia Smith" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Idioma de Bienvenida:</label>
+                    <select id="langSelect">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                        <option value="de">Deutsch</option>
+                        <option value="nl">Nederlands</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre de la Red WiFi:</label>
+                    <input type="text" id="wifiName" value="Aruba Paradise">
+                </div>
+
+                <div class="form-group">
+                    <label>Contraseña del WiFi:</label>
+                    <input type="text" id="wifiPass" value="WelcomeAruba2026">
+                </div>
+
+                <div class="form-group">
+                    <label>Teléfono / WhatsApp del Host:</label>
+                    <input type="text" id="phone" value="+297 594 XXXX">
+                </div>
+
+                <div class="form-group">
+                    <label>Hora de Check-out:</label>
+                    <input type="text" id="checkout" value="11:00">
+                </div>
+
+                <div class="form-group">
+                    <label>URL de la Guía Digital (para el QR de la TV):</label>
+                    <input type="url" id="guideUrl" value="https://guide.arubaparadisestay.com">
+                </div>
+
+                <button type="button" class="btn" onclick="guardarConfiguracion(event)">Generar Enlace para la TV</button>
+            </form>
+
+            <div id="resultContainer" class="result-box">
+                <h3>Enlace generado para la Smart TV:</h3>
+                <a id="generatedLink" class="result-link" href="#" target="_blank"></a>
+                <div class="actions-flex">
+                    <button class="btn" style="margin-top:0;" onclick="copiarEnlace()">Copiar Enlace</button>
+                    <button class="btn" style="margin-top:0; background:#10b981;" onclick="abrirEnTV()">Abrir en Pantalla</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            async function guardarConfiguracion(event) {
+                if (event) event.preventDefault();
+
+                const btn = document.querySelector('.btn');
+                btn.textContent = "Guardando en la TV...";
+                btn.disabled = true;
+
+                const config = {
+                    name: document.getElementById('guestName').value,
+                    lang: document.getElementById('langSelect').value,
+                    wifi: document.getElementById('wifiName').value,
+                    pass: document.getElementById('wifiPass').value,
+                    phone: document.getElementById('phone').value,
+                    checkout: document.getElementById('checkout').value,
+                    guide: document.getElementById('guideUrl').value
+                };
+
+                try {
+                    // Guardamos directamente en la API en la nube
+                    const response = await fetch('https://api.npoint.io/7849d49f301ab0b1f2f9', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(config)
+                    });
+
+                    if (response.ok) {
+                        const tvURL = "https://www.dogid.es/Arb&B_Sora/index.html";
+                        
+                        const linkElem = document.getElementById('generatedLink');
+                        linkElem.href = tvURL;
+                        linkElem.textContent = tvURL;
+
+                        document.getElementById('resultContainer').style.display = 'block';
+                        alert('¡Configuración guardada en la nube con éxito!');
+                    } else {
+                        alert('Error al guardar en la nube.');
+                    }
+                } catch (err) {
+                    console.error('Error de conexión:', err);
+                    alert('No se pudo conectar con el servicio.');
+                } finally {
+                    btn.textContent = "Actualizar Pantalla de la TV";
+                    btn.disabled = false;
+                }
+            }
+
+            function copiarEnlace() {
+                const text = document.getElementById('generatedLink').textContent;
+                navigator.clipboard.writeText(text);
+                alert('¡Enlace copiado al portapapeles!');
+            }
+
+            function abrirEnTV() {
+                const linkHref = document.getElementById('generatedLink').href;
+                window.open(linkHref, '_blank');
+            }
+        </script>
+</body>
+</html>
