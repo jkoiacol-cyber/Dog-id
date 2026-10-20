@@ -22,71 +22,74 @@
         .actions-flex { display: flex; gap: 10px; }
     </style>
 </head>
-<body>
+    <body>
 
-    <div class="container">
-        <h1>Panel de Control - Smart TV Aruba</h1>
-        
-        <form id="configForm">
-            <div class="form-group">
-                <label>Nombre del Huésped / Familia:</label>
-                <input type="text" id="guestName" value="Familia Smith" required>
-            </div>
+        <div class="container">
+            <h1>Panel de Control - Smart TV Aruba</h1>
+            
+            <form id="configForm">
+                <div class="form-group">
+                    <label>Nombre del Huésped / Familia:</label>
+                    <input type="text" id="guestName" value="Familia Smith" required>
+                </div>
 
-            <div class="form-group">
-                <label>Idioma de Bienvenida:</label>
-                <select id="langSelect">
-                    <option value="es">Español</option>
-                    <option value="en">English</option>
-                    <option value="de">Deutsch</option>
-                    <option value="nl">Nederlands</option>
-                </select>
-            </div>
+                <div class="form-group">
+                    <label>Idioma de Bienvenida:</label>
+                    <select id="langSelect">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                        <option value="de">Deutsch</option>
+                        <option value="nl">Nederlands</option>
+                    </select>
+                </div>
 
-            <div class="form-group">
-                <label>Nombre de la Red WiFi:</label>
-                <input type="text" id="wifiName" value="Aruba Paradise">
-            </div>
+                <div class="form-group">
+                    <label>Nombre de la Red WiFi:</label>
+                    <input type="text" id="wifiName" value="Aruba Paradise">
+                </div>
 
-            <div class="form-group">
-                <label>Contraseña del WiFi:</label>
-                <input type="text" id="wifiPass" value="WelcomeAruba2026">
-            </div>
+                <div class="form-group">
+                    <label>Contraseña del WiFi:</label>
+                    <input type="text" id="wifiPass" value="WelcomeAruba2026">
+                </div>
 
-            <div class="form-group">
-                <label>Teléfono / WhatsApp del Host:</label>
-                <input type="text" id="phone" value="+297 594 XXXX">
-            </div>
+                <div class="form-group">
+                    <label>Teléfono / WhatsApp del Host:</label>
+                    <input type="text" id="phone" value="+297 594 XXXX">
+                </div>
 
-            <div class="form-group">
-                <label>Hora de Check-out:</label>
-                <input type="text" id="checkout" value="11:00">
-            </div>
+                <div class="form-group">
+                    <label>Hora de Check-out:</label>
+                    <input type="text" id="checkout" value="11:00">
+                </div>
 
-            <div class="form-group">
-                <label>URL de la Guía Digital (para el QR de la TV):</label>
-                <input type="url" id="guideUrl" value="https://guide.arubaparadisestay.com">
-            </div>
+                <div class="form-group">
+                    <label>URL de la Guía Digital (para el QR de la TV):</label>
+                    <input type="url" id="guideUrl" value="https://guide.arubaparadisestay.com">
+                </div>
 
-            <button type="button" class="btn" onclick="generarEnlace()">Generar Enlace para la TV</button>
-        </form>
+                <button type="button" class="btn" onclick="generarEnlace()">Generar Enlace para la TV</button>
+            </form>
 
-        <div id="resultContainer" class="result-box">
-            <h3>Enlace generado para la Smart TV:</h3>
-            <a id="generatedLink" class="result-link" href="#" target="_blank"></a>
-            <div class="actions-flex">
-                <button class="btn" style="margin-top:0;" onclick="copiarEnlace()">Copiar Enlace</button>
-                <button class="btn" style="margin-top:0; background:#10b981;" onclick="abrirEnTV()">Abrir en Pantalla</button>
+            <div id="resultContainer" class="result-box">
+                <h3>Enlace generado para la Smart TV:</h3>
+                <a id="generatedLink" class="result-link" href="#" target="_blank"></a>
+                <div class="actions-flex">
+                    <button class="btn" style="margin-top:0;" onclick="copiarEnlace()">Copiar Enlace</button>
+                    <button class="btn" style="margin-top:0; background:#10b981;" onclick="abrirEnTV()">Abrir en Pantalla</button>
+                </div>
             </div>
         </div>
-    </div>
 
     <script>
-        async function guardarConfiguracion() {
+        async function guardarConfiguracion(event) {
+            if (event) event.preventDefault(); // Evita que el formulario recargue la página
+
             const btn = document.querySelector('.btn');
             btn.textContent = "Guardando en la TV...";
             btn.disabled = true;
 
+            // Recoger los datos del formulario
             const config = {
                 name: document.getElementById('guestName').value,
                 lang: document.getElementById('langSelect').value,
@@ -98,6 +101,7 @@
             };
 
             try {
+                // Guardar los datos en el servidor a través de save.php
                 const response = await fetch('save.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -107,7 +111,7 @@
                 const data = await response.json();
 
                 if (data.status === 'success') {
-                    // La URL corta y limpia para la Smart TV
+                    // Dirección fija y limpia para la Smart TV
                     const tvURL = "https://www.dogid.es/Arb&B_Sora/index.html";
                     
                     const linkElem = document.getElementById('generatedLink');
@@ -115,18 +119,18 @@
                     linkElem.textContent = tvURL;
 
                     document.getElementById('resultContainer').style.display = 'block';
-                    alert('¡Configuración actualizada con éxito!');
+                    alert('¡Configuración guardada! La Smart TV cargará estos datos.');
                 } else {
-                    alert('Error al guardar la configuración.');
+                    alert('Error en el servidor al guardar los datos.');
                 }
             } catch (err) {
-                console.error('Error:', err);
-                alert('Error de conexión con el servidor.');
+                console.error('Error de conexión:', err);
+                alert('No se pudo conectar con el servidor (asegúrate de que save.php exista en el hosting).');
             } finally {
                 btn.textContent = "Actualizar Pantalla de la TV";
                 btn.disabled = false;
             }
         }
     </script>
-</body>
+    </body>
 </html>

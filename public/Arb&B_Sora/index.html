@@ -330,115 +330,96 @@
     </div>
 
     <script>
+        // ==========================================
+        // 1. DICCIONARIO DE TRADUCCIONES
+        // ==========================================
+        const translations = {
+            es: {
+                welcome: "Bienvenidos a Aruba",
+                message: "Esperamos que disfrutéis de una estancia inolvidable."
+            },
+            en: {
+                welcome: "Welcome to Aruba",
+                message: "We hope you enjoy an unforgettable stay."
+            },
+            de: {
+                welcome: "Willkommen auf Aruba",
+                message: "Wir wünschen Ihnen einen unvergesslichen Aufenthalt."
+            },
+            nl: {
+                welcome: "Welkom op Aruba",
+                message: "Wij hopen dat jullie een onvergetelijk verblijf hebben."
+            }
+        };
 
-        // Cargar la configuración guardada en el servidor
+        // ==========================================
+        // 2. PARÁMETROS DE URL / VALORES POR DEFECTO
+        // ==========================================
+        const params = new URLSearchParams(window.location.search);
+
+        let guest = params.get("name") || "Nuestros Invitados";
+        let lang = params.get("lang") || "es";
+        let wifi = params.get("wifi") || "Aruba Paradise";
+        let password = params.get("pass") || "WelcomeAruba2026";
+        let phone = params.get("phone") || "+297 XXX XXXX";
+        let checkout = params.get("checkout") || "11:00";
+        let guide = params.get("guide") || "https://guide.arubaparadisestay.com";
+
+        // Función principal para renderizar todos los datos en el DOM
+        function aplicarDatos(g, l, w, p, ph, ch, gu) {
+            document.getElementById("guest").textContent = g;
+            
+            const langCode = translations[l] ? l : "es";
+            document.getElementById("welcome").textContent = translations[langCode].welcome;
+            document.getElementById("message").textContent = translations[langCode].message;
+
+            document.getElementById("wifi").textContent = `📶 WiFi: ${w}`;
+            document.getElementById("password").textContent = `🔐 Password: ${p}`;
+            document.getElementById("phone").textContent = `📱 Host WhatsApp: ${ph}`;
+            document.getElementById("checkout").textContent = `🔑 Check-out: ${ch}`;
+
+            document.getElementById("qrCode").src =
+                `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(gu)}`;
+            
+            // Actualizar el reloj inmediatamente con el idioma seleccionado
+            updateClock();
+        }
+
+        // Aplicar valores iniciales (por URL o por defecto)
+        aplicarDatos(guest, lang, wifi, password, phone, checkout, guide);
+
+        // ==========================================
+        // 3. CARGA DE CONFIGURACIÓN DESDE SERVIDOR (config.json)
+        // ==========================================
         async function cargarConfiguracionServidor() {
             try {
-                const res = await fetch('config.json?v=' + new Date().getTime()); // Evita caché
+                const res = await fetch('config.json?v=' + new Date().getTime()); // Evita caché de navegador
                 if (res.ok) {
                     const config = await res.json();
                     
-                    // Aplicar datos guardados
-                    if (config.name) document.getElementById("guest").textContent = config.name;
-                    if (config.lang && translations[config.lang]) {
-                        document.getElementById("welcome").textContent = translations[config.lang].welcome;
-                        document.getElementById("message").textContent = translations[config.lang].message;
-                    }
-                    if (config.wifi) document.getElementById("wifi").textContent = `📶 WiFi: ${config.wifi}`;
-                    if (config.pass) document.getElementById("password").textContent = `🔐 Password: ${config.pass}`;
-                    if (config.phone) document.getElementById("phone").textContent = `📱 Host WhatsApp: ${config.phone}`;
-                    if (config.checkout) document.getElementById("checkout").textContent = `🔑 Check-out: ${config.checkout}`;
-                    if (config.guide) {
-                        document.getElementById("qrCode").src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(config.guide)}`;
-                    }
+                    guest = config.name || guest;
+                    lang = config.lang || lang;
+                    wifi = config.wifi || wifi;
+                    password = config.pass || password;
+                    phone = config.phone || phone;
+                    checkout = config.checkout || checkout;
+                    guide = config.guide || guide;
+
+                    // Re-renderizar datos actualizados desde el servidor
+                    aplicarDatos(guest, lang, wifi, password, phone, checkout, guide);
                 }
             } catch (e) {
-                console.log("Usando valores por defecto o de la URL", e);
+                console.log("Manteniendo valores por defecto o de URL:", e);
             }
         }
 
         cargarConfiguracionServidor();
 
-        const params = new URLSearchParams(window.location.search);
-
-        const guest =
-            params.get("name") || "Nuestros Invitados";
-
-        const lang =
-            params.get("lang") || "es";
-
-        const wifi =
-            params.get("wifi") || "Aruba Paradise";
-
-            const password =
-            params.get("pass") || "WelcomeAruba2026";
-
-            const phone =
-            params.get("phone") || "+297 XXX XXXX";
-
-            const checkout =
-            params.get("checkout") || "11:00";
-
-            const guide =
-            params.get("guide") ||
-            "https://guide.arubaparadisestay.com";
-
-        const translations = {
-
-            es: {
-                welcome: "Bienvenidos a Aruba",
-                message: "Esperamos que disfrutéis de una estancia inolvidable."
-            },
-
-            en: {
-                welcome: "Welcome to Aruba",
-                message: "We hope you enjoy an unforgettable stay."
-            },
-
-            de: {
-                welcome: "Willkommen auf Aruba",
-                message: "Wir wünschen Ihnen einen unvergesslichen Aufenthalt."
-            },
-
-            nl: {
-                welcome: "Welkom op Aruba",
-                message: "Wij hopen dat jullie een onvergetelijk verblijf hebben."
-            }
-
-        };
-
-        document.getElementById("guest").textContent = guest;
-
-        document.getElementById("welcome").textContent =
-            translations[lang].welcome;
-
-        document.getElementById("message").textContent =
-            translations[lang].message;
-
-        document.getElementById("qrCode").src =
-        `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(guide)}`;
-
-        document.addEventListener("click", () => {
-            audio.play().catch(() => {});
-        }, { once: true });
-
-        document.getElementById("wifi").textContent =
-            `📶 WiFi: ${wifi}`;
-
-            document.getElementById("password").textContent =
-            `🔐 Password: ${password}`;
-
-            document.getElementById("phone").textContent =
-            `📱 Host WhatsApp: ${phone}`;
-
-            document.getElementById("checkout").textContent =
-            `🔑 Check-out: ${checkout}`;
-
-
+        // ==========================================
+        // 4. RELOJ EN TIEMPO REAL
+        // ==========================================
         function updateClock() {
-
             const now = new Date();
-
             const options = {
                 weekday: 'long',
                 day: 'numeric',
@@ -448,16 +429,15 @@
                 minute: '2-digit'
             };
 
-            document.getElementById("clock").textContent =
-                now.toLocaleDateString(lang, options);
-
+            const langCode = translations[lang] ? lang : "es";
+            document.getElementById("clock").textContent = now.toLocaleDateString(langCode, options);
         }
-
-        updateClock();
 
         setInterval(updateClock, 1000);
 
-
+        // ==========================================
+        // 5. CARRUSEL DE IMÁGENES DE FONDO (CROSSFADE)
+        // ==========================================
         const backgrounds = [
             "images/Eagle_Beach.jpg",
             "images/Baby_Beach.jpg",
@@ -471,129 +451,123 @@
         let current = 0;
         let showingBg1 = true;
 
-        /* Primera imagen instantánea */
-
-        bg1.style.backgroundImage =
-            `url('${backgrounds[0]}')`;
-
+        // Primera imagen
+        bg1.style.backgroundImage = `url('${backgrounds[0]}')`;
         bg1.classList.add("active");
 
-        /* Precarga todas */
-
+        // Precarga de imágenes
         backgrounds.forEach(src => {
-
             const img = new Image();
             img.src = src;
-
         });
 
-        /* Crossfade */
-
+        // Transición cada 15 segundos
         setInterval(() => {
-
             current = (current + 1) % backgrounds.length;
+            const nextImage = `url('${backgrounds[current]}')`;
 
-            const nextImage =
-                `url('${backgrounds[current]}')`;
-
-            if(showingBg1){
-
+            if (showingBg1) {
                 bg2.style.backgroundImage = nextImage;
-
                 bg2.classList.add("active");
                 bg1.classList.remove("active");
-
-            }else{
-
+            } else {
                 bg1.style.backgroundImage = nextImage;
-
                 bg1.classList.add("active");
                 bg2.classList.remove("active");
-
             }
 
             showingBg1 = !showingBg1;
-
         }, 15000);
 
-        //Sonido ambiental
-        
-    const audio = document.getElementById("oceanAudio");
-    audio.volume = 0.10; // Prueba con 0.10 (10%) o 0.08 (8%) si lo quieres más tenue todavía.
+        // ==========================================
+        // 6. REPRODUCCIÓN Y CONTROL DE AUDIO AMBIENTAL
+        // ==========================================
+        const audio = document.getElementById("oceanAudio");
+        if (audio) {
+            audio.volume = 0.10; // Volumen ambiental al 10%
+        }
 
-    const muteBtn = document.getElementById("muteBtn");
+        const muteBtn = document.getElementById("muteBtn");
 
-    // Función para arrancar el audio con la primera interacción del usuario (política de los navegadores)
-    function iniciarAudio() {
-        audio.play().then(() => {
-            console.log("Audio iniciado correctamente");
-            muteBtn.innerHTML = "🔊";
-        }).catch(err => {
-            console.log("Esperando interacción del usuario para reproducir audio", err);
-        });
-        // Remover el evento para que solo se ejecute la primera vez
-        document.removeEventListener("click", iniciarAudio);
-        document.removeEventListener("keydown", iniciarAudio);
-    }
+        function iniciarAudio() {
+            if (!audio) return;
+            audio.play().then(() => {
+                console.log("Audio de ambiente iniciado correctamente");
+                if (muteBtn) muteBtn.innerHTML = "🔊";
+            }).catch(err => {
+                console.log("Esperando interacción para reproducir audio:", err);
+            });
 
-    document.addEventListener("click", iniciarAudio, { once: true });
-    document.addEventListener("keydown", iniciarAudio, { once: true });
+            document.removeEventListener("click", iniciarAudio);
+            document.removeEventListener("keydown", iniciarAudio);
+        }
 
-    // Control del botón de Mute / Unmute
-    muteBtn.addEventListener("click", async (e) => {
-        e.stopPropagation(); // Evita conflictos con el evento global de clic
-        try {
-            if (audio.paused) {
-                await audio.play();
-                audio.muted = false;
-                muteBtn.innerHTML = "🔊";
-            } else {
-                audio.muted = !audio.muted;
-                muteBtn.innerHTML = audio.muted ? "🔇" : "🔊";
+        document.addEventListener("click", iniciarAudio, { once: true });
+        document.addEventListener("keydown", iniciarAudio, { once: true });
+
+        if (muteBtn) {
+            muteBtn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                if (!audio) return;
+
+                try {
+                    if (audio.paused) {
+                        await audio.play();
+                        audio.muted = false;
+                        muteBtn.innerHTML = "🔊";
+                    } else {
+                        audio.muted = !audio.muted;
+                        muteBtn.innerHTML = audio.muted ? "🔇" : "🔊";
+                    }
+                } catch (err) {
+                    console.error("Error al controlar el audio:", err);
+                }
+            });
+        }
+
+        // ==========================================
+        // 7. WIDGET DEL CLIMA EN TIEMPO REAL (ARUBA)
+        // ==========================================
+        async function fetchArubaWeather() {
+            try {
+                // Coordenadas de Oranjestad, Aruba: Lat 12.524, Lon -70.027
+                const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=12.524&longitude=-70.027&current_weather=true");
+                const data = await res.json();
+                
+                if (data && data.current_weather) {
+                    const temp = Math.round(data.current_weather.temperature);
+                    const code = data.current_weather.weathercode;
+                    
+                    const tempElem = document.getElementById("weatherTemp");
+                    if (tempElem) tempElem.textContent = `${temp}°C`;
+                    
+                    let desc = "Soleado";
+                    let icon = "☀️";
+                    
+                    if (code === 0) { desc = "Cielo despejado"; icon = "☀️"; }
+                    else if (code >= 1 && code <= 3) { desc = "Parcialmente nublado"; icon = "⛅"; }
+                    else if (code >= 45 && code <= 48) { desc = "Niebla"; icon = "🌫️"; }
+                    else if (code >= 51 && code <= 67) { desc = "Lluvia ligera"; icon = "🌦️"; }
+                    else if (code >= 80 && code <= 82) { desc = "Chubascos"; icon = "🌧️"; }
+                    else if (code >= 95) { desc = "Tormenta"; icon = "⛈️"; }
+                    
+                    const iconElem = document.getElementById("weatherIcon");
+                    const descElem = document.getElementById("weatherDesc");
+                    
+                    if (iconElem) iconElem.textContent = icon;
+                    if (descElem) descElem.textContent = desc;
+                }
+            } catch (err) {
+                console.error("Error al obtener el clima:", err);
+                const descElem = document.getElementById("weatherDesc");
+                if (descElem) descElem.textContent = "Aruba 29°C";
             }
-        } catch (err) {
-            console.error("Error al controlar el audio:", err);
         }
-    });
 
-    // Obtener el clima en tiempo real de Aruba (Oranjestad)
-async function fetchArubaWeather() {
-    try {
-        // Coordenadas de Oranjestad, Aruba: Lat 12.524, Lon -70.027
-        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=12.524&longitude=-70.027&current_weather=true");
-        const data = await res.json();
-        
-        if (data && data.current_weather) {
-            const temp = Math.round(data.current_weather.temperature);
-            const code = data.current_weather.weathercode;
-            
-            document.getElementById("weatherTemp").textContent = `${temp}°C`;
-            
-            // Traducción de códigos WMO a icono y texto
-            let desc = "Soleado";
-            let icon = "☀️";
-            
-            if (code === 0) { desc = "Cielo despejado"; icon = "☀️"; }
-            else if (code >= 1 && code <= 3) { desc = "Parcialmente nublado"; icon = "⛅"; }
-            else if (code >= 45 && code <= 48) { desc = "Niebla"; icon = "🌫️"; }
-            else if (code >= 51 && code <= 67) { desc = "Lluvia ligera"; icon = "🌦️"; }
-            else if (code >= 80 && code <= 82) { desc = "Chubascos"; icon = "🌧️"; }
-            else if (code >= 95) { desc = "Tormenta"; icon = "⛈️"; }
-            
-            document.getElementById("weatherIcon").textContent = icon;
-            document.getElementById("weatherDesc").textContent = desc;
-        }
-    } catch (err) {
-        console.error("Error al obtener el clima:", err);
-        document.getElementById("weatherDesc").textContent = "Aruba 29°C";
-    }
-}
-
-// Cargar el clima al iniciar y actualizar cada 15 minutos
-fetchArubaWeather();
-setInterval(fetchArubaWeather, 15 * 60 * 1000);
-
-    </script>  
+        // Carga inicial del clima y refresco automático cada 15 minutos
+        fetchArubaWeather();
+        setInterval(fetchArubaWeather, 15 * 60 * 1000);
+    </script> 
 
 </body>
 
