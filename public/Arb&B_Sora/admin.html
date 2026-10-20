@@ -81,43 +81,52 @@
         </div>
     </div>
 
- <script>
-    // Cambia 'r.php' por el nombre exacto con el que guardaste el archivo PHP
-    const URL_PHP_REDIRECT = "https://www.dogid.es/Arb&B_Sora/r.php";
+    <script>
+        async function guardarConfiguracion() {
+            const btn = document.querySelector('.btn');
+            btn.textContent = "Guardando en la TV...";
+            btn.disabled = true;
 
-    function construirEnlaceCorto() {
-        const guest = encodeURIComponent(document.getElementById('guestName').value);
-        const lang = document.getElementById('langSelect').value;
-        const wifi = encodeURIComponent(document.getElementById('wifiName').value);
-        const pass = encodeURIComponent(document.getElementById('wifiPass').value);
-        const phone = encodeURIComponent(document.getElementById('phone').value);
-        const checkout = encodeURIComponent(document.getElementById('checkout').value);
-        const guide = encodeURIComponent(document.getElementById('guideUrl').value);
+            const config = {
+                name: document.getElementById('guestName').value,
+                lang: document.getElementById('langSelect').value,
+                wifi: document.getElementById('wifiName').value,
+                pass: document.getElementById('wifiPass').value,
+                phone: document.getElementById('phone').value,
+                checkout: document.getElementById('checkout').value,
+                guide: document.getElementById('guideUrl').value
+            };
 
-        // Genera el enlace limpio usando tu archivo PHP
-        return `${URL_PHP_REDIRECT}?name=${guest}&lang=${lang}&wifi=${wifi}&pass=${pass}&phone=${phone}&checkout=${checkout}&guide=${guide}`;
-    }
+            try {
+                const response = await fetch('save.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
 
-    function generarEnlace() {
-        const finalURL = construirEnlaceCorto();
+                const data = await response.json();
 
-        const linkElem = document.getElementById('generatedLink');
-        linkElem.href = finalURL;
-        linkElem.textContent = finalURL;
+                if (data.status === 'success') {
+                    // La URL corta y limpia para la Smart TV
+                    const tvURL = "https://www.dogid.es/Arb&B_Sora/index.html";
+                    
+                    const linkElem = document.getElementById('generatedLink');
+                    linkElem.href = tvURL;
+                    linkElem.textContent = tvURL;
 
-        document.getElementById('resultContainer').style.display = 'block';
-    }
-
-    function copiarEnlace() {
-        const text = document.getElementById('generatedLink').textContent;
-        navigator.clipboard.writeText(text);
-        alert('¡Enlace copiado al portapapeles!');
-    }
-
-    function abrirEnTV() {
-        const linkHref = document.getElementById('generatedLink').href;
-        window.open(linkHref, '_blank');
-    }
-</script>
+                    document.getElementById('resultContainer').style.display = 'block';
+                    alert('¡Configuración actualizada con éxito!');
+                } else {
+                    alert('Error al guardar la configuración.');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Error de conexión con el servidor.');
+            } finally {
+                btn.textContent = "Actualizar Pantalla de la TV";
+                btn.disabled = false;
+            }
+        }
+    </script>
 </body>
 </html>

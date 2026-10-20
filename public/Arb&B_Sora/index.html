@@ -331,6 +331,34 @@
 
     <script>
 
+        // Cargar la configuración guardada en el servidor
+        async function cargarConfiguracionServidor() {
+            try {
+                const res = await fetch('config.json?v=' + new Date().getTime()); // Evita caché
+                if (res.ok) {
+                    const config = await res.json();
+                    
+                    // Aplicar datos guardados
+                    if (config.name) document.getElementById("guest").textContent = config.name;
+                    if (config.lang && translations[config.lang]) {
+                        document.getElementById("welcome").textContent = translations[config.lang].welcome;
+                        document.getElementById("message").textContent = translations[config.lang].message;
+                    }
+                    if (config.wifi) document.getElementById("wifi").textContent = `📶 WiFi: ${config.wifi}`;
+                    if (config.pass) document.getElementById("password").textContent = `🔐 Password: ${config.pass}`;
+                    if (config.phone) document.getElementById("phone").textContent = `📱 Host WhatsApp: ${config.phone}`;
+                    if (config.checkout) document.getElementById("checkout").textContent = `🔑 Check-out: ${config.checkout}`;
+                    if (config.guide) {
+                        document.getElementById("qrCode").src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(config.guide)}`;
+                    }
+                }
+            } catch (e) {
+                console.log("Usando valores por defecto o de la URL", e);
+            }
+        }
+
+        cargarConfiguracionServidor();
+
         const params = new URLSearchParams(window.location.search);
 
         const guest =
@@ -405,9 +433,6 @@
 
             document.getElementById("checkout").textContent =
             `🔑 Check-out: ${checkout}`;
-
-        
-
 
 
         function updateClock() {
