@@ -388,32 +388,32 @@
         // Aplicar valores iniciales (por URL o por defecto)
         aplicarDatos(guest, lang, wifi, password, phone, checkout, guide);
 
-        // ==========================================
-        // 3. CARGA DE CONFIGURACIÓN DESDE SERVIDOR (config.json)
-        // ==========================================
-        async function cargarConfiguracionServidor() {
-            try {
-                const res = await fetch('config.json?v=' + new Date().getTime()); // Evita caché de navegador
-                if (res.ok) {
-                    const config = await res.json();
-                    
-                    guest = config.name || guest;
-                    lang = config.lang || lang;
-                    wifi = config.wifi || wifi;
-                    password = config.pass || password;
-                    phone = config.phone || phone;
-                    checkout = config.checkout || checkout;
-                    guide = config.guide || guide;
+    // ==========================================
+    // 3. CARGA DE CONFIGURACIÓN DESDE LA NUBE (npoint.io)
+    // ==========================================
+    async function cargarConfiguracionServidor() {
+        try {
+            const res = await fetch('https://api.npoint.io/7849d49f301ab0b1f2f9?v=' + new Date().getTime()); // Evita caché
+            if (res.ok) {
+                const config = await res.json();
+                
+                guest = config.name || guest;
+                lang = config.lang || lang;
+                wifi = config.wifi || wifi;
+                password = config.pass || password;
+                phone = config.phone || phone;
+                checkout = config.checkout || checkout;
+                guide = config.guide || guide;
 
-                    // Re-renderizar datos actualizados desde el servidor
-                    aplicarDatos(guest, lang, wifi, password, phone, checkout, guide);
-                }
-            } catch (e) {
-                console.log("Manteniendo valores por defecto o de URL:", e);
+                // Re-renderizar datos actualizados desde la nube
+                aplicarDatos(guest, lang, wifi, password, phone, checkout, guide);
             }
+        } catch (e) {
+            console.log("Manteniendo valores por defecto o de URL:", e);
         }
+    }
 
-        cargarConfiguracionServidor();
+    cargarConfiguracionServidor();
 
         // ==========================================
         // 4. RELOJ EN TIEMPO REAL
