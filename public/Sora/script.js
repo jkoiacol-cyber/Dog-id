@@ -1,22 +1,42 @@
 // ==========================================
-// 1. DICCIONARIO DE TRADUCCIONES
+// 1. DICCIONARIO DE TRADUCCIONES COMPLETO
 // ==========================================
 const translations = {
     es: {
         welcome: "Bienvenidos a Aruba",
-        message: "Esperamos que disfrutéis de una estancia inolvidable."
+        message: "Esperamos que disfrutéis de una estancia inolvidable.",
+        cardTitle1: "📶 Conexión y Datos",
+        cardTitle2: "🌴 Guía de Aruba",
+        cardGuideDesc: "Escanea para descubrir recomendaciones, restaurantes y playas.",
+        qrScanWifi: "¡Escanear para conectar!",
+        qrScanGuide: "Guía Turística"
     },
     en: {
         welcome: "Welcome to Aruba",
-        message: "We hope you enjoy an unforgettable stay."
+        message: "We hope you enjoy an unforgettable stay.",
+        cardTitle1: "📶 Connection & Info",
+        cardTitle2: "🌴 Aruba Guide",
+        cardGuideDesc: "Scan to discover recommendations, restaurants, and beaches.",
+        qrScanWifi: "Scan to connect!",
+        qrScanGuide: "Travel Guide"
     },
     de: {
         welcome: "Willkommen auf Aruba",
-        message: "Wir wünschen Ihnen einen unvergesslichen Aufenthalt."
+        message: "Wir wünschen Ihnen einen unvergesslichen Aufenthalt.",
+        cardTitle1: "📶 Verbindung & Info",
+        cardTitle2: "🌴 Aruba Reiseführer",
+        cardGuideDesc: "Scannen Sie, um Empfehlungen, Restaurants und Strände zu entdecken.",
+        qrScanWifi: "Scannen zum Verbinden!",
+        qrScanGuide: "Reiseführer"
     },
     nl: {
         welcome: "Welkom op Aruba",
-        message: "Wij hopen dat jullie een onvergetelijk verblijf hebben."
+        message: "Wij hopen dat jullie een onvergetelijk verblijf hebben.",
+        cardTitle1: "📶 Verbinding & Info",
+        cardTitle2: "🌴 Aruba Gids",
+        cardGuideDesc: "Scan om aanbevelingen, restaurants en stranden te ontdekken.",
+        qrScanWifi: "Scan om te verbinden!",
+        qrScanGuide: "Reisgids"
     }
 };
 
@@ -33,18 +53,46 @@ let phone = params.get("phone") || "+297 594 XXXX";
 let checkout = params.get("checkout") || "11:00";
 let guide = params.get("guide") || "https://guide.arubaparadisestay.com";
 
-// Función principal para renderizar todos los datos en el DOM
+// Función principal para renderizar todos los datos en el DOM traducidos
 function aplicarDatos(g, l, w, p, ph, ch, gu) {
     document.getElementById("guest").textContent = g;
     
     const langCode = translations[l] ? l : "es";
-    document.getElementById("welcome").textContent = translations[langCode].welcome;
-    document.getElementById("message").textContent = translations[langCode].message;
+    const t = translations[langCode];
 
+    // Textos Principales
+    document.getElementById("welcome").textContent = t.welcome;
+    document.getElementById("message").textContent = t.message;
+
+    // Textos de las Tarjetas
+    document.getElementById("cardTitle1").textContent = t.cardTitle1;
+    document.getElementById("cardTitle2").textContent = t.cardTitle2;
+    document.getElementById("cardGuideDesc").textContent = t.cardGuideDesc;
+    document.getElementById("qrScanWifi").textContent = t.qrScanWifi;
+    document.getElementById("qrScanGuide").textContent = t.qrScanGuide;
+
+    // Datos dinámicos de conexión
     document.getElementById("wifi").textContent = `📶 WiFi: ${w}`;
     document.getElementById("password").textContent = `🔐 Password: ${p}`;
     document.getElementById("phone").textContent = `📱 Host WhatsApp: ${ph}`;
     document.getElementById("checkout").textContent = `🔑 Check-out: ${ch}`;
+
+    // Generar código QR automático de conexión WiFi directa
+    const wifiString = `WIFI:S:${w};T:WPA;P:${p};;`;
+    document.getElementById("wifiQrCode").src =
+        `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(wifiString)}`;
+
+    // Generar código QR de la Guía Digital
+    document.getElementById("guideQrCode").src =
+        `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(gu)}`;
+    
+    document.getElementById("guideText").textContent = gu.replace('https://', '').replace('http://', '');
+    
+    updateClock();
+}
+
+// Aplicar valores iniciales
+aplicarDatos(guest, lang, wifi, password, phone, checkout, guide);
 
     // Generar código QR automático de conexión WiFi directa
     const wifiString = `WIFI:S:${w};T:WPA;P:${p};;`;
