@@ -4,9 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Cabeceras estrictas para evitar caché en la Smart TV -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <title>Welcome Aruba</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2.2"> <!-- Añadimos versión para forzar recarga del CSS -->
 </head>
 
 <body>
@@ -74,7 +80,7 @@
     </div>
 
     <!-- Script Externo -->
-    <script src="script.js"></script>
+    <script src="script.js?v=2.2"></script>
 
 </body>
 

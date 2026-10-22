@@ -46,57 +46,56 @@ body {
     inset: 0;
     background: linear-gradient(
         rgba(0, 0, 0, 0.50),
-        rgba(0, 0, 0, 0.78)
+        rgba(0, 0, 0, 0.80)
     );
     backdrop-filter: blur(4px);
     z-index: -1;
 }
 
 /* ==========================================
-   CONTENEDOR PRINCIPAL Y ESCALADO PERFECTO
+   CONTENEDOR PRINCIPAL
    ========================================== */
 .content {
     position: relative;
     z-index: 10;
     width: 92%;
-    max-width: 1450px;
-    height: 92vh;
+    max-width: 1500px;
+    height: 90vh;
     margin: auto;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
-    padding: 10px 0;
+    padding: 15px 0;
 }
 
-/* Cabeceras escaladas para que se vean imponentes en la TV */
-h1 {
-    font-size: clamp(1.5rem, 2.2vw, 2.5rem);
+/* Títulos superiores sobredimensionados para que se vean bien en la TV */
+h1#welcome {
+    font-size: 2.5rem;
     font-weight: 700;
     letter-spacing: 3px;
     text-transform: uppercase;
     color: #38bdf8;
-    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.9);
+    text-shadow: 0 3px 8px rgba(0, 0, 0, 0.95);
 }
 
 #guest {
-    font-size: clamp(2.2rem, 4vw, 4rem);
+    font-size: 4.8rem;
     font-weight: 600;
-    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.95);
     margin: 5px 0;
 }
 
 #message {
-    font-size: clamp(1rem, 1.5vw, 1.4rem);
+    font-size: 1.6rem;
     color: #f1f5f9;
-    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
 }
 
 #clock {
-    font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+    font-size: 1.3rem;
     opacity: 0.95;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
-    margin-bottom: 10px;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.95);
 }
 
 /* ==========================================
@@ -104,11 +103,11 @@ h1 {
    ========================================== */
 .cards-wrapper {
     display: flex;
-    gap: 25px;
+    gap: 30px;
     justify-content: center;
     align-items: center;
     width: 100%;
-    max-width: 1150px;
+    max-width: 1200px;
 }
 
 .info-card {
@@ -117,15 +116,15 @@ h1 {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 22px;
-    padding: 20px 25px;
+    border-radius: 24px;
+    padding: 24px 30px;
     text-align: left;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
     
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
 }
 
 .card-text {
@@ -136,23 +135,23 @@ h1 {
 }
 
 .card-text h3 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     color: #38bdf8;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .card-text p {
-    font-size: 0.98rem;
-    line-height: 1.5;
+    font-size: 1.05rem;
+    line-height: 1.6;
     color: #f8fafc;
     word-break: break-word;
 }
 
-/* Contenedor del QR alineado */
+/* Contenedor del QR */
 .qr-box {
     background: white;
-    padding: 8px;
-    border-radius: 14px;
+    padding: 10px;
+    border-radius: 16px;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
@@ -163,22 +162,22 @@ h1 {
 }
 
 .qr-box img {
-    width: 110px;
-    height: 110px;
+    width: 120px;
+    height: 120px;
     display: block;
     border-radius: 6px;
 }
 
 .qr-box span {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: #0f172a;
     font-weight: 600;
-    margin-top: 5px;
+    margin-top: 6px;
     display: block;
 }
 
 .footer {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     opacity: 0.9;
     letter-spacing: 1px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
@@ -189,32 +188,32 @@ h1 {
    ========================================== */
 .weather-card {
     position: absolute;
-    top: 25px;
-    right: 35px;
+    top: 35px;
+    right: 40px;
     z-index: 20;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
     background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 10px 20px;
-    border-radius: 18px;
+    padding: 12px 24px;
+    border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
 .weather-icon {
-    font-size: 1.8rem;
+    font-size: 2rem;
 }
 
 .weather-temp {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
     font-weight: 700;
 }
 
 .weather-desc {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     opacity: 0.85;
     text-align: left;
 }
@@ -224,17 +223,17 @@ h1 {
    ========================================== */
 #muteBtn {
     position: absolute;
-    bottom: 25px;
-    left: 35px;
-    width: 55px;
-    height: 55px;
+    bottom: 35px;
+    left: 40px;
+    width: 65px;
+    height: 65px;
     border: none;
     border-radius: 50%;
     background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.18);
     color: white;
-    font-size: 24px;
+    font-size: 28px;
     cursor: pointer;
     z-index: 100;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
