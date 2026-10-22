@@ -71,7 +71,7 @@ body {
 
 /* Títulos superiores sobredimensionados para que se vean bien en la TV */
 h1#welcome {
-    font-size: 2.5rem;
+    font-size: 3.5rem;
     font-weight: 700;
     letter-spacing: 3px;
     text-transform: uppercase;
@@ -80,14 +80,14 @@ h1#welcome {
 }
 
 #guest {
-    font-size: 4.8rem;
+    font-size: 4.1rem;
     font-weight: 600;
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.95);
     margin: 5px 0;
 }
 
 #message {
-    font-size: 1.6rem;
+    font-size: 2.1rem;
     color: #f1f5f9;
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
 }
