@@ -45,32 +45,33 @@ body {
     position: absolute;
     inset: 0;
     background: linear-gradient(
-        rgba(0, 0, 0, 0.45),
-        rgba(0, 0, 0, 0.75)
+        rgba(0, 0, 0, 0.50),
+        rgba(0, 0, 0, 0.78)
     );
     backdrop-filter: blur(4px);
     z-index: -1;
 }
 
 /* ==========================================
-   CONTENEDOR PRINCIPAL Y ESCALADO FLUIDO
+   CONTENEDOR PRINCIPAL Y ESCALADO PERFECTO
    ========================================== */
 .content {
     position: relative;
     z-index: 10;
-    width: 94%;
-    max-width: 1550px;
-    height: 90vh;
+    width: 92%;
+    max-width: 1450px;
+    height: 92vh;
     margin: auto;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    padding: 10px 0;
 }
 
+/* Cabeceras escaladas para que se vean imponentes en la TV */
 h1 {
-    font-size: clamp(1.8rem, 2.5vw, 2.8rem);
+    font-size: clamp(1.5rem, 2.2vw, 2.5rem);
     font-weight: 700;
     letter-spacing: 3px;
     text-transform: uppercase;
@@ -79,51 +80,52 @@ h1 {
 }
 
 #guest {
-    font-size: clamp(2.5rem, 4.5vw, 4.2rem);
+    font-size: clamp(2.2rem, 4vw, 4rem);
     font-weight: 600;
     text-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);
+    margin: 5px 0;
 }
 
 #message {
-    font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+    font-size: clamp(1rem, 1.5vw, 1.4rem);
     color: #f1f5f9;
     text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
 }
 
 #clock {
-    font-size: clamp(1rem, 1.3vw, 1.2rem);
+    font-size: clamp(0.95rem, 1.2vw, 1.2rem);
     opacity: 0.95;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+    margin-bottom: 10px;
 }
 
 /* ==========================================
-   TARJETAS EN DOS COLUMNAS (ALINEACIÓN PERFECTA)
+   TARJETAS EN DOS COLUMNAS
    ========================================== */
 .cards-wrapper {
     display: flex;
-    gap: 30px;
+    gap: 25px;
     justify-content: center;
     align-items: center;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1150px;
 }
 
 .info-card {
     flex: 1;
-    background: rgba(15, 23, 42, 0.82);
+    background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 24px;
-    padding: 25px 30px;
+    border-radius: 22px;
+    padding: 20px 25px;
     text-align: left;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
     
-    /* Usamos flexbox para alinear perfectamente texto y QR lado a lado */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
 }
 
 .card-text {
@@ -134,23 +136,23 @@ h1 {
 }
 
 .card-text h3 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     color: #38bdf8;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .card-text p {
-    font-size: 1.05rem;
-    line-height: 1.6;
+    font-size: 0.98rem;
+    line-height: 1.5;
     color: #f8fafc;
     word-break: break-word;
 }
 
-/* Contenedor del QR perfectamente centrado y ordenado */
+/* Contenedor del QR alineado */
 .qr-box {
     background: white;
-    padding: 10px;
-    border-radius: 16px;
+    padding: 8px;
+    border-radius: 14px;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
@@ -161,22 +163,22 @@ h1 {
 }
 
 .qr-box img {
-    width: 125px;
-    height: 125px;
+    width: 110px;
+    height: 110px;
     display: block;
     border-radius: 6px;
 }
 
 .qr-box span {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #0f172a;
     font-weight: 600;
-    margin-top: 6px;
+    margin-top: 5px;
     display: block;
 }
 
 .footer {
-    font-size: 1rem;
+    font-size: 0.95rem;
     opacity: 0.9;
     letter-spacing: 1px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
@@ -187,32 +189,32 @@ h1 {
    ========================================== */
 .weather-card {
     position: absolute;
-    top: 30px;
-    right: 40px;
+    top: 25px;
+    right: 35px;
     z-index: 20;
     display: flex;
     align-items: center;
-    gap: 15px;
-    background: rgba(15, 23, 42, 0.82);
+    gap: 12px;
+    background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 10px 22px;
-    border-radius: 20px;
+    padding: 10px 20px;
+    border-radius: 18px;
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
 .weather-icon {
-    font-size: 2rem;
+    font-size: 1.8rem;
 }
 
 .weather-temp {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 700;
 }
 
 .weather-desc {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     opacity: 0.85;
     text-align: left;
 }
@@ -222,17 +224,17 @@ h1 {
    ========================================== */
 #muteBtn {
     position: absolute;
-    bottom: 30px;
-    left: 40px;
-    width: 60px;
-    height: 60px;
+    bottom: 25px;
+    left: 35px;
+    width: 55px;
+    height: 55px;
     border: none;
     border-radius: 50%;
-    background: rgba(15, 23, 42, 0.82);
+    background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.18);
     color: white;
-    font-size: 26px;
+    font-size: 24px;
     cursor: pointer;
     z-index: 100;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
