@@ -94,23 +94,6 @@ function aplicarDatos(g, l, w, p, ph, ch, gu) {
 // Aplicar valores iniciales
 aplicarDatos(guest, lang, wifi, password, phone, checkout, guide);
 
-    // Generar código QR automático de conexión WiFi directa
-    const wifiString = `WIFI:S:${w};T:WPA;P:${p};;`;
-    document.getElementById("wifiQrCode").src =
-        `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(wifiString)}`;
-
-    // Generar código QR de la Guía Digital
-    document.getElementById("guideQrCode").src =
-        `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(gu)}`;
-    
-    document.getElementById("guideText").textContent = gu.replace('https://', '').replace('http://', '');
-    
-    updateClock();
-}
-
-// Aplicar valores iniciales
-aplicarDatos(guest, lang, wifi, password, phone, checkout, guide);
-
 // ==========================================
 // 3. CARGA DE CONFIGURACIÓN DESDE LA NUBE (npoint.io)
 // ==========================================
