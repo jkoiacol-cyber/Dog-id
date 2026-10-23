@@ -9,7 +9,14 @@ const translations = {
         cardTitle2: "🌴 Guía de Aruba",
         cardGuideDesc: "Escanea para descubrir recomendaciones, restaurantes y playas.",
         qrScanWifi: "¡Escanear para conectar!",
-        qrScanGuide: "Guía Turística"
+        qrScanGuide: "Guía Turística",
+        weatherClear: "Cielo despejado",
+        weatherClouds: "Parcialmente nublado",
+        weatherFog: "Niebla",
+        weatherRain: "Lluvia ligera",
+        weatherShowers: "Chubascos",
+        weatherStorm: "Tormenta",
+        weatherDefault: "Soleado"
     },
     en: {
         welcome: "Welcome to Aruba",
@@ -18,7 +25,14 @@ const translations = {
         cardTitle2: "🌴 Aruba Guide",
         cardGuideDesc: "Scan to discover recommendations, restaurants, and beaches.",
         qrScanWifi: "Scan to connect!",
-        qrScanGuide: "Travel Guide"
+        qrScanGuide: "Travel Guide",
+        weatherClear: "Clear sky",
+        weatherClouds: "Partly cloudy",
+        weatherFog: "Foggy",
+        weatherRain: "Light rain",
+        weatherShowers: "Showers",
+        weatherStorm: "Storm",
+        weatherDefault: "Sunny"
     },
     de: {
         welcome: "Willkommen auf Aruba",
@@ -27,7 +41,14 @@ const translations = {
         cardTitle2: "🌴 Aruba Reiseführer",
         cardGuideDesc: "Scannen Sie, um Empfehlungen, Restaurants und Strände zu entdecken.",
         qrScanWifi: "Scannen zum Verbinden!",
-        qrScanGuide: "Reiseführer"
+        qrScanGuide: "Reiseführer",
+        weatherClear: "Klarer Himmel",
+        weatherClouds: "Teilweise bewölkt",
+        weatherFog: "Nebel",
+        weatherRain: "Leichter Regen",
+        weatherShowers: "Schauer",
+        weatherStorm: "Sturm",
+        weatherDefault: "Sonnig"
     },
     nl: {
         welcome: "Welkom op Aruba",
@@ -36,7 +57,14 @@ const translations = {
         cardTitle2: "🌴 Aruba Gids",
         cardGuideDesc: "Scan om aanbevelingen, restaurants en stranden te ontdekken.",
         qrScanWifi: "Scan om te verbinden!",
-        qrScanGuide: "Reisgids"
+        qrScanGuide: "Reisgids",
+        weatherClear: "Heldere hemel",
+        weatherClouds: "Gedeeltelijk bewolkt",
+        weatherFog: "Mist",
+        weatherRain: "Lichte regen",
+        weatherShowers: "Buien",
+        weatherStorm: "Storm",
+        weatherDefault: "Zonnig"
     }
 };
 
@@ -52,6 +80,9 @@ let password = params.get("pass") || "WelcomeAruba2026";
 let phone = params.get("phone") || "+297 594 XXXX";
 let checkout = params.get("checkout") || "11:00";
 let guide = params.get("guide") || "https://guide.arubaparadisestay.com";
+
+// Variable global para almacenar el clima actual y traducirlo al cambiar de idioma
+let ultimoCodigoClima = 0;
 
 // Función principal para renderizar todos los datos en el DOM traducidos
 function aplicarDatos(g, l, w, p, ph, ch, gu) {
@@ -82,12 +113,25 @@ function aplicarDatos(g, l, w, p, ph, ch, gu) {
     document.getElementById("wifiQrCode").src =
         `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(wifiString)}`;
 
+    // ==========================================
+    // ADAPTACIÓN INTELIGENTE DE LA URL DE ARUBA
+    // ==========================================
+    let guiaFinal = gu;
+    if (gu.includes("aruba.com")) {
+        const arubaLangs = { es: "es", en: "us", de: "de", nl: "nl" };
+        const sufijo = arubaLangs[langCode] || "us";
+        let urlBase = gu.replace(/\/([a-z]{2})(\/|$).*/, "").replace(/\/+$/, "");
+        guiaFinal = `${urlBase}/${sufijo}`;
+    }
+
     // Generar código QR de la Guía Digital
     document.getElementById("guideQrCode").src =
-        `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(gu)}`;
+        `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(guiaFinal)}`;
     
-    document.getElementById("guideText").textContent = gu.replace('https://', '').replace('http://', '');
+    document.getElementById("guideText").textContent = guiaFinal.replace('https://', '').replace('http://', '');
     
+    // Traducir el clima actual instantáneamente al cambiar el idioma
+    actualizarTextoClima(ultimoCodigoClima, langCode);
     updateClock();
 }
 
@@ -230,6 +274,27 @@ if (muteBtn) {
 // ==========================================
 // 7. WIDGET DEL CLIMA EN TIEMPO REAL (ARUBA)
 // ==========================================
+function actualizarTextoClima(code, langCode) {
+    ultimoCodigoClima = code;
+    const t = translations[langCode] || translations["es"];
+    
+    let desc = t.weatherDefault;
+    let icon = "☀️";
+    
+    if (code === 0) { desc = t.weatherClear; icon = "☀️"; }
+    else if (code >= 1 && code <= 3) { desc = t.weatherClouds; icon = "⛅"; }
+    else if (code >= 45 && code <= 48) { desc = t.weatherFog; icon = "🌫️"; }
+    else if (code >= 51 && code <= 67) { desc = t.weatherRain; icon = "🌦️"; }
+    else if (code >= 80 && code <= 82) { desc = t.weatherShowers; icon = "🌧️"; }
+    else if (code >= 95) { desc = t.weatherStorm; icon = "⛈️"; }
+    
+    const iconElem = document.getElementById("weatherIcon");
+    const descElem = document.getElementById("weatherDesc");
+    
+    if (iconElem) iconElem.textContent = icon;
+    if (descElem) descElem.textContent = desc;
+}
+
 async function fetchArubaWeather() {
     try {
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=12.524&longitude=-70.027&current_weather=true");
@@ -242,21 +307,7 @@ async function fetchArubaWeather() {
             const tempElem = document.getElementById("weatherTemp");
             if (tempElem) tempElem.textContent = `${temp}°C`;
             
-            let desc = "Soleado";
-            let icon = "☀️";
-            
-            if (code === 0) { desc = "Cielo despejado"; icon = "☀️"; }
-            else if (code >= 1 && code <= 3) { desc = "Parcialmente nublado"; icon = "⛅"; }
-            else if (code >= 45 && code <= 48) { desc = "Niebla"; icon = "🌫️"; }
-            else if (code >= 51 && code <= 67) { desc = "Lluvia ligera"; icon = "🌦️"; }
-            else if (code >= 80 && code <= 82) { desc = "Chubascos"; icon = "🌧️"; }
-            else if (code >= 95) { desc = "Tormenta"; icon = "⛈️"; }
-            
-            const iconElem = document.getElementById("weatherIcon");
-            const descElem = document.getElementById("weatherDesc");
-            
-            if (iconElem) iconElem.textContent = icon;
-            if (descElem) descElem.textContent = desc;
+            actualizarTextoClima(code, lang);
         }
     } catch (err) {
         console.error("Error al obtener el clima:", err);

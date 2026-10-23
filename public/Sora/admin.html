@@ -65,7 +65,7 @@
 
                 <div class="form-group">
                     <label>URL de la Guía Digital (para el QR de la TV):</label>
-                    <input type="url" id="guideUrl" value="https://guide.arubaparadisestay.com">
+                    <input type="url" id="guideUrl" value="https://aruba.com">
                 </div>
 
                 <button type="button" class="btn" onclick="guardarConfiguracion(event)">Generar Enlace para la TV</button>
@@ -108,7 +108,7 @@
                     });
 
                     if (response.ok) {
-                        const tvURL = "https://www.dogid.es/Arb&B_Sora/index.html";
+                        const tvURL = "https://www.dogid.es/Sora/index.html";
                         
                         const linkElem = document.getElementById('generatedLink');
                         linkElem.href = tvURL;
