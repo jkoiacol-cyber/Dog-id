@@ -316,5 +316,36 @@ async function fetchArubaWeather() {
     }
 }
 
+// ==========================================
+// 8. VIGILANTE DE ACTUALIZACIÓN REMOTA (AUTO-REFRESH)
+// ==========================================
+let tokenUltimaActualizacion = null;
+
+async function verificarActualizacionRemota() {
+    try {
+        const res = await fetch('https://api.npoint.io/7849d49f301ab0b1f2f9?v=' + new Date().getTime());
+        if (res.ok) {
+            const config = await res.json();
+            
+            // Si el servidor tiene un timestamp registrado
+            if (config.updatedAt) {
+                if (tokenUltimaActualizacion === null) {
+                    // Primera lectura: guardamos el token actual sin recargar
+                    tokenUltimaActualizacion = config.updatedAt;
+                } else if (config.updatedAt > tokenUltimaActualizacion) {
+                    // ¡Nuevo cambio detectado! Recargamos la tele al instante
+                    console.log("Nuevos datos detectados. Actualizando pantalla...");
+                    window.location.reload();
+                }
+            }
+        }
+    } catch (e) {
+        console.log("Comprobando conexión con el servidor...", e);
+    }
+}
+
+// Comprobar si hay cambios en la nube cada 10 segundos
+setInterval(verificarActualizacionRemota, 10000);
+
 fetchArubaWeather();
 setInterval(fetchArubaWeather, 15 * 60 * 1000);
