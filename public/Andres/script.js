@@ -336,53 +336,50 @@ function aplicarDatos(config) {
 // ==========================================
 // 3. COMPROBACIÓN DE VINCULACIÓN Y TIEMPO REAL
 // ==========================================
-async function verificarVinculacionYCargar() {
+async function async function verificarVinculacionYCargar() {
     try {
-        // 1. Verificar si este dispositivo está autorizado en la tabla
-        const { data: deviceRecord, error: devErr } = await supabaseClient
+        console.log("Verificando dispositivo ID:", currentDeviceId);
+
+        // Intentamos consultar Supabase con un tiempo límite de seguridad (5 segundos)
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout Supabase")), 5000));
+        
+        const fetchPromise = supabaseClient
             .from('authorized_devices')
             .select('*')
             .eq('device_id', currentDeviceId)
             .maybeSingle();
 
+        const result = await Promise.race([fetchPromise, timeoutPromise]);
+        const { data: deviceRecord, error: devErr } = result;
+
         if (devErr) throw devErr;
 
-        // 2. Si no está vinculado O el registro en la BD quedó huérfano, forzamos el QR
+        // Si no está vinculado, mostramos el QR obligatoriamente
         if (!deviceRecord) {
-            // Limpieza preventiva de localStorage para navegadores cerrados de TV
-            localStorage.removeItem("aruba_tv_device_id");
-            currentDeviceId = obtenerDeviceId(); // Genera uno nuevo y limpio
-
+            console.log("Dispositivo no autorizado. Mostrando pantalla de emparejamiento.");
             mostrarPantallaEmparejamiento();
+            
+            // Sondeo de respaldo para detectar cuando se autorice
+            const intervaloEspera = setInterval(async () => {
+                try {
+                    const { data: checkDevice } = await supabaseClient
+                        .from('authorized_devices')
+                        .select('id')
+                        .eq('device_id', currentDeviceId)
+                        .maybeSingle();
 
-            // Escucha por WebSockets para cuando se autorice desde el móvil
-            supabaseClient
-                .channel('waiting_for_pairing')
-                .on(
-                    'postgres_changes',
-                    { event: 'INSERT', schema: 'public', table: 'authorized_devices', filter: `device_id=eq.${currentDeviceId}` },
-                    () => {
+                    if (checkDevice) {
+                        clearInterval(intervaloEspera);
                         window.location.reload();
                     }
-                )
-                .subscribe();
-
-            // Sondeo rápido de respaldo cada 3 segundos (detecta el emparejamiento al instante)
-            const intervaloEspera = setInterval(async () => {
-                const { data: checkDevice } = await supabaseClient
-                    .from('authorized_devices')
-                    .select('id')
-                    .eq('device_id', currentDeviceId)
-                    .maybeSingle();
-
-            if (checkDevice) {
-                    clearInterval(intervaloEspera);
-                    window.location.href = window.location.pathname + "?t=" + Date.now(); // Fuerza recarga sin caché
+                } catch (e) {
+                    console.error("Error en sondeo de espera:", e);
                 }
             }, 3000);
+            return;
         }
 
-        // 3. Si SÍ está vinculado, obtenemos el email y su configuración correspondiente
+        // Si SÍ está vinculado, buscamos la configuración del usuario
         const userEmail = deviceRecord.user_email;
         const { data: config, error: configErr } = await supabaseClient
             .from('apartments_config')
@@ -391,27 +388,26 @@ async function verificarVinculacionYCargar() {
             .single();
 
         if (configErr || !config) {
-            console.error("Configuración no encontrada para el usuario:", userEmail);
+            console.warn("Configuración no encontrada para:", userEmail, ". Mostrando QR.");
             mostrarPantallaEmparejamiento();
             return;
         }
 
-        // Si la cuenta está suspendida, bloquear acceso
         if (config.is_suspended) {
-            alert("Esta cuenta ha sido suspendida por el administrador.");
+            alert("Esta cuenta ha sido suspendida.");
             localStorage.clear();
             location.reload();
             return;
         }
 
-        // 4. ¡Pintar los datos reales en la interfaz de la TV!
+        // Pintamos los datos con éxito
         aplicarDatos(config);
-
-        // 5. Activar el sistema de sincronización automática en segundo plano
         activarSincronizacionEnTiempoReal(userEmail);
 
     } catch (e) {
-        console.error("Error al verificar vinculación:", e);
+        console.error("Fallo crítico en la verificación con Supabase:", e);
+        // PLAN B DE EMERGENCIA: Si falla la red o Supabase, mostramos el QR para no dejar la pantalla ciega
+        mostrarPantallaEmparejamiento();
     }
 }
 
