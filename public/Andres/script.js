@@ -104,7 +104,8 @@ let ultimoCodigoClima = 0;
 /// Pantalla de vinculación limpia, central y elegante
 function mostrarPantallaEmparejamiento() {
     // Definimos la URL de administración respetando tu entorno de pruebas local
-    const urlAdminPair = `http://192.168.1.42:5500/admin.html?pair=${currentDeviceId}`;
+    //const urlAdminPair = `http://192.168.1.42:5500/admin.html?pair=${currentDeviceId}`;
+    const urlAdminPair = `${window.location.origin}/admin.html?pair=${currentDeviceId}`;
     
     // Generamos la URL del servicio de códigos QR
     const qrPairUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(urlAdminPair)}`;
