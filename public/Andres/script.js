@@ -375,13 +375,11 @@ async function verificarVinculacionYCargar() {
                     .eq('device_id', currentDeviceId)
                     .maybeSingle();
 
-                if (checkDevice) {
+            if (checkDevice) {
                     clearInterval(intervaloEspera);
-                    window.location.reload();
+                    window.location.href = window.location.pathname + "?t=" + Date.now(); // Fuerza recarga sin caché
                 }
             }, 3000);
-
-            return;
         }
 
         // 3. Si SÍ está vinculado, obtenemos el email y su configuración correspondiente
