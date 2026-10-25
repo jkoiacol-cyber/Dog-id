@@ -1,15 +1,73 @@
 // ==========================================
-// 0. CONFIGURACIÓN E INICIALIZACIÓN SUPABASE
+// 0. CONFIGURACIÓN SUPABASE (API REST CON XMLHttpRequest)
 // ==========================================
-const SUPABASE_URL = 'https://wyyurayswvzuovofyseh.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_G8iz7v3aOpS1fFSoTOT56Q_fmbLi8x3';
+// Escrito en ES5 puro para funcionar en navegadores de Smart TV antiguos:
+// sin async/await, sin const/let, sin flechas, sin plantillas ``, sin fetch.
+var SUPABASE_URL = 'https://wyyurayswvzuovofyseh.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_G8iz7v3aOpS1fFSoTOT56Q_fmbLi8x3'; // la misma que usas en admin.js
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Consulta GET a una tabla. cb(error, arrayDeFilas)
+function sbGet(tabla, filtros, cb) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', SUPABASE_URL + '/rest/v1/' + tabla + '?' + filtros + '&select=*', true);
+    xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.timeout = 15000;
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status >= 200 && xhr.status < 300) {
+            var datos;
+            try {
+                datos = JSON.parse(xhr.responseText);
+            } catch (e) {
+                cb(new Error('Respuesta no válida de ' + tabla));
+                return;
+            }
+            cb(null, datos);
+        } else if (xhr.status === 0) {
+            cb(new Error('Sin conexión con el servidor'));
+        } else {
+            cb(new Error('HTTP ' + xhr.status + ' en ' + tabla));
+        }
+    };
+    xhr.send();
+}
+
+function buscarDispositivo(deviceId, cb) {
+    sbGet('authorized_devices', 'device_id=eq.' + encodeURIComponent(deviceId), cb);
+}
+
+function buscarConfig(userEmail, cb) {
+    sbGet('apartments_config', 'user_email=eq.' + encodeURIComponent(userEmail), cb);
+}
+
+// Aviso de error visible en la TV (no tiene consola)
+function mostrarAviso(texto) {
+    var aviso = document.getElementById('avisoError');
+    if (!aviso) {
+        aviso = document.createElement('div');
+        aviso.id = 'avisoError';
+        aviso.style.cssText = 'position:fixed;bottom:20px;left:50%;margin-left:-40%;width:80%;text-align:center;background:#b91c1c;color:#fff;padding:12px 20px;border-radius:10px;z-index:9999;font-size:1rem;';
+        document.body.appendChild(aviso);
+    }
+    aviso.textContent = texto;
+}
+
+function ocultarAviso() {
+    var aviso = document.getElementById('avisoError');
+    if (aviso && aviso.parentNode) aviso.parentNode.removeChild(aviso);
+}
+
+// Lee un parámetro de la URL (sustituye a URLSearchParams)
+function leerParametroUrl(nombre) {
+    var m = new RegExp('[?&]' + nombre + '=([^&#]*)').exec(window.location.search);
+    return m ? decodeURIComponent(m[1]) : null;
+}
 
 // ==========================================
 // 1. DICCIONARIO DE TRADUCCIONES COMPLETO
 // ==========================================
-const translations = {
+var translations = {
     es: {
         welcome: "Bienvenidos a Aruba",
         message: "Esperamos que disfrutéis de una estancia inolvidable.",
@@ -79,352 +137,236 @@ const translations = {
 // ==========================================
 // 2. GESTIÓN DE DISPOSITIVO (DEVICE ID)
 // ==========================================
+function generarDeviceId() {
+    return 'tv_' + Math.random().toString(36).substring(2, 11) + '_' + new Date().getTime();
+}
+
 function obtenerDeviceId() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('reset') === 'true') {
-        localStorage.removeItem("aruba_tv_device_id");
-        const newId = 'tv_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
-        localStorage.setItem("aruba_tv_device_id", newId);
-        return newId;
+    if (leerParametroUrl('reset') === 'true') {
+        var nuevoId = generarDeviceId();
+        localStorage.setItem("aruba_tv_device_id", nuevoId);
+        // Quitamos ?reset=true de la URL para no regenerar el ID en cada recarga
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        return nuevoId;
     }
 
-    let devId = localStorage.getItem("aruba_tv_device_id");
+    var devId = localStorage.getItem("aruba_tv_device_id");
     if (!devId) {
-        devId = 'tv_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+        devId = generarDeviceId();
         localStorage.setItem("aruba_tv_device_id", devId);
     }
     return devId;
 }
 
-let currentDeviceId = obtenerDeviceId();
-let lang = "es";
-let ultimoCodigoClima = 0;
+var currentDeviceId = obtenerDeviceId();
+var lang = "es";
+var ultimoCodigoClima = 0;
+var ultimaConfigAplicada = '';
 
 // Pantalla de vinculación limpia, central y elegante
 function mostrarPantallaEmparejamiento() {
-    const pathSegments = window.location.pathname.split('/');
-    pathSegments.pop(); 
-    const baseSubpath = pathSegments.join('/');
-    const basePath = window.location.origin + (baseSubpath.startsWith('/') ? baseSubpath : '/' + baseSubpath);
+    var pathSegments = window.location.pathname.split('/');
+    pathSegments.pop();
+    var baseSubpath = pathSegments.join('/');
+    var basePath = window.location.origin + (baseSubpath.charAt(0) === '/' ? baseSubpath : '/' + baseSubpath);
 
-    const urlAdminPair = `${basePath}/admin.html?pair=${currentDeviceId}`;
-    const qrPairUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(urlAdminPair)}`;
+    var urlAdminPair = basePath + '/admin.html?pair=' + currentDeviceId;
+    var qrPairUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(urlAdminPair);
 
-    document.body.innerHTML = `
-        <div id="bg1" class="background active" style="background-image: url('images/Eagle_Beach.jpg'); background-size: cover; background-position: center;"></div>
-        <div id="bg2" class="background" style="background-size: cover; background-position: center;"></div>
-        <div class="overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 1;"></div>
+    document.body.innerHTML =
+        '<div id="bg1" class="background active" style="background-image: url(\'images/Eagle_Beach.jpg\'); background-size: cover; background-position: center;"></div>' +
+        '<div id="bg2" class="background" style="background-size: cover; background-position: center;"></div>' +
+        '<div class="overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1;"></div>' +
 
-        <div style="
-            position: relative;
-            z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            width: 100vw;
-            font-family: 'Poppins', sans-serif;
-            color: #ffffff;
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
-        ">
-            <div style="
-                background: rgba(15, 23, 42, 0.85);
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                padding: 40px 45px;
-                border-radius: 28px;
-                max-width: 520px;
-                width: 100%;
-                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-            ">
-                <div style="font-size: 3rem; margin-bottom: 10px;">📺</div>
-                <h1 style="
-                    font-size: 1.8rem;
-                    font-weight: 700;
-                    margin-bottom: 12px;
-                    color: #38bdf8;
-                    letter-spacing: -0.5px;
-                ">Vincular Smart TV</h1>
-                
-                <p style="
-                    font-size: 0.95rem;
-                    line-height: 1.6;
-                    color: #cbd5e1;
-                    margin-bottom: 25px;
-                ">
-                    Escanea este código QR con tu teléfono móvil para autorizar esta pantalla y conectar tus datos.
-                </p>
-
-                <div style="
-                    background: #ffffff;
-                    padding: 16px;
-                    border-radius: 20px;
-                    display: inline-block;
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-                    margin-bottom: 20px;
-                ">
-                    <img src="${qrPairUrl}" alt="QR Vinculación" style="display: block; width: 200px; height: 200px; border-radius: 8px;">
-                </div>
-
-                <div style="
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                    font-size: 0.85rem;
-                    color: #38bdf8;
-                    font-weight: 500;
-                    margin-bottom: 12px;
-                ">
-                    <span style="
-                        width: 8px;
-                        height: 8px;
-                        background-color: #38bdf8;
-                        border-radius: 50%;
-                        display: inline-block;
-                        box-shadow: 0 0 10px #38bdf8;
-                    "></span>
-                    Esperando autorización...
-                </div>
-
-                <p style="
-                    font-size: 0.75rem;
-                    color: #64748b;
-                    letter-spacing: 0.5px;
-                    font-family: monospace;
-                    margin: 0;
-                ">ID: ${currentDeviceId}</p>
-            </div>
-        </div>
-    `;
-
-    try {
-        if (typeof iniciarCarruselFondos === 'function') {
-            iniciarCarruselFondos();
-        }
-    } catch (e) {
-        console.warn("El carrusel de fondos se omitió en modo emparejamiento:", e);
-    }
+        '<div style="position: relative; z-index: 10; display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; font-family: \'Poppins\', sans-serif; color: #ffffff; text-align: center; padding: 20px; box-sizing: border-box;">' +
+            '<div style="background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(255, 255, 255, 0.15); padding: 40px 45px; border-radius: 28px; max-width: 520px; width: 100%; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);">' +
+                '<div style="font-size: 3rem; margin-bottom: 10px;">📺</div>' +
+                '<h1 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; color: #38bdf8;">Vincular Smart TV</h1>' +
+                '<p style="font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 25px;">' +
+                    'Escanea este código QR con tu teléfono móvil para autorizar esta pantalla y conectar tus datos.' +
+                '</p>' +
+                '<div style="background: #ffffff; padding: 16px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-bottom: 20px;">' +
+                    '<img src="' + qrPairUrl + '" alt="QR Vinculación" style="display: block; width: 200px; height: 200px; border-radius: 8px;">' +
+                '</div>' +
+                '<div style="font-size: 0.85rem; color: #38bdf8; font-weight: 500; margin-bottom: 12px;">' +
+                    '● Esperando autorización...' +
+                '</div>' +
+                '<p style="font-size: 0.75rem; color: #64748b; letter-spacing: 0.5px; font-family: monospace; margin: 0;">ID: ' + currentDeviceId + '</p>' +
+            '</div>' +
+        '</div>';
 }
 
 // Aplicar datos del huésped a la interfaz principal de la TV
+function ponerTexto(id, texto) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = texto;
+}
+
 function aplicarDatos(config) {
     if (!config) {
         console.error("¡Atención! El objeto config llegó vacío o nulo.");
         return;
     }
-    
-    const guest = config.guest_name || "Nuestros Invitados";
+
+    var guest = config.guest_name || "Nuestros Invitados";
     lang = config.lang || "es";
-    const wifi = config.wifi_name || "Aruba Paradise";
-    const password = config.wifi_pass || "WelcomeAruba2026";
-    const phone = config.phone || "+297 594 XXXX";
-    const checkout = config.checkout || "11:00";
-    const guide = config.guide_url || "https://aruba.com";
+    var wifi = config.wifi_name || "Aruba Paradise";
+    var password = config.wifi_pass || "WelcomeAruba2026";
+    var phone = config.phone || "+297 594 XXXX";
+    var checkout = config.checkout || "11:00";
+    var guide = config.guide_url || "https://aruba.com";
 
-    const guestElem = document.getElementById("guest");
-    if (guestElem) guestElem.textContent = guest;
-    
-    const langCode = translations[lang] ? lang : "es";
-    const t = translations[langCode];
+    var langCode = translations[lang] ? lang : "es";
+    var t = translations[langCode];
 
-    const welcomeElem = document.getElementById("welcome");
-    if (welcomeElem) welcomeElem.textContent = t.welcome;
+    ponerTexto("guest", guest);
+    ponerTexto("welcome", t.welcome);
+    ponerTexto("message", t.message);
+    ponerTexto("cardTitle1", t.cardTitle1);
+    ponerTexto("cardTitle2", t.cardTitle2);
+    ponerTexto("cardGuideDesc", t.cardGuideDesc);
+    ponerTexto("qrScanWifi", t.qrScanWifi);
+    ponerTexto("qrScanGuide", t.qrScanGuide);
+    ponerTexto("wifi", "📶 WiFi: " + wifi);
+    ponerTexto("password", "🔐 Password: " + password);
+    ponerTexto("phone", "📱 Host WhatsApp: " + phone);
+    ponerTexto("checkout", "🔑 Check-out: " + checkout);
 
-    const messageElem = document.getElementById("message");
-    if (messageElem) messageElem.textContent = t.message;
-
-    const cardTitle1 = document.getElementById("cardTitle1");
-    if (cardTitle1) cardTitle1.textContent = t.cardTitle1;
-
-    const cardTitle2 = document.getElementById("cardTitle2");
-    if (cardTitle2) cardTitle2.textContent = t.cardTitle2;
-
-    const cardGuideDesc = document.getElementById("cardGuideDesc");
-    if (cardGuideDesc) cardGuideDesc.textContent = t.cardGuideDesc;
-
-    const qrScanWifi = document.getElementById("qrScanWifi");
-    if (qrScanWifi) qrScanWifi.textContent = t.qrScanWifi;
-
-    const qrScanGuide = document.getElementById("qrScanGuide");
-    if (qrScanGuide) qrScanGuide.textContent = t.qrScanGuide;
-
-    const wifiElem = document.getElementById("wifi");
-    if (wifiElem) wifiElem.textContent = `📶 WiFi: ${wifi}`;
-
-    const passwordElem = document.getElementById("password");
-    if (passwordElem) passwordElem.textContent = `🔐 Password: ${password}`;
-
-    const phoneElem = document.getElementById("phone");
-    if (phoneElem) phoneElem.textContent = `📱 Host WhatsApp: ${phone}`;
-
-    const checkoutElem = document.getElementById("checkout");
-    if (checkoutElem) checkoutElem.textContent = `🔑 Check-out: ${checkout}`;
-
-    const wifiString = `WIFI:S:${wifi};T:WPA;P:${password};;`;
-    const wifiQrElem = document.getElementById("wifiQrCode");
+    var wifiString = "WIFI:S:" + wifi + ";T:WPA;P:" + password + ";;";
+    var wifiQrElem = document.getElementById("wifiQrCode");
     if (wifiQrElem) {
-        wifiQrElem.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(wifiString)}`;
+        wifiQrElem.src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(wifiString);
     }
 
-    let guiaFinal = guide;
-    if (guide.includes("aruba.com")) {
-        const arubaLangs = { es: "es", en: "us", de: "de", nl: "nl" };
-        const sufijo = arubaLangs[langCode] || "us";
-        let urlBase = guide.replace(/\/([a-z]{2})(\/|$).*/, "").replace(/\/+$/, "");
-        guiaFinal = `${urlBase}/${sufijo}`;
+    var guiaFinal = guide;
+    if (guide.indexOf("aruba.com") !== -1) {
+        var arubaLangs = { es: "es", en: "us", de: "de", nl: "nl" };
+        var sufijo = arubaLangs[langCode] || "us";
+        var urlBase = guide.replace(/\/([a-z]{2})(\/|$).*/, "").replace(/\/+$/, "");
+        guiaFinal = urlBase + "/" + sufijo;
     }
 
-    const guideQrElem = document.getElementById("guideQrCode");
+    var guideQrElem = document.getElementById("guideQrCode");
     if (guideQrElem) {
-        guideQrElem.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(guiaFinal)}`;
+        guideQrElem.src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(guiaFinal);
     }
 
-    const guideText = document.getElementById("guideText");
-    if (guideText) {
-        guideText.textContent = guiaFinal.replace('https://', '').replace('http://', '');
-    }
-    
+    ponerTexto("guideText", guiaFinal.replace('https://', '').replace('http://', ''));
+
     actualizarTextoClima(ultimoCodigoClima, langCode);
     updateClock();
 }
 
 // ==========================================
-// 3. COMPROBACIÓN DE VINCULACIÓN Y TIEMPO REAL
+// 3. COMPROBACIÓN DE VINCULACIÓN Y SONDEO
 // ==========================================
-async function verificarVinculacionYCargar() {
-    try {
-        const { data: deviceRecord, error: devErr } = await supabaseClient
-            .from('authorized_devices')
-            .select('*')
-            .eq('device_id', currentDeviceId)
-            .maybeSingle();
-
-        if (devErr) throw devErr;
-
-        if (!deviceRecord) {
-            localStorage.removeItem("aruba_tv_device_id");
-            currentDeviceId = obtenerDeviceId(); 
-
-            mostrarPantallaEmparejamiento();
-
-            supabaseClient
-                .channel('waiting_for_pairing')
-                .on(
-                    'postgres_changes',
-                    { event: 'INSERT', schema: 'public', table: 'authorized_devices', filter: `device_id=eq.${currentDeviceId}` },
-                    () => {
-                        window.location.reload();
-                    }
-                )
-                .subscribe();
-
-            const intervaloEspera = setInterval(async () => {
-                const { data: checkDevice } = await supabaseClient
-                    .from('authorized_devices')
-                    .select('id')
-                    .eq('device_id', currentDeviceId)
-                    .maybeSingle();
-
-                if (checkDevice) {
-                    clearInterval(intervaloEspera);
-                    window.location.reload();
-                }
-            }, 3000);
-
-            return;
-        }
-
-        const userEmail = deviceRecord.user_email;
-        const { data: config, error: configErr } = await supabaseClient
-            .from('apartments_config')
-            .select('*')
-            .eq('user_email', userEmail)
-            .single();
-
-        if (configErr || !config) {
-            console.error("Configuración no encontrada para el usuario:", userEmail);
-            mostrarPantallaEmparejamiento();
-            return;
-        }
-
-        if (config.is_suspended) {
-            alert("Esta cuenta ha sido suspendida por el administrador.");
-            localStorage.clear();
-            location.reload();
-            return;
-        }
-
-        aplicarDatos(config);
-        activarSincronizacionEnTiempoReal(userEmail);
-
-    } catch (e) {
-        console.error("Error al verificar vinculación:", e);
-    }
+function reiniciarDispositivo() {
+    localStorage.removeItem('aruba_tv_device_id');
+    location.reload();
 }
 
-function activarSincronizacionEnTiempoReal(userEmail) {
-    try {
-        supabaseClient
-            .channel('cambios-dispositivo-dinamico')
-            .on(
-                'postgres_changes',
-                { event: 'UPDATE', schema: 'public', table: 'apartments_config', filter: `user_email=eq.${userEmail}` },
-                (payload) => {
-                    if (payload.new.is_suspended) {
-                        localStorage.clear();
-                        location.reload();
-                    } else {
-                        aplicarDatos(payload.new);
+function verificarVinculacionYCargar() {
+    buscarDispositivo(currentDeviceId, function (err, dispositivos) {
+        if (err) {
+            console.error("Error al verificar vinculación:", err);
+            mostrarAviso('Error de conexión: ' + err.message + ' — reintentando...');
+            setTimeout(verificarVinculacionYCargar, 10000);
+            return;
+        }
+
+        // --- Dispositivo todavía sin vincular: QR y espera ---
+        if (dispositivos.length === 0) {
+            mostrarPantallaEmparejamiento();
+
+            var intervaloEspera = setInterval(function () {
+                buscarDispositivo(currentDeviceId, function (err2, check) {
+                    if (!err2 && check.length > 0) {
+                        clearInterval(intervaloEspera);
+                        window.location.reload();
                     }
-                }
-            )
-            .on(
-                'postgres_changes',
-                { event: 'DELETE', schema: 'public', table: 'authorized_devices', filter: `device_id=eq.${currentDeviceId}` },
-                () => {
-                    localStorage.removeItem('aruba_tv_device_id');
-                    location.reload();
-                }
-            )
-            .subscribe();
-    } catch (e) {
-        console.warn("Realtime no disponible, operando con sondeo periódico.");
-    }
+                });
+            }, 3000);
+            return;
+        }
 
-    setInterval(async () => {
-        try {
-            const { data: config } = await supabaseClient
-                .from('apartments_config')
-                .select('*')
-                .eq('user_email', userEmail)
-                .single();
+        // --- Dispositivo vinculado: cargar configuración ---
+        var userEmail = dispositivos[0].user_email;
+        buscarConfig(userEmail, function (err3, configs) {
+            if (err3) {
+                console.error("Error al cargar configuración:", err3);
+                mostrarAviso('Error de conexión: ' + err3.message + ' — reintentando...');
+                setTimeout(verificarVinculacionYCargar, 10000);
+                return;
+            }
 
-            if (config) {
+            if (configs.length === 0) {
+                console.error("Configuración no encontrada para el usuario:", userEmail);
+                mostrarPantallaEmparejamiento();
+                return;
+            }
+
+            var config = configs[0];
+
+            if (config.is_suspended) {
+                alert("Esta cuenta ha sido suspendida por el administrador.");
+                localStorage.clear();
+                location.reload();
+                return;
+            }
+
+            ocultarAviso();
+            ultimaConfigAplicada = JSON.stringify(config);
+            aplicarDatos(config);
+            iniciarSondeo(userEmail);
+        });
+    });
+}
+
+// Sondeo cada 5 s: detecta cambios de configuración, suspensión y desvinculación
+function iniciarSondeo(userEmail) {
+    var enCurso = false;
+
+    setInterval(function () {
+        if (enCurso) return;
+        enCurso = true;
+
+        buscarConfig(userEmail, function (err, configs) {
+            if (err) {
+                // Un fallo de red NO debe desvincular la TV: se reintenta en el siguiente ciclo
+                console.error("Error en sondeo automático:", err);
+                enCurso = false;
+                return;
+            }
+
+            if (configs.length > 0) {
+                var config = configs[0];
                 if (config.is_suspended) {
                     localStorage.clear();
                     location.reload();
                     return;
                 }
-                aplicarDatos(config);
+                var huella = JSON.stringify(config);
+                if (huella !== ultimaConfigAplicada) {
+                    ultimaConfigAplicada = huella;
+                    aplicarDatos(config);
+                }
             }
 
-            const { data: device } = await supabaseClient
-                .from('authorized_devices')
-                .select('id')
-                .eq('device_id', currentDeviceId)
-                .maybeSingle();
-
-            if (!device) {
-                localStorage.removeItem('aruba_tv_device_id');
-                location.reload();
-            }
-        } catch (err) {
-            console.error("Error en sondeo automático:", err);
-        }
+            buscarDispositivo(currentDeviceId, function (err2, dispositivos) {
+                enCurso = false;
+                if (err2) {
+                    console.error("Error comprobando dispositivo:", err2);
+                    return;
+                }
+                if (dispositivos.length === 0) {
+                    reiniciarDispositivo();
+                    return;
+                }
+                ocultarAviso();
+            });
+        });
     }, 5000);
 }
 
@@ -434,41 +376,42 @@ verificarVinculacionYCargar();
 // 4. RELOJ EN TIEMPO REAL
 // ==========================================
 function updateClock() {
-    const now = new Date();
-    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-    const langCode = translations[lang] ? lang : "es";
-    const clockElem = document.getElementById("clock");
+    var now = new Date();
+    var options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+    var langCode = translations[lang] ? lang : "es";
+    var clockElem = document.getElementById("clock");
     if (clockElem) clockElem.textContent = now.toLocaleDateString(langCode, options);
 }
 setInterval(updateClock, 1000);
+updateClock();
 
 // ==========================================
 // 5. CARRUSEL DE IMÁGENES DE FONDO (CROSSFADE)
 // ==========================================
-const backgrounds = [
+var backgrounds = [
     "images/Eagle_Beach.jpg",
     "images/Baby_Beach.jpg",
     "images/Palm_Beach.jpg",
     "images/california-aruba.jpg"
 ];
 
-const bg1 = document.getElementById("bg1");
-const bg2 = document.getElementById("bg2");
-let current = 0;
-let showingBg1 = true;
+var bg1 = document.getElementById("bg1");
+var bg2 = document.getElementById("bg2");
+var current = 0;
+var showingBg1 = true;
 
 if (bg1) {
-    bg1.style.backgroundImage = `url('${backgrounds[0]}')`;
+    bg1.style.backgroundImage = "url('" + backgrounds[0] + "')";
     bg1.classList.add("active");
 
-    backgrounds.forEach(src => {
-        const img = new Image();
-        img.src = src;
-    });
+    for (var i = 0; i < backgrounds.length; i++) {
+        var imgPrecarga = new Image();
+        imgPrecarga.src = backgrounds[i];
+    }
 
-    setInterval(() => {
+    setInterval(function () {
         current = (current + 1) % backgrounds.length;
-        const nextImage = `url('${backgrounds[current]}')`;
+        var nextImage = "url('" + backgrounds[current] + "')";
 
         if (showingBg1) {
             if (bg2) { bg2.style.backgroundImage = nextImage; bg2.classList.add("active"); }
@@ -485,42 +428,54 @@ if (bg1) {
 // ==========================================
 // 6. REPRODUCCIÓN Y CONTROL DE AUDIO AMBIENTAL
 // ==========================================
-const audio = document.getElementById("oceanAudio");
+var audio = document.getElementById("oceanAudio");
 if (audio) audio.volume = 0.10;
 
-const muteBtn = document.getElementById("muteBtn");
+var muteBtn = document.getElementById("muteBtn");
 
-function iniciarAudio() {
-    if (!audio) return;
-    audio.play().then(() => {
-        if (muteBtn) muteBtn.innerHTML = "🔊";
-    }).catch(err => {
-        console.log("Esperando interacción para audio:", err);
-    });
-
-    document.removeEventListener("click", iniciarAudio);
-    document.removeEventListener("keydown", iniciarAudio);
+// play() devuelve una promesa en navegadores modernos y undefined en los antiguos
+function intentarReproducir(cb) {
+    var p;
+    try {
+        p = audio.play();
+    } catch (e) {
+        cb(false);
+        return;
+    }
+    if (p && typeof p.then === 'function') {
+        p.then(function () { cb(true); }, function () { cb(false); });
+    } else {
+        cb(true);
+    }
 }
 
-document.addEventListener("click", iniciarAudio, { once: true });
-document.addEventListener("keydown", iniciarAudio, { once: true });
+function iniciarAudio() {
+    document.removeEventListener("click", iniciarAudio);
+    document.removeEventListener("keydown", iniciarAudio);
+    if (!audio) return;
+    intentarReproducir(function (ok) {
+        if (ok && muteBtn) muteBtn.innerHTML = "🔊";
+    });
+}
+
+document.addEventListener("click", iniciarAudio);
+document.addEventListener("keydown", iniciarAudio);
 
 if (muteBtn) {
-    muteBtn.addEventListener("click", async (e) => {
+    muteBtn.addEventListener("click", function (e) {
         e.stopPropagation();
         if (!audio) return;
 
-        try {
-            if (audio.paused) {
-                await audio.play();
-                audio.muted = false;
-                muteBtn.innerHTML = "🔊";
-            } else {
-                audio.muted = !audio.muted;
-                muteBtn.innerHTML = audio.muted ? "🔇" : "🔊";
-            }
-        } catch (err) {
-            console.error("Error audio:", err);
+        if (audio.paused) {
+            intentarReproducir(function (ok) {
+                if (ok) {
+                    audio.muted = false;
+                    muteBtn.innerHTML = "🔊";
+                }
+            });
+        } else {
+            audio.muted = !audio.muted;
+            muteBtn.innerHTML = audio.muted ? "🔇" : "🔊";
         }
     });
 }
@@ -530,42 +485,48 @@ if (muteBtn) {
 // ==========================================
 function actualizarTextoClima(code, langCode) {
     ultimoCodigoClima = code;
-    const t = translations[langCode] || translations["es"];
-    
-    let desc = t.weatherDefault;
-    let icon = "☀️";
-    
+    var t = translations[langCode] || translations["es"];
+
+    var desc = t.weatherDefault;
+    var icon = "☀️";
+
     if (code === 0) { desc = t.weatherClear; icon = "☀️"; }
     else if (code >= 1 && code <= 3) { desc = t.weatherClouds; icon = "⛅"; }
     else if (code >= 45 && code <= 48) { desc = t.weatherFog; icon = "🌫️"; }
     else if (code >= 51 && code <= 67) { desc = t.weatherRain; icon = "🌦️"; }
     else if (code >= 80 && code <= 82) { desc = t.weatherShowers; icon = "🌧️"; }
     else if (code >= 95) { desc = t.weatherStorm; icon = "⛈️"; }
-    
-    const iconElem = document.getElementById("weatherIcon");
-    const descElem = document.getElementById("weatherDesc");
-    
+
+    var iconElem = document.getElementById("weatherIcon");
+    var descElem = document.getElementById("weatherDesc");
+
     if (iconElem) iconElem.textContent = icon;
     if (descElem) descElem.textContent = desc;
 }
 
-async function fetchArubaWeather() {
-    try {
-        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=12.524&longitude=-70.027&current_weather=true");
-        const data = await res.json();
-        
-        if (data && data.current_weather) {
-            const temp = Math.round(data.current_weather.temperature);
-            const code = data.current_weather.weathercode;
-            
-            const tempElem = document.getElementById("weatherTemp");
-            if (tempElem) tempElem.textContent = `${temp}°C`;
-            
-            actualizarTextoClima(code, lang);
+function fetchArubaWeather() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://api.open-meteo.com/v1/forecast?latitude=12.524&longitude=-70.027&current_weather=true', true);
+    xhr.timeout = 15000;
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status < 200 || xhr.status >= 300) {
+            console.error("Error al obtener el clima: HTTP " + xhr.status);
+            return;
         }
-    } catch (err) {
-        console.error("Error al obtener el clima:", err);
-    }
+        try {
+            var data = JSON.parse(xhr.responseText);
+            if (data && data.current_weather) {
+                var temp = Math.round(data.current_weather.temperature);
+                var code = data.current_weather.weathercode;
+                ponerTexto("weatherTemp", temp + "°C");
+                actualizarTextoClima(code, lang);
+            }
+        } catch (err) {
+            console.error("Error al procesar el clima:", err);
+        }
+    };
+    xhr.send();
 }
 
 fetchArubaWeather();
