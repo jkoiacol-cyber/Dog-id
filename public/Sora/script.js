@@ -1,0 +1,351 @@
+// ==========================================
+// 1. DICCIONARIO DE TRADUCCIONES COMPLETO
+// ==========================================
+const translations = {
+    es: {
+        welcome: "Bienvenidos a Aruba",
+        message: "Esperamos que disfruten de una estancia inolvidable.",
+        cardTitle1: "📶 Conexión y Datos",
+        cardTitle2: "🌴 Guía de Aruba",
+        cardGuideDesc: "Escanea para descubrir recomendaciones, restaurantes y playas.",
+        qrScanWifi: "¡Escanear para conectar!",
+        qrScanGuide: "Guía Turística",
+        weatherClear: "Cielo despejado",
+        weatherClouds: "Parcialmente nublado",
+        weatherFog: "Niebla",
+        weatherRain: "Lluvia ligera",
+        weatherShowers: "Chubascos",
+        weatherStorm: "Tormenta",
+        weatherDefault: "Soleado"
+    },
+    en: {
+        welcome: "Welcome to Aruba",
+        message: "We hope you enjoy an unforgettable stay.",
+        cardTitle1: "📶 Connection & Info",
+        cardTitle2: "🌴 Aruba Guide",
+        cardGuideDesc: "Scan to discover recommendations, restaurants, and beaches.",
+        qrScanWifi: "Scan to connect!",
+        qrScanGuide: "Travel Guide",
+        weatherClear: "Clear sky",
+        weatherClouds: "Partly cloudy",
+        weatherFog: "Foggy",
+        weatherRain: "Light rain",
+        weatherShowers: "Showers",
+        weatherStorm: "Storm",
+        weatherDefault: "Sunny"
+    },
+    de: {
+        welcome: "Willkommen auf Aruba",
+        message: "Wir wünschen Ihnen einen unvergesslichen Aufenthalt.",
+        cardTitle1: "📶 Verbindung & Info",
+        cardTitle2: "🌴 Aruba Reiseführer",
+        cardGuideDesc: "Scannen Sie, um Empfehlungen, Restaurants und Strände zu entdecken.",
+        qrScanWifi: "Scannen zum Verbinden!",
+        qrScanGuide: "Reiseführer",
+        weatherClear: "Klarer Himmel",
+        weatherClouds: "Teilweise bewölkt",
+        weatherFog: "Nebel",
+        weatherRain: "Leichter Regen",
+        weatherShowers: "Schauer",
+        weatherStorm: "Sturm",
+        weatherDefault: "Sonnig"
+    },
+    nl: {
+        welcome: "Welkom op Aruba",
+        message: "Wij hopen dat jullie een onvergetelijk verblijf hebben.",
+        cardTitle1: "📶 Verbinding & Info",
+        cardTitle2: "🌴 Aruba Gids",
+        cardGuideDesc: "Scan om aanbevelingen, restaurants en stranden te ontdekken.",
+        qrScanWifi: "Scan om te verbinden!",
+        qrScanGuide: "Reisgids",
+        weatherClear: "Heldere hemel",
+        weatherClouds: "Gedeeltelijk bewolkt",
+        weatherFog: "Mist",
+        weatherRain: "Lichte regen",
+        weatherShowers: "Buien",
+        weatherStorm: "Storm",
+        weatherDefault: "Zonnig"
+    }
+};
+
+// ==========================================
+// 2. PARÁMETROS DE URL / VALORES POR DEFECTO
+// ==========================================
+const params = new URLSearchParams(window.location.search);
+
+let guest = params.get("name") || "Nuestros Invitados";
+let lang = params.get("lang") || "es";
+let wifi = params.get("wifi") || "Aruba Paradise";
+let password = params.get("pass") || "WelcomeAruba2026";
+let phone = params.get("phone") || "+297 594 XXXX";
+let checkout = params.get("checkout") || "11:00";
+let guide = params.get("guide") || "https://guide.arubaparadisestay.com";
+
+// Variable global para almacenar el clima actual y traducirlo al cambiar de idioma
+let ultimoCodigoClima = 0;
+
+// Función principal para renderizar todos los datos en el DOM traducidos
+function aplicarDatos(g, l, w, p, ph, ch, gu) {
+    document.getElementById("guest").textContent = g;
+    
+    const langCode = translations[l] ? l : "es";
+    const t = translations[langCode];
+
+    // Textos Principales
+    document.getElementById("welcome").textContent = t.welcome;
+    document.getElementById("message").textContent = t.message;
+
+    // Textos de las Tarjetas
+    document.getElementById("cardTitle1").textContent = t.cardTitle1;
+    document.getElementById("cardTitle2").textContent = t.cardTitle2;
+    document.getElementById("cardGuideDesc").textContent = t.cardGuideDesc;
+    document.getElementById("qrScanWifi").textContent = t.qrScanWifi;
+    document.getElementById("qrScanGuide").textContent = t.qrScanGuide;
+
+    // Datos dinámicos de conexión
+    document.getElementById("wifi").textContent = `📶 WiFi: ${w}`;
+    document.getElementById("password").textContent = `🔐 Password: ${p}`;
+    document.getElementById("phone").textContent = `📱 Host WhatsApp: ${ph}`;
+    document.getElementById("checkout").textContent = `🔑 Check-out: ${ch}`;
+
+    // Generar código QR automático de conexión WiFi directa
+    const wifiString = `WIFI:S:${w};T:WPA;P:${p};;`;
+    document.getElementById("wifiQrCode").src =
+        `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(wifiString)}`;
+
+    // ==========================================
+    // ADAPTACIÓN INTELIGENTE DE LA URL DE ARUBA
+    // ==========================================
+    let guiaFinal = gu;
+    if (gu.includes("aruba.com")) {
+        const arubaLangs = { es: "es", en: "us", de: "de", nl: "nl" };
+        const sufijo = arubaLangs[langCode] || "us";
+        let urlBase = gu.replace(/\/([a-z]{2})(\/|$).*/, "").replace(/\/+$/, "");
+        guiaFinal = `${urlBase}/${sufijo}`;
+    }
+
+    // Generar código QR de la Guía Digital
+    document.getElementById("guideQrCode").src =
+        `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(guiaFinal)}`;
+    
+    document.getElementById("guideText").textContent = guiaFinal.replace('https://', '').replace('http://', '');
+    
+    // Traducir el clima actual instantáneamente al cambiar el idioma
+    actualizarTextoClima(ultimoCodigoClima, langCode);
+    updateClock();
+}
+
+// Aplicar valores iniciales
+aplicarDatos(guest, lang, wifi, password, phone, checkout, guide);
+
+// ==========================================
+// 3. CARGA DE CONFIGURACIÓN DESDE LA NUBE (npoint.io)
+// ==========================================
+async function cargarConfiguracionServidor() {
+    try {
+        const res = await fetch('https://api.npoint.io/7849d49f301ab0b1f2f9?v=' + new Date().getTime());
+        if (res.ok) {
+            const config = await res.json();
+            
+            guest = config.name || guest;
+            lang = config.lang || lang;
+            wifi = config.wifi || wifi;
+            password = config.pass || password;
+            phone = config.phone || phone;
+            checkout = config.checkout || checkout;
+            guide = config.guide || guide;
+
+            aplicarDatos(guest, lang, wifi, password, phone, checkout, guide);
+        }
+    } catch (e) {
+        console.log("Manteniendo valores por defecto o de URL:", e);
+    }
+}
+
+cargarConfiguracionServidor();
+
+// ==========================================
+// 4. RELOJ EN TIEMPO REAL
+// ==========================================
+function updateClock() {
+    const now = new Date();
+    const options = {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+
+    const langCode = translations[lang] ? lang : "es";
+    document.getElementById("clock").textContent = now.toLocaleDateString(langCode, options);
+}
+
+setInterval(updateClock, 1000);
+
+// ==========================================
+// 5. CARRUSEL DE IMÁGENES DE FONDO (CROSSFADE)
+// ==========================================
+const backgrounds = [
+    "images/Eagle_Beach.jpg",
+    "images/Baby_Beach.jpg",
+    "images/Palm_Beach.jpg",
+    "images/california-aruba.jpg"
+];
+
+const bg1 = document.getElementById("bg1");
+const bg2 = document.getElementById("bg2");
+
+let current = 0;
+let showingBg1 = true;
+
+bg1.style.backgroundImage = `url('${backgrounds[0]}')`;
+bg1.classList.add("active");
+
+backgrounds.forEach(src => {
+    const img = new Image();
+    img.src = src;
+});
+
+setInterval(() => {
+    current = (current + 1) % backgrounds.length;
+    const nextImage = `url('${backgrounds[current]}')`;
+
+    if (showingBg1) {
+        bg2.style.backgroundImage = nextImage;
+        bg2.classList.add("active");
+        bg1.classList.remove("active");
+    } else {
+        bg1.style.backgroundImage = nextImage;
+        bg1.classList.add("active");
+        bg2.classList.remove("active");
+    }
+
+    showingBg1 = !showingBg1;
+}, 15000);
+
+// ==========================================
+// 6. REPRODUCCIÓN Y CONTROL DE AUDIO AMBIENTAL
+// ==========================================
+const audio = document.getElementById("oceanAudio");
+if (audio) {
+    audio.volume = 0.10;
+}
+
+const muteBtn = document.getElementById("muteBtn");
+
+function iniciarAudio() {
+    if (!audio) return;
+    audio.play().then(() => {
+        console.log("Audio de ambiente iniciado correctamente");
+        if (muteBtn) muteBtn.innerHTML = "🔊";
+    }).catch(err => {
+        console.log("Esperando interacción para reproducir audio:", err);
+    });
+
+    document.removeEventListener("click", iniciarAudio);
+    document.removeEventListener("keydown", iniciarAudio);
+}
+
+document.addEventListener("click", iniciarAudio, { once: true });
+document.addEventListener("keydown", iniciarAudio, { once: true });
+
+if (muteBtn) {
+    muteBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (!audio) return;
+
+        try {
+            if (audio.paused) {
+                await audio.play();
+                audio.muted = false;
+                muteBtn.innerHTML = "🔊";
+            } else {
+                audio.muted = !audio.muted;
+                muteBtn.innerHTML = audio.muted ? "🔇" : "🔊";
+            }
+        } catch (err) {
+            console.error("Error al controlar el audio:", err);
+        }
+    });
+}
+
+// ==========================================
+// 7. WIDGET DEL CLIMA EN TIEMPO REAL (ARUBA)
+// ==========================================
+function actualizarTextoClima(code, langCode) {
+    ultimoCodigoClima = code;
+    const t = translations[langCode] || translations["es"];
+    
+    let desc = t.weatherDefault;
+    let icon = "☀️";
+    
+    if (code === 0) { desc = t.weatherClear; icon = "☀️"; }
+    else if (code >= 1 && code <= 3) { desc = t.weatherClouds; icon = "⛅"; }
+    else if (code >= 45 && code <= 48) { desc = t.weatherFog; icon = "🌫️"; }
+    else if (code >= 51 && code <= 67) { desc = t.weatherRain; icon = "🌦️"; }
+    else if (code >= 80 && code <= 82) { desc = t.weatherShowers; icon = "🌧️"; }
+    else if (code >= 95) { desc = t.weatherStorm; icon = "⛈️"; }
+    
+    const iconElem = document.getElementById("weatherIcon");
+    const descElem = document.getElementById("weatherDesc");
+    
+    if (iconElem) iconElem.textContent = icon;
+    if (descElem) descElem.textContent = desc;
+}
+
+async function fetchArubaWeather() {
+    try {
+        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=12.524&longitude=-70.027&current_weather=true");
+        const data = await res.json();
+        
+        if (data && data.current_weather) {
+            const temp = Math.round(data.current_weather.temperature);
+            const code = data.current_weather.weathercode;
+            
+            const tempElem = document.getElementById("weatherTemp");
+            if (tempElem) tempElem.textContent = `${temp}°C`;
+            
+            actualizarTextoClima(code, lang);
+        }
+    } catch (err) {
+        console.error("Error al obtener el clima:", err);
+        const descElem = document.getElementById("weatherDesc");
+        if (descElem) descElem.textContent = "Aruba 29°C";
+    }
+}
+
+// ==========================================
+// 8. VIGILANTE DE ACTUALIZACIÓN REMOTA (AUTO-REFRESH)
+// ==========================================
+let tokenUltimaActualizacion = null;
+
+async function verificarActualizacionRemota() {
+    try {
+        const res = await fetch('https://api.npoint.io/7849d49f301ab0b1f2f9?v=' + new Date().getTime());
+        if (res.ok) {
+            const config = await res.json();
+            
+            // Si el servidor tiene un timestamp registrado
+            if (config.updatedAt) {
+                if (tokenUltimaActualizacion === null) {
+                    // Primera lectura: guardamos el token actual sin recargar
+                    tokenUltimaActualizacion = config.updatedAt;
+                } else if (config.updatedAt > tokenUltimaActualizacion) {
+                    // ¡Nuevo cambio detectado! Recargamos la tele al instante
+                    console.log("Nuevos datos detectados. Actualizando pantalla...");
+                    window.location.reload();
+                }
+            }
+        }
+    } catch (e) {
+        console.log("Comprobando conexión con el servidor...", e);
+    }
+}
+
+// Comprobar si hay cambios en la nube cada 10 segundos
+setInterval(verificarActualizacionRemota, 10000);
+
+fetchArubaWeather();
+setInterval(fetchArubaWeather, 15 * 60 * 1000);
