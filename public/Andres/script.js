@@ -97,7 +97,7 @@ function obtenerDeviceId() {
     return devId;
 }
 
-const currentDeviceId = obtenerDeviceId();
+let currentDeviceId = obtenerDeviceId();
 let lang = "es";
 let ultimoCodigoClima = 0;
 
@@ -246,7 +246,16 @@ function iniciarCarruselFondos() {
 }
 
 // Aplicar datos del huésped a la interfaz principal de la TV
+// Aplicar datos del huésped a la interfaz principal de la TV
 function aplicarDatos(config) {
+    console.log("CONFIG BRUTA RECIBIDA DE SUPABASE:", config);
+    
+    // Si algún campo llega nulo, lo detectamos al vuelo
+    if (!config) {
+        console.error("¡Atención! El objeto config llegó vacío o nulo.");
+        return;
+    }
+    
     const guest = config.guest_name || "Nuestros Invitados";
     lang = config.lang || "es";
     const wifi = config.wifi_name || "Aruba Paradise";
