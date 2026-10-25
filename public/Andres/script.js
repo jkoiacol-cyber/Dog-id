@@ -105,8 +105,16 @@ let ultimoCodigoClima = 0;
 function mostrarPantallaEmparejamiento() {
     // Definimos la URL de administración respetando tu entorno de pruebas local
     //const urlAdminPair = `http://192.168.1.42:5500/admin.html?pair=${currentDeviceId}`;
-    const urlAdminPair = `${window.location.origin}/admin.html?pair=${currentDeviceId}`;
-    
+    //const urlAdminPair = `${window.location.origin}/admin.html?pair=${currentDeviceId}`;
+    // Obtener automáticamente la ruta base actual (ej: https://www.dogid.es/Andres o https://www.dogid.es/Sora)
+    const pathSegments = window.location.pathname.split('/');
+    pathSegments.pop(); // Elimina el nombre del archivo actual (ej: tv.html o index.html)
+    const basePath = window.location.origin + pathSegments.join('/');
+
+    // URL dinámica que funcionará perfectamente tanto en /Sora/ como en /Andres/
+    const urlAdminPair = `${basePath}/admin.html?pair=${currentDeviceId}`;
+    const qrPairUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(urlAdminPair)}`;
+        
     // Generamos la URL del servicio de códigos QR
     const qrPairUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(urlAdminPair)}`;
 
