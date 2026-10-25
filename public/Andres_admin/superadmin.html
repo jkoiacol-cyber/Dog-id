@@ -5,32 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Superadmin - Welcome Guest SaaS</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; padding: 30px; display: flex; justify-content: center; }
-        .container { max-width: 950px; width: 100%; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 35px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        h1 { font-size: 1.8rem; color: #38bdf8; margin-bottom: 8px; }
-        p.subtitle { color: #94a3b8; font-size: 0.95rem; margin-bottom: 25px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-        .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 1rem; font-weight: 600; cursor: pointer; padding: 8px 16px; border-radius: 8px; transition: all 0.2s; }
-        .tab-btn.active { background: #38bdf8; color: #0f172a; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .form-group { margin-bottom: 18px; }
-        label { display: block; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px; font-weight: 500; }
-        input, select { width: 100%; padding: 12px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; color: #fff; font-size: 0.95rem; }
-        input:focus, select:focus { outline: none; border-color: #38bdf8; }
-        .btn { background: #38bdf8; color: #0f172a; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.8rem; transition: background 0.2s; }
-        .btn:hover { background: #0ea5e9; }
-        .btn-warning { background: #f59e0b; color: #0f172a; }
-        .btn-warning:hover { background: #d97706; }
-        .btn-danger { background: #ef4444; color: white; }
-        .btn-danger:hover { background: #dc2626; }
-        .btn-purple { background: #a855f7; color: white; }
-        .btn-purple:hover { background: #9333ea; }
-        .result-box { margin-top: 20px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.3); padding: 15px; border-radius: 12px; font-family: monospace; font-size: 0.85rem; color: #38bdf8; white-space: pre-wrap; display: none; }
-        .user-card { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.05); padding: 18px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    </style>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
+    .container { max-width: 950px; width: 100%; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+    h1 { font-size: 1.5rem; color: #38bdf8; margin-bottom: 6px; }
+    p.subtitle { color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; overflow-x: auto; }
+    .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 0.9rem; font-weight: 600; cursor: pointer; padding: 8px 12px; border-radius: 8px; white-space: nowrap; transition: all 0.2s; }
+    .tab-btn.active { background: #38bdf8; color: #0f172a; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-size: 0.8rem; color: #cbd5e1; margin-bottom: 5px; font-weight: 500; }
+    input, select { width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; color: #fff; font-size: 0.9rem; }
+    input:focus, select:focus { outline: none; border-color: #38bdf8; }
+    .btn { background: #38bdf8; color: #0f172a; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; transition: background 0.2s; }
+    .btn:hover { background: #0ea5e9; }
+    .btn-warning { background: #f59e0b; color: #0f172a; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-purple { background: #a855f7; color: white; }
+    .result-box { margin-top: 15px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.3); padding: 12px; border-radius: 10px; font-family: monospace; font-size: 0.8rem; color: #38bdf8; white-space: pre-wrap; display: none; }
+    
+    /* Tarjetas adaptables para móviles */
+    .user-card { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 12px; }
+    @media (min-width: 640px) {
+        body { padding: 30px; }
+        .container { padding: 35px; }
+        h1 { font-size: 1.8rem; }
+        .user-card { flex-direction: row; justify-content: space-between; align-items: center; }
+    }
+</style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
