@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Cabeceras estrictas para evitar caché en la Smart TV -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>Welcome Aruba</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=2.2"> <!-- Añadimos versión para forzar recarga del CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+    <audio id="oceanAudio" loop>
+        <source src="audio/ocean.mp3" type="audio/mpeg">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <div id="bg1" class="background active"></div>
+    <div id="bg2" class="background"></div>
+    <div class="overlay"></div>
+
+    <button id="muteBtn">🔊</button>
+
+    <!-- Widget del Tiempo para Aruba -->
+    <div class="weather-card">
+        <div class="weather-icon" id="weatherIcon">☀️</div>
+        <div>
+            <div class="weather-temp" id="weatherTemp">--°C</div>
+            <div class="weather-desc" id="weatherDesc">Cargando clima...</div>
+        </div>
+    </div>
+
+    <!-- Contenido Central Organizado en Tarjetas Elegantes -->
+    <div class="content">
+        <h1 id="welcome"></h1>
+        <div id="guest"></div>
+        <div id="message"></div>
+        <div id="clock"></div>
+
+        <div class="cards-wrapper">
+            <!-- Tarjeta 1: Conexión WiFi Automática + Check-out + Host -->
+            <div class="info-card">
+                <div class="card-text">
+                    <h3 id="cardTitle1">📶 Conexión y Datos</h3>
+                    <p id="wifi">📶 WiFi: Aruba Paradise</p>
+                    <p id="password">🔐 Password: WelcomeAruba2026</p>
+                    <p id="phone">📱 Host WhatsApp: +297 594 XXXX</p>
+                    <p id="checkout">🔑 Check-out: 11:00</p>
+                </div>
+                <div class="qr-box">
+                    <img id="wifiQrCode" alt="QR WiFi">
+                    <span id="qrScanWifi">¡Escanear para conectar!</span>
+                </div>
+            </div>
+
+            <!-- Tarjeta 2: Guía Digital de la Isla -->
+            <div class="info-card">
+                <div class="card-text">
+                    <h3 id="cardTitle2">🌴 Guía de Aruba</h3>
+                    <p style="font-size: 1rem; opacity: 0.9; margin-bottom: 10px;" id="cardGuideDesc">Escanea para descubrir recomendaciones, restaurantes y playas.</p>
+                    <p style="font-size: 0.9rem; color: #38bdf8;" id="guideText">aruba.com</p>
+                </div>
+                <div class="qr-box">
+                    <img id="guideQrCode" alt="QR Guía">
+                    <span id="qrScanGuide">Guía Turística</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            🌴 Aruba Paradise Stay
+        </div>
+    </div>
+
+    <!-- Script Externo -->
+    <script src="script.js?v=3.3"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reiniciando TV...</title>
+    <script>
+        // Destruir cualquier rastro de almacenamiento local y cookies virtuales
+        localStorage.clear();
+        sessionStorage.clear();
+        // Redirigir por la fuerza al index real añadiendo un timestamp aleatorio para evitar caché
+        window.location.replace('tv.html?ts=' + Date.now() + '&reset=true');
+    </script>
+</head>
+<body>
+    <p style="color: white; font-family: sans-serif; text-align: center; margin-top: 20vh;">Reiniciando sistema de pantalla...</p>
+</body>
+</html>
