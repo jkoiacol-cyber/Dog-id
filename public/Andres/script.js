@@ -1,10 +1,51 @@
 // ==========================================
-// 0. CONFIGURACIÓN E INICIALIZACIÓN SUPABASE
+// 0. CONFIGURACIÓN SUPABASE (API REST, SIN LIBRERÍA)
 // ==========================================
+// Compatible con navegadores de Smart TV antiguos: no usa supabase-js,
+// ni "?.", ni "??", ni nada posterior a ES2017.
 const SUPABASE_URL = 'https://wyyurayswvzuovofyseh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_G8iz7v3aOpS1fFSoTOT56Q_fmbLi8x3';
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Consulta GET a una tabla. Devuelve siempre un array.
+async function sbGet(tabla, filtros) {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + tabla + '?' + filtros + '&select=*', {
+        method: 'GET',
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Accept': 'application/json'
+        },
+        cache: 'no-store'
+    });
+    if (!res.ok) {
+        throw new Error('HTTP ' + res.status + ' en ' + tabla);
+    }
+    return res.json();
+}
+
+function buscarDispositivo(deviceId) {
+    return sbGet('authorized_devices', 'device_id=eq.' + encodeURIComponent(deviceId));
+}
+
+function buscarConfig(userEmail) {
+    return sbGet('apartments_config', 'user_email=eq.' + encodeURIComponent(userEmail));
+}
+
+// Aviso de error visible en la TV (no tiene consola)
+function mostrarAviso(texto) {
+    let aviso = document.getElementById('avisoError');
+    if (!aviso) {
+        aviso = document.createElement('div');
+        aviso.id = 'avisoError';
+        aviso.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#b91c1c;color:#fff;padding:12px 20px;border-radius:10px;z-index:9999;font-size:1rem;max-width:90%;';
+        document.body.appendChild(aviso);
+    }
+    aviso.textContent = texto;
+}
+
+function ocultarAviso() {
+    const aviso = document.getElementById('avisoError');
+    if (aviso && aviso.parentNode) aviso.parentNode.removeChild(aviso);
+}
 
 // ==========================================
 // 1. DICCIONARIO DE TRADUCCIONES COMPLETO
@@ -79,18 +120,23 @@ const translations = {
 // ==========================================
 // 2. GESTIÓN DE DISPOSITIVO (DEVICE ID)
 // ==========================================
+function generarDeviceId() {
+    return 'tv_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+}
+
 function obtenerDeviceId() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('reset') === 'true') {
-        localStorage.removeItem("aruba_tv_device_id");
-        const newId = 'tv_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+        const newId = generarDeviceId();
         localStorage.setItem("aruba_tv_device_id", newId);
+        // Quitamos ?reset=true de la URL para no regenerar el ID en cada recarga
+        window.history.replaceState({}, document.title, window.location.pathname);
         return newId;
     }
 
     let devId = localStorage.getItem("aruba_tv_device_id");
     if (!devId) {
-        devId = 'tv_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+        devId = generarDeviceId();
         localStorage.setItem("aruba_tv_device_id", devId);
     }
     return devId;
@@ -99,11 +145,12 @@ function obtenerDeviceId() {
 let currentDeviceId = obtenerDeviceId();
 let lang = "es";
 let ultimoCodigoClima = 0;
+let ultimaConfigAplicada = '';
 
 // Pantalla de vinculación limpia, central y elegante
 function mostrarPantallaEmparejamiento() {
     const pathSegments = window.location.pathname.split('/');
-    pathSegments.pop(); 
+    pathSegments.pop();
     const baseSubpath = pathSegments.join('/');
     const basePath = window.location.origin + (baseSubpath.startsWith('/') ? baseSubpath : '/' + baseSubpath);
 
@@ -148,7 +195,7 @@ function mostrarPantallaEmparejamiento() {
                     color: #38bdf8;
                     letter-spacing: -0.5px;
                 ">Vincular Smart TV</h1>
-                
+
                 <p style="
                     font-size: 0.95rem;
                     line-height: 1.6;
@@ -200,14 +247,6 @@ function mostrarPantallaEmparejamiento() {
             </div>
         </div>
     `;
-
-    try {
-        if (typeof iniciarCarruselFondos === 'function') {
-            iniciarCarruselFondos();
-        }
-    } catch (e) {
-        console.warn("El carrusel de fondos se omitió en modo emparejamiento:", e);
-    }
 }
 
 // Aplicar datos del huésped a la interfaz principal de la TV
@@ -216,7 +255,7 @@ function aplicarDatos(config) {
         console.error("¡Atención! El objeto config llegó vacío o nulo.");
         return;
     }
-    
+
     const guest = config.guest_name || "Nuestros Invitados";
     lang = config.lang || "es";
     const wifi = config.wifi_name || "Aruba Paradise";
@@ -227,7 +266,7 @@ function aplicarDatos(config) {
 
     const guestElem = document.getElementById("guest");
     if (guestElem) guestElem.textContent = guest;
-    
+
     const langCode = translations[lang] ? lang : "es";
     const t = translations[langCode];
 
@@ -287,69 +326,53 @@ function aplicarDatos(config) {
     if (guideText) {
         guideText.textContent = guiaFinal.replace('https://', '').replace('http://', '');
     }
-    
+
     actualizarTextoClima(ultimoCodigoClima, langCode);
     updateClock();
 }
 
 // ==========================================
-// 3. COMPROBACIÓN DE VINCULACIÓN Y TIEMPO REAL
+// 3. COMPROBACIÓN DE VINCULACIÓN Y SONDEO
 // ==========================================
+function reiniciarDispositivo() {
+    localStorage.removeItem('aruba_tv_device_id');
+    location.reload();
+}
+
 async function verificarVinculacionYCargar() {
     try {
-        const { data: deviceRecord, error: devErr } = await supabaseClient
-            .from('authorized_devices')
-            .select('*')
-            .eq('device_id', currentDeviceId)
-            .maybeSingle();
+        const dispositivos = await buscarDispositivo(currentDeviceId);
 
-        if (devErr) throw devErr;
-
-        if (!deviceRecord) {
-            localStorage.removeItem("aruba_tv_device_id");
-            currentDeviceId = obtenerDeviceId(); 
-
+        // --- Dispositivo todavía sin vincular: QR y espera ---
+        if (dispositivos.length === 0) {
+            ocultarAviso();
             mostrarPantallaEmparejamiento();
 
-            supabaseClient
-                .channel('waiting_for_pairing')
-                .on(
-                    'postgres_changes',
-                    { event: 'INSERT', schema: 'public', table: 'authorized_devices', filter: `device_id=eq.${currentDeviceId}` },
-                    () => {
+            const intervaloEspera = setInterval(async () => {
+                try {
+                    const check = await buscarDispositivo(currentDeviceId);
+                    if (check.length > 0) {
+                        clearInterval(intervaloEspera);
                         window.location.reload();
                     }
-                )
-                .subscribe();
-
-            const intervaloEspera = setInterval(async () => {
-                const { data: checkDevice } = await supabaseClient
-                    .from('authorized_devices')
-                    .select('id')
-                    .eq('device_id', currentDeviceId)
-                    .maybeSingle();
-
-                if (checkDevice) {
-                    clearInterval(intervaloEspera);
-                    window.location.reload();
+                } catch (err) {
+                    console.warn("Sin conexión mientras se espera la vinculación:", err);
                 }
             }, 3000);
-
             return;
         }
 
-        const userEmail = deviceRecord.user_email;
-        const { data: config, error: configErr } = await supabaseClient
-            .from('apartments_config')
-            .select('*')
-            .eq('user_email', userEmail)
-            .single();
+        // --- Dispositivo vinculado: cargar configuración ---
+        const userEmail = dispositivos[0].user_email;
+        const configs = await buscarConfig(userEmail);
 
-        if (configErr || !config) {
+        if (configs.length === 0) {
             console.error("Configuración no encontrada para el usuario:", userEmail);
             mostrarPantallaEmparejamiento();
             return;
         }
+
+        const config = configs[0];
 
         if (config.is_suspended) {
             alert("Esta cuenta ha sido suspendida por el administrador.");
@@ -358,71 +381,44 @@ async function verificarVinculacionYCargar() {
             return;
         }
 
+        ocultarAviso();
+        ultimaConfigAplicada = JSON.stringify(config);
         aplicarDatos(config);
-        activarSincronizacionEnTiempoReal(userEmail);
+        iniciarSondeo(userEmail);
 
     } catch (e) {
         console.error("Error al verificar vinculación:", e);
+        mostrarAviso('Error de conexión: ' + (e.message || e) + ' — reintentando...');
+        setTimeout(verificarVinculacionYCargar, 10000);
     }
 }
 
-function activarSincronizacionEnTiempoReal(userEmail) {
-    try {
-        supabaseClient
-            .channel('cambios-dispositivo-dinamico')
-            .on(
-                'postgres_changes',
-                { event: 'UPDATE', schema: 'public', table: 'apartments_config', filter: `user_email=eq.${userEmail}` },
-                (payload) => {
-                    if (payload.new.is_suspended) {
-                        localStorage.clear();
-                        location.reload();
-                    } else {
-                        aplicarDatos(payload.new);
-                    }
-                }
-            )
-            .on(
-                'postgres_changes',
-                { event: 'DELETE', schema: 'public', table: 'authorized_devices', filter: `device_id=eq.${currentDeviceId}` },
-                () => {
-                    localStorage.removeItem('aruba_tv_device_id');
-                    location.reload();
-                }
-            )
-            .subscribe();
-    } catch (e) {
-        console.warn("Realtime no disponible, operando con sondeo periódico.");
-    }
-
+// Sondeo cada 5 s: detecta cambios de configuración, suspensión y desvinculación
+function iniciarSondeo(userEmail) {
     setInterval(async () => {
         try {
-            const { data: config } = await supabaseClient
-                .from('apartments_config')
-                .select('*')
-                .eq('user_email', userEmail)
-                .single();
-
-            if (config) {
+            const configs = await buscarConfig(userEmail);
+            if (configs.length > 0) {
+                const config = configs[0];
                 if (config.is_suspended) {
                     localStorage.clear();
                     location.reload();
                     return;
                 }
-                aplicarDatos(config);
+                const huella = JSON.stringify(config);
+                if (huella !== ultimaConfigAplicada) {
+                    ultimaConfigAplicada = huella;
+                    aplicarDatos(config);
+                }
             }
 
-            const { data: device } = await supabaseClient
-                .from('authorized_devices')
-                .select('id')
-                .eq('device_id', currentDeviceId)
-                .maybeSingle();
-
-            if (!device) {
-                localStorage.removeItem('aruba_tv_device_id');
-                location.reload();
+            const dispositivos = await buscarDispositivo(currentDeviceId);
+            if (dispositivos.length === 0) {
+                reiniciarDispositivo();
             }
+            ocultarAviso();
         } catch (err) {
+            // Un fallo de red NO debe desvincular la TV: simplemente se reintenta
             console.error("Error en sondeo automático:", err);
         }
     }, 5000);
@@ -441,6 +437,7 @@ function updateClock() {
     if (clockElem) clockElem.textContent = now.toLocaleDateString(langCode, options);
 }
 setInterval(updateClock, 1000);
+updateClock();
 
 // ==========================================
 // 5. CARRUSEL DE IMÁGENES DE FONDO (CROSSFADE)
@@ -531,20 +528,20 @@ if (muteBtn) {
 function actualizarTextoClima(code, langCode) {
     ultimoCodigoClima = code;
     const t = translations[langCode] || translations["es"];
-    
+
     let desc = t.weatherDefault;
     let icon = "☀️";
-    
+
     if (code === 0) { desc = t.weatherClear; icon = "☀️"; }
     else if (code >= 1 && code <= 3) { desc = t.weatherClouds; icon = "⛅"; }
     else if (code >= 45 && code <= 48) { desc = t.weatherFog; icon = "🌫️"; }
     else if (code >= 51 && code <= 67) { desc = t.weatherRain; icon = "🌦️"; }
     else if (code >= 80 && code <= 82) { desc = t.weatherShowers; icon = "🌧️"; }
     else if (code >= 95) { desc = t.weatherStorm; icon = "⛈️"; }
-    
+
     const iconElem = document.getElementById("weatherIcon");
     const descElem = document.getElementById("weatherDesc");
-    
+
     if (iconElem) iconElem.textContent = icon;
     if (descElem) descElem.textContent = desc;
 }
@@ -553,14 +550,14 @@ async function fetchArubaWeather() {
     try {
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=12.524&longitude=-70.027&current_weather=true");
         const data = await res.json();
-        
+
         if (data && data.current_weather) {
             const temp = Math.round(data.current_weather.temperature);
             const code = data.current_weather.weathercode;
-            
+
             const tempElem = document.getElementById("weatherTemp");
             if (tempElem) tempElem.textContent = `${temp}°C`;
-            
+
             actualizarTextoClima(code, lang);
         }
     } catch (err) {
