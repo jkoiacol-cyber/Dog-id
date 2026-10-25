@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superadmin - Welcome Guest SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; padding: 30px; display: flex; justify-content: center; }
+        .container { max-width: 950px; width: 100%; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 35px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        h1 { font-size: 1.8rem; color: #38bdf8; margin-bottom: 8px; }
+        p.subtitle { color: #94a3b8; font-size: 0.95rem; margin-bottom: 25px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 1rem; font-weight: 600; cursor: pointer; padding: 8px 16px; border-radius: 8px; transition: all 0.2s; }
+        .tab-btn.active { background: #38bdf8; color: #0f172a; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px; font-weight: 500; }
+        input, select { width: 100%; padding: 12px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; color: #fff; font-size: 0.95rem; }
+        input:focus, select:focus { outline: none; border-color: #38bdf8; }
+        .btn { background: #38bdf8; color: #0f172a; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.8rem; transition: background 0.2s; }
+        .btn:hover { background: #0ea5e9; }
+        .btn-warning { background: #f59e0b; color: #0f172a; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-purple { background: #a855f7; color: white; }
+        .btn-purple:hover { background: #9333ea; }
+        .result-box { margin-top: 20px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.3); padding: 15px; border-radius: 12px; font-family: monospace; font-size: 0.85rem; color: #38bdf8; white-space: pre-wrap; display: none; }
+        .user-card { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.05); padding: 18px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Panel de Superadministrador</h1>
+        <p class="subtitle">Gestión centralizada de clientes, licencias y contraseñas.</p>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'altaTab')">➕ Dar de Alta Usuario</button>
+            <button class="tab-btn" onclick="switchTab(event, 'gestionTab')">⚙️ Gestionar Clientes</button>
+        </div>
+
+        <!-- SECCIÓN 1: DAR DE ALTA -->
+        <div id="altaTab" class="tab-content active">
+            <form onsubmit="registrarNuevoClienteSeguro(event)">
+                <div class="form-group">
+                    <label>Correo Electrónico del Cliente:</label>
+                    <input type="email" id="nuevoEmail" placeholder="cliente@hotel.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Número de Pantallas / Dispositivos Contratados:</label>
+                    <input type="number" id="numDispositivos" value="1" min="1" max="20" required>
+                </div>
+                <div class="form-group">
+                    <label>URL del Portal TV para la Guía del Usuario (Se incluirá en el correo):</label>
+                    <input type="url" id="tvUrl" value="http://127.0.0.1:5500/index.html" required>
+                </div>
+                <button type="submit" class="btn" style="width: 100%; padding: 12px; font-size: 0.95rem;" id="btnCrear">Crear Cuenta y Enviar Tutorial por Email</button>
+            </form>
+            <div id="altaResultado" class="result-box"></div>
+        </div>
+
+        <!-- SECCIÓN 2: GESTIÓN DE CLIENTES -->
+        <div id="gestionTab" class="tab-content">
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <input type="text" id="buscarEmail" placeholder="Buscar por email..." style="flex: 1;">
+                <button class="btn" style="padding: 10px 16px;" onclick="cargarClientes()">Actualizar Lista</button>
+            </div>
+            <div id="listaClientes">
+                <p style="color: #64748b; font-size: 0.9rem;">Cargando lista de usuarios...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://wyyurayswvzuovofyseh.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G8iz7v3aOpS1fFSoTOT56Q_fmbLi8x3';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function switchTab(evt, tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            evt.currentTarget.classList.add('active');
+            if (tabId === 'gestionTab') cargarClientes();
+        }
+
+        async function registrarNuevoClienteSeguro(event) {
+            event.preventDefault();
+            const email = document.getElementById('nuevoEmail').value.trim();
+            const maxDevices = parseInt(document.getElementById('numDispositivos').value);
+            const tvUrl = document.getElementById('tvUrl').value.trim();
+            const btn = document.getElementById('btnCrear');
+            const resBox = document.getElementById('altaResultado');
+
+            btn.textContent = "Creando cuenta y enviando correo explicativo...";
+            btn.disabled = true;
+            resBox.style.display = "none";
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/superadmin-action`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({ 
+                        action: 'createUser', 
+                        email: email, 
+                        maxDevices: maxDevices,
+                        tvUrl: tvUrl
+                    })
+                });
+
+                const textResult = await response.text();
+                let resultado;
+                try {
+                    resultado = JSON.parse(textResult);
+                } catch (e) {
+                    throw new Error("Respuesta no válida del servidor: " + textResult);
+                }
+
+                if (!response.ok || !resultado.success) {
+                    throw new Error(resultado.error || "Error desconocido en el servidor");
+                }
+
+                resBox.style.display = "block";
+                resBox.textContent = `✅ ¡Usuario creado con éxito y correo con instrucciones enviado!\n\n` +
+                                     `📧 Email: ${email}\n` +
+                                     `🔑 Contraseña provisional: ${resultado.tempPassword}\n` +
+                                     `📺 Dispositivos: ${maxDevices}\n` +
+                                     `🌐 URL TV enviada: ${tvUrl}`;
+
+                document.getElementById('nuevoEmail').value = '';
+            } catch (err) {
+                console.error("Detalle del error:", err);
+                resBox.style.display = "block";
+                resBox.textContent = `❌ Error: ${err.message}`;
+            } finally {
+                btn.textContent = "Crear Cuenta y Enviar Tutorial por Email";
+                btn.disabled = false;
+            }
+        }
+
+        async function cargarClientes() {
+            const container = document.getElementById('listaClientes');
+            container.innerHTML = `<p style="color: #64748b;">Buscando clientes...</p>`;
+
+            try {
+                const { data: configs, error } = await supabaseClient.from('apartments_config').select('*');
+                if (error) throw error;
+
+                if (!configs || configs.length === 0) {
+                    container.innerHTML = `<p style="color: #64748b;">No hay clientes registrados.</p>`;
+                    return;
+                }
+
+                container.innerHTML = configs.map(c => {
+                    const isSuspended = c.is_suspended || false;
+
+                    return `
+                        <div class="user-card" style="${isSuspended ? 'opacity: 0.6; border-left: 4px solid #ef4444;' : 'border-left: 4px solid #38bdf8;'}">
+                            <div>
+                                <div style="font-weight: 600; color: #f8fafc;">
+                                    ${c.user_email} ${isSuspended ? '<span style="color: #ef4444; font-size: 0.75rem;">(SUSPENDIDO)</span>' : ''}
+                                </div>
+                                <div style="font-size: 0.8rem; color: #94a3b8;">
+                                    Licencias: ${c.max_devices} | Desvínculos usados: ${c.unbind_count} / ${c.max_unbinds}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+                                <button class="btn btn-warning" onclick="darUnaOportunidadMas('${c.user_email}', ${c.max_unbinds})">+1 Oportunidad</button>
+                                
+                                <!-- BOTÓN CAMBIAR/RESET CONTRASEÑA -->
+                                <button class="btn btn-purple" onclick="resetearPassword('${c.user_email}')">🔑 Reset Pass</button>
+
+                                <button class="btn" style="background-color: ${isSuspended ? '#22c55e' : '#f97316'}; color: #fff;" onclick="toggleSuspenderCliente('${c.user_email}', ${isSuspended})">
+                                    ${isSuspended ? 'Reactivar' : 'Suspender'}
+                                </button>
+                                
+                                <button class="btn btn-danger" onclick="eliminarCliente('${c.user_email}')">Borrar</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                container.innerHTML = `<p style="color: #ef4444;">Error al cargar clientes: ${err.message}</p>`;
+            }
+        }
+
+        async function resetearPassword(email) {
+                    const nuevaClaveManual = prompt(`Restablecer contraseña para ${email}:\n\nEscribe la nueva contraseña deseada o déjalo en blanco para generar una automática:`);
+                    
+                    if (nuevaClaveManual === null) return; // Si pulsa cancelar
+
+                    try {
+                        const response = await fetch(`${SUPABASE_URL}/functions/v1/superadmin-action`, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                                'apikey': SUPABASE_ANON_KEY
+                            },
+                            body: JSON.stringify({ 
+                                action: 'resetPassword', 
+                                email: email, 
+                                newPassword: nuevaClaveManual.trim() !== '' ? nuevaClaveManual.trim() : null 
+                            })
+                        });
+
+                        const textResult = await response.text();
+                        let resultado;
+                        try {
+                            resultado = JSON.parse(textResult);
+                        } catch (e) {
+                            throw new Error("Respuesta inválida del servidor: " + textResult);
+                        }
+
+                        if (!response.ok || !resultado.success) {
+                            throw new Error(resultado.error || "Error desconocido al resetear");
+                        }
+
+                        alert(`✅ ¡Contraseña actualizada con éxito para ${email}!\n\nNueva contraseña: ${resultado.newPassword}\n\n(Se ha enviado una notificación por correo al cliente).`);
+                    } catch (err) {
+                        console.error("Error en resetPass:", err);
+                        alert("❌ No se pudo restablecer la contraseña: " + err.message);
+                    }
+                }
+
+        async function toggleSuspenderCliente(email, estaSuspendido) {
+            const accionTexto = estaSuspendido ? "reactivar" : "suspender";
+            if (!confirm(`¿Estás seguro de que deseas ${accionTexto} el acceso a ${email}?`)) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('apartments_config')
+                    .update({ is_suspended: !estaSuspendido })
+                    .eq('user_email', email);
+
+                if (error) throw error;
+
+                alert(`El cliente ${email} ha sido ${estaSuspendido ? 'reactivado' : 'suspendido'} con éxito.`);
+                cargarClientes();
+            } catch (err) {
+                alert(`Error al ${accionTexto} el cliente: ${err.message}`);
+            }
+        }
+
+        async function darUnaOportunidadMas(email, currentMaxUnbinds) {
+            const nuevoMax = currentMaxUnbinds + 1;
+            const { error } = await supabaseClient
+                .from('apartments_config')
+                .update({ max_unbinds: nuevoMax })
+                .eq('user_email', email);
+
+            if (error) {
+                alert("Error: " + error.message);
+            } else {
+                alert(`¡Se ha concedido 1 oportunidad extra a ${email} (Nuevo límite: ${nuevoMax})!`);
+                cargarClientes();
+            }
+        }
+
+        async function eliminarCliente(email) {
+            if (!confirm(`⚠️ ATENCIÓN: ¿Estás seguro de eliminar por completo a ${email}?`)) return;
+
+            try {
+                await fetch(`${SUPABASE_URL}/functions/v1/superadmin-action`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({ action: 'deleteUser', email: email })
+                });
+
+                alert("Cliente eliminado correctamente de Auth y base de datos.");
+                cargarClientes();
+            } catch (err) {
+                alert("Error al eliminar cliente: " + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
