@@ -101,24 +101,23 @@ const currentDeviceId = obtenerDeviceId();
 let lang = "es";
 let ultimoCodigoClima = 0;
 
-/// Pantalla de vinculación limpia, central y elegante
+// Pantalla de vinculación limpia, central y elegante
 function mostrarPantallaEmparejamiento() {
-    // Definimos la URL de administración respetando tu entorno de pruebas local
-    //const urlAdminPair = `http://192.168.1.42:5500/admin.html?pair=${currentDeviceId}`;
-    //const urlAdminPair = `${window.location.origin}/admin.html?pair=${currentDeviceId}`;
-    // Obtener automáticamente la ruta base actual (ej: https://www.dogid.es/Andres o https://www.dogid.es/Sora)
+    // Obtener automáticamente la ruta base actual de forma segura
     const pathSegments = window.location.pathname.split('/');
     pathSegments.pop(); // Elimina el nombre del archivo actual (ej: tv.html o index.html)
-    const basePath = window.location.origin + pathSegments.join('/');
+    
+    // Unimos asegurándonos de que si queda vacío sea solo la raíz
+    const baseSubpath = pathSegments.join('/');
+    const basePath = window.location.origin + (baseSubpath.startsWith('/') ? baseSubpath : '/' + baseSubpath);
 
     // URL dinámica que funcionará perfectamente tanto en /Sora/ como en /Andres/
     const urlAdminPair = `${basePath}/admin.html?pair=${currentDeviceId}`;
-    const qrPairUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(urlAdminPair)}`;
-        
-    // Generamos la URL del servicio de códigos QR
+    
+    // Generamos la URL del servicio de códigos QR (declarada una sola vez)
     const qrPairUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(urlAdminPair)}`;
 
-    // Reemplazamos el contenido del body por completo para vencer cualquier caché estática de la TV
+    // Reemplazamos el contenido del body por completo para vencer cualquier caché estática
     document.body.innerHTML = `
         <div id="bg1" class="background active" style="background-image: url('images/Eagle_Beach.jpg'); background-size: cover; background-position: center;"></div>
         <div id="bg2" class="background" style="background-size: cover; background-position: center;"></div>
@@ -210,7 +209,7 @@ function mostrarPantallaEmparejamiento() {
         </div>
     `;
 
-    // Intentamos iniciar el carrusel de fondos de forma segura por si existen los elementos bg1/bg2
+    // Intentamos iniciar el carrusel de fondos de forma segura
     try {
         if (typeof iniciarCarruselFondos === 'function') {
             iniciarCarruselFondos();
