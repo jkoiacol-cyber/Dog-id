@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mi panel - Smart TV</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Librería oficial de Supabase (el panel se usa desde el móvil, que la soporta) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+        background: #0f172a;
+        color: #f8fafc;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    }
+
+    .container {
+        width: 100%;
+        max-width: 760px;
+        background: rgba(255, 255, 255, 0.05);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 18px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    h1 { font-size: 1.4rem; color: #38bdf8; line-height: 1.25; margin-bottom: 4px; }
+    h2 { font-size: 1.05rem; color: #f8fafc; margin-bottom: 4px; }
+    .subtitle { color: #94a3b8; font-size: 0.85rem; overflow-wrap: anywhere; }
+    .ayuda { color: #94a3b8; font-size: 0.8rem; margin-bottom: 14px; line-height: 1.5; }
+
+    .panel-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+
+    /* ---------- Bloques ---------- */
+    .bloque {
+        background: rgba(15, 23, 42, 0.45);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    .bloque-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+
+    .chip {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.18);
+        color: #cbd5e1;
+        white-space: nowrap;
+    }
+    .chip-propio { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+
+    /* ---------- Formularios ---------- */
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 0.85rem; margin-bottom: 6px; color: #cbd5e1; }
+    input[type="text"], input[type="email"], input[type="password"], input[type="url"], select {
+        width: 100%;
+        min-height: 46px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(0,0,0,0.3);
+        color: white;
+        font-size: 16px; /* evita el zoom automático de iOS */
+    }
+    input:focus, select:focus { outline: none; border-color: #38bdf8; }
+
+    /* ---------- Botones ---------- */
+    .btn {
+        display: block;
+        width: 100%;
+        min-height: 46px;
+        padding: 12px;
+        background: #0ea5e9;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, opacity 0.2s;
+    }
+    .btn:hover { background: #0284c7; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-danger { background: #ef4444; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-salir { background: transparent; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.2); width: auto; padding: 8px 14px; font-size: 0.85rem; white-space: nowrap; }
+    .btn-salir:hover { background: rgba(255,255,255,0.08); }
+    .btn-volver { margin-bottom: 14px; }
+    .btn:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+
+    /* ---------- Lista de pantallas ---------- */
+    .pantalla {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .pantalla-nombre { font-weight: 600; font-size: 1rem; overflow-wrap: anywhere; margin-bottom: 6px; }
+    .pantalla-id { font-size: 0.7rem; color: #64748b; font-family: monospace; margin-top: 6px; overflow-wrap: anywhere; }
+    .pantalla-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pantalla-acciones .btn { font-size: 0.9rem; min-height: 44px; }
+    .vacio { color: #94a3b8; font-size: 0.9rem; line-height: 1.6; }
+
+    .aviso {
+        font-size: 0.85rem;
+        color: #cbd5e1;
+        background: rgba(56, 189, 248, 0.1);
+        padding: 12px;
+        border-radius: 10px;
+        border-left: 4px solid #38bdf8;
+        margin-top: 12px;
+        line-height: 1.5;
+    }
+    .aviso.alerta { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+    .aviso a { color: #38bdf8; font-weight: 600; }
+
+    /* ---------- Selector de modo (pantalla) ---------- */
+    .opciones { display: grid; gap: 8px; margin-bottom: 16px; }
+    .opcion {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 12px;
+        cursor: pointer;
+        margin: 0;
+        color: #f8fafc;
+    }
+    .opcion input { width: 20px; height: 20px; min-height: 0; margin-top: 2px; flex-shrink: 0; accent-color: #38bdf8; }
+    .opcion small { display: block; color: #94a3b8; font-size: 0.78rem; margin-top: 2px; line-height: 1.4; }
+    .opcion.activa { border-color: #38bdf8; background: rgba(56, 189, 248, 0.08); }
+
+    .error-login { color: #ef4444; font-size: 0.85rem; margin-top: 12px; min-height: 1.2em; }
+
+    #toast {
+        position: fixed;
+        left: 50%;
+        bottom: max(20px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        background: #0ea5e9;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        max-width: 90%;
+        text-align: center;
+        z-index: 999;
+        display: none;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    #toast.error { background: #b91c1c; }
+
+    /* ---------- Tablet / escritorio ---------- */
+    @media (min-width: 640px) {
+        body { padding: 24px; }
+        .container { padding: 30px; }
+        h1 { font-size: 1.7rem; }
+        .pantalla { flex-direction: row; justify-content: space-between; align-items: center; }
+        .pantalla-acciones { display: flex; flex-shrink: 0; }
+        .pantalla-acciones .btn { width: auto; padding: 10px 16px; }
+        .opciones { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ACCESO -->
+    <div id="authSection" style="display: none;">
+        <h1>Acceso a mi panel</h1>
+        <p class="subtitle" style="margin-bottom: 20px;">Inicia sesión para gestionar tus pantallas.</p>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Correo electrónico:</label>
+                <input type="email" id="loginEmail" required placeholder="tu@correo.com" autocomplete="username" autocapitalize="off" spellcheck="false">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Contraseña:</label>
+                <input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn" id="btnLogin">Entrar al panel</button>
+            <div id="loginError" class="error-login" role="alert"></div>
+        </form>
+    </div>
+
+    <!-- PANEL -->
+    <div id="appSection" style="display: none;">
+
+        <div class="panel-header">
+            <div>
+                <h1>Mis pantallas</h1>
+                <p class="subtitle" id="cuentaEmail"></p>
+            </div>
+            <button class="btn btn-salir" id="btnSalir" type="button">Cerrar sesión</button>
+        </div>
+
+        <!-- VISTA 1: LISTA DE PANTALLAS Y CONFIGURACIÓN GENERAL -->
+        <div id="vistaLista">
+            <section class="bloque">
+                <div class="bloque-cab">
+                    <h2>📺 Pantallas vinculadas</h2>
+                    <span class="chip" id="licenciasInfo">–</span>
+                </div>
+                <div id="pantallasList"></div>
+                <div class="aviso" id="unbindWarning"></div>
+            </section>
+
+            <section class="bloque">
+                <h2>⚙️ Configuración general</h2>
+                <p class="ayuda">Es lo que muestran todas tus pantallas, salvo las que tengan contenido propio.</p>
+                <form id="configForm">
+                    <div id="camposGenerales"></div>
+                    <button type="submit" class="btn" id="btnGuardarGeneral">Guardar y actualizar las pantallas</button>
+                </form>
+            </section>
+        </div>
+
+        <!-- VISTA 2: EDITAR UNA PANTALLA -->
+        <div id="vistaPantalla" style="display: none;">
+            <button class="btn btn-salir btn-volver" id="btnVolver" type="button">← Volver a mis pantallas</button>
+            <section class="bloque">
+                <h2 id="tituloPantalla">Pantalla</h2>
+                <p class="ayuda">Elige qué mostrará esta pantalla.</p>
+                <form id="pantallaForm">
+                    <div class="form-group">
+                        <label for="pantallaNombre">Nombre de la pantalla:</label>
+                        <input type="text" id="pantallaNombre" maxlength="40" required placeholder="Apartamento 1">
+                    </div>
+
+                    <div class="opciones" id="opcionesModo">
+                        <label class="opcion" id="opcionGeneral">
+                            <input type="radio" name="modo" value="general">
+                            <span>Igual que la general<small>Muestra la configuración general de la cuenta.</small></span>
+                        </label>
+                        <label class="opcion" id="opcionPropio">
+                            <input type="radio" name="modo" value="propio">
+                            <span>Contenido propio<small>Esta pantalla tiene su propio huésped, WiFi, etc.</small></span>
+                        </label>
+                    </div>
+
+                    <div id="camposPropios"></div>
+
+                    <button type="submit" class="btn" id="btnGuardarPantalla">Guardar pantalla</button>
+                </form>
+            </section>
+        </div>
+
+        <!-- VISTA 3: VINCULAR UNA PANTALLA NUEVA (viene del QR de la TV) -->
+        <div id="vistaVincular" style="display: none;">
+            <section class="bloque">
+                <h2>📺 Vincular nueva pantalla</h2>
+                <p class="ayuda">Has escaneado el QR de una TV. Ponle un nombre para reconocerla y autorízala.</p>
+                <form id="vincularForm">
+                    <div class="form-group">
+                        <label for="vincularNombre">Nombre de la pantalla:</label>
+                        <input type="text" id="vincularNombre" maxlength="40" required placeholder="Apartamento 1">
+                    </div>
+                    <button type="submit" class="btn" id="btnVincular">Autorizar esta pantalla</button>
+                    <button type="button" class="btn btn-salir" id="btnCancelarVincular" style="width: 100%; margin-top: 10px;">Cancelar</button>
+                </form>
+            </section>
+        </div>
+    </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="../shared/admin.js"></script>
+</body>
+</html>

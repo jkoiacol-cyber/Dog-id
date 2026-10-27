@@ -2,38 +2,197 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Superadmin - Welcome Guest SaaS</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
-    .container { max-width: 950px; width: 100%; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-    h1 { font-size: 1.5rem; color: #38bdf8; margin-bottom: 6px; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+        background-color: #0f172a;
+        color: #f8fafc;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    }
+
+    .container {
+        width: 100%;
+        max-width: 950px;
+        background: rgba(30, 41, 59, 0.7);
+        -webkit-backdrop-filter: blur(16px);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 18px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    h1 { font-size: 1.4rem; color: #38bdf8; margin-bottom: 6px; line-height: 1.25; }
     p.subtitle { color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; overflow-x: auto; }
-    .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 0.9rem; font-weight: 600; cursor: pointer; padding: 8px 12px; border-radius: 8px; white-space: nowrap; transition: all 0.2s; }
+
+    /* ---------- Pestañas ---------- */
+    .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 12px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 10px 14px;
+        border-radius: 8px;
+        white-space: nowrap;
+        transition: background 0.2s, color 0.2s;
+    }
     .tab-btn.active { background: #38bdf8; color: #0f172a; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
+
+    /* ---------- Formularios ---------- */
     .form-group { margin-bottom: 15px; }
     label { display: block; font-size: 0.8rem; color: #cbd5e1; margin-bottom: 5px; font-weight: 500; }
-    input, select { width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; color: #fff; font-size: 0.9rem; }
+    input, select {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 14px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        color: #fff;
+        font-size: 16px; /* evita el zoom automático de iOS al enfocar */
+    }
     input:focus, select:focus { outline: none; border-color: #38bdf8; }
-    .btn { background: #38bdf8; color: #0f172a; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; transition: background 0.2s; }
+
+    /* ---------- Botones ---------- */
+    .btn {
+        background: #38bdf8;
+        color: #0f172a;
+        border: none;
+        min-height: 40px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: background 0.2s, opacity 0.2s;
+    }
     .btn:hover { background: #0ea5e9; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-warning { background: #f59e0b; color: #0f172a; }
-    .btn-danger { background: #ef4444; color: white; }
-    .btn-purple { background: #a855f7; color: white; }
-    .result-box { margin-top: 15px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.3); padding: 12px; border-radius: 10px; font-family: monospace; font-size: 0.8rem; color: #38bdf8; white-space: pre-wrap; display: none; }
-    
-    /* Tarjetas adaptables para móviles */
-    .user-card { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 12px; }
+    .btn-warning:hover { background: #d98a06; }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-purple { background: #a855f7; color: #fff; }
+    .btn-purple:hover { background: #9333ea; }
+    .btn-suspend { background: #f97316; color: #fff; }
+    .btn-suspend:hover { background: #ea580c; }
+    .btn-reactivate { background: #22c55e; color: #fff; }
+    .btn-reactivate:hover { background: #16a34a; }
+    .btn-block { width: 100%; padding: 12px; font-size: 0.95rem; }
+
+    .btn:focus-visible, .tab-btn:focus-visible, input:focus-visible {
+        outline: 2px solid #38bdf8;
+        outline-offset: 2px;
+    }
+
+    .result-box {
+        margin-top: 15px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        padding: 12px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        color: #38bdf8;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        display: none;
+    }
+
+    /* ---------- Buscador ---------- */
+    .toolbar {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    .toolbar input { flex: 1; }
+    .contador { font-size: 0.8rem; color: #94a3b8; margin-bottom: 14px; min-height: 1.2em; }
+    .mensaje { color: #64748b; font-size: 0.9rem; padding: 8px 0; }
+    .mensaje.error { color: #ef4444; }
+
+    /* ---------- Tarjetas de cliente ---------- */
+    .user-card {
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-left: 4px solid #38bdf8;
+        padding: 14px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .user-card.suspendido { opacity: 0.65; border-left-color: #ef4444; }
+
+    .user-info { min-width: 0; }
+    .user-email { font-weight: 600; color: #f8fafc; overflow-wrap: anywhere; word-break: break-word; }
+    .badge-suspendido { color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-left: 4px; }
+    .user-meta { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+
+    /* En móvil los botones ocupan dos columnas y son fáciles de pulsar */
+    .user-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    .user-actions .btn { width: 100%; min-height: 44px; }
+
+    /* ---------- Tablet ---------- */
     @media (min-width: 640px) {
-        body { padding: 30px; }
+        body { padding: 24px; }
+        .container { padding: 28px; }
+        h1 { font-size: 1.7rem; }
+        .toolbar { flex-direction: row; align-items: stretch; }
+        .toolbar .btn { padding: 10px 18px; white-space: nowrap; }
+    }
+
+    /* ---------- Escritorio ---------- */
+    @media (min-width: 900px) {
+        body { padding: 32px; }
         .container { padding: 35px; }
-        h1 { font-size: 1.8rem; }
-        .user-card { flex-direction: row; justify-content: space-between; align-items: center; }
+        .user-card { flex-direction: row; justify-content: space-between; align-items: center; gap: 20px; }
+        .user-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
+        .user-actions .btn { width: auto; min-height: 36px; }
+    }
+
+    .hint { display: block; font-size: 0.75rem; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
+
+    /* ---------- Acceso (login) ---------- */
+    .login-box { max-width: 420px; margin: 6vh auto 0; }
+    .login-error { color: #ef4444; font-size: 0.85rem; margin-top: 12px; min-height: 1.2em; overflow-wrap: anywhere; }
+    .panel-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .btn-salir { background: transparent; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap; }
+    .btn-salir:hover { background: rgba(255,255,255,0.08); }
+
+    @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; }
     }
 </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -41,44 +200,77 @@
 <body>
 
     <div class="container">
-        <h1>Panel de Superadministrador</h1>
-        <p class="subtitle">Gestión centralizada de clientes, licencias y contraseñas.</p>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab(event, 'altaTab')">➕ Dar de Alta Usuario</button>
-            <button class="tab-btn" onclick="switchTab(event, 'gestionTab')">⚙️ Gestionar Clientes</button>
+        <!-- ACCESO: solo la cuenta del superadministrador -->
+        <div id="loginSection" class="login-box" style="display: none;">
+            <h1>Acceso Superadministrador</h1>
+            <p class="subtitle">Inicia sesión con la cuenta autorizada para gestionar clientes.</p>
+            <form id="formLogin">
+                <div class="form-group">
+                    <label for="loginEmail">Correo electrónico:</label>
+                    <input type="email" id="loginEmail" required autocomplete="username" autocapitalize="off" spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña:</label>
+                    <input type="password" id="loginPassword" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-block" id="btnLogin">Entrar</button>
+                <div id="loginError" class="login-error" role="alert"></div>
+            </form>
+        </div>
+
+        <!-- PANEL (oculto hasta iniciar sesión) -->
+        <div id="panelSection" style="display: none;">
+
+        <div class="panel-header">
+            <div>
+                <h1>Panel de Superadministrador</h1>
+                <p class="subtitle">Gestión centralizada de clientes, licencias y contraseñas.</p>
+            </div>
+            <button class="btn btn-salir" id="btnSalir" type="button">Cerrar sesión</button>
+        </div>
+
+        <div class="tabs" role="tablist">
+            <button class="tab-btn active" data-tab="altaTab" role="tab">➕ Dar de Alta Usuario</button>
+            <button class="tab-btn" data-tab="gestionTab" role="tab">⚙️ Gestionar Clientes</button>
         </div>
 
         <!-- SECCIÓN 1: DAR DE ALTA -->
         <div id="altaTab" class="tab-content active">
-            <form onsubmit="registrarNuevoClienteSeguro(event)">
+            <form id="formAlta">
                 <div class="form-group">
-                    <label>Correo Electrónico del Cliente:</label>
-                    <input type="email" id="nuevoEmail" placeholder="cliente@hotel.com" required>
+                    <label for="nuevoEmail">Correo Electrónico del Cliente:</label>
+                    <input type="email" id="nuevoEmail" placeholder="cliente@hotel.com" required autocomplete="off" autocapitalize="off" spellcheck="false">
                 </div>
                 <div class="form-group">
-                    <label>Número de Pantallas / Dispositivos Contratados:</label>
-                    <input type="number" id="numDispositivos" value="1" min="1" max="20" required>
+                    <label for="numDispositivos">Número de Pantallas / Dispositivos Contratados:</label>
+                    <input type="number" id="numDispositivos" value="1" min="1" max="20" required inputmode="numeric">
                 </div>
                 <div class="form-group">
-                    <label>URL del Portal TV para la Guía del Usuario (Se incluirá en el correo):</label>
-                    <input type="url" id="tvUrl" value="http://127.0.0.1:5500/index.html" required>
+                    <label for="carpetaCliente">Carpeta del cliente (la que usará su TV):</label>
+                    <input type="text" id="carpetaCliente" placeholder="Andres" required maxlength="40"
+                           pattern="[A-Za-z0-9][A-Za-z0-9_\-]{0,39}" autocomplete="off" autocapitalize="off" spellcheck="false">
+                    <span class="hint">Solo letras, números, guiones y guiones bajos. Respeta las mayúsculas: Andres no es lo mismo que andres. El enlace completo se genera solo y se envía en el correo.</span>
                 </div>
-                <button type="submit" class="btn" style="width: 100%; padding: 12px; font-size: 0.95rem;" id="btnCrear">Crear Cuenta y Enviar Tutorial por Email</button>
+                <button type="submit" class="btn btn-block" id="btnCrear">Crear Cuenta y Enviar Tutorial por Email</button>
             </form>
             <div id="altaResultado" class="result-box"></div>
         </div>
 
         <!-- SECCIÓN 2: GESTIÓN DE CLIENTES -->
         <div id="gestionTab" class="tab-content">
-            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-                <input type="text" id="buscarEmail" placeholder="Buscar por email..." style="flex: 1;">
-                <button class="btn" style="padding: 10px 16px;" onclick="cargarClientes()">Actualizar Lista</button>
+            <div class="toolbar">
+                <input type="search" id="buscarEmail" placeholder="Buscar por email..." aria-label="Buscar cliente por email"
+                       autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="email">
+                <button class="btn" id="btnActualizar" type="button">Actualizar Lista</button>
             </div>
+            <div id="contadorClientes" class="contador" aria-live="polite"></div>
             <div id="listaClientes">
-                <p style="color: #64748b; font-size: 0.9rem;">Cargando lista de usuarios...</p>
+                <p class="mensaje">Cargando lista de usuarios...</p>
             </div>
         </div>
+
+        </div><!-- /panelSection -->
     </div>
 
     <script>
@@ -86,19 +278,77 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_G8iz7v3aOpS1fFSoTOT56Q_fmbLi8x3';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        function switchTab(evt, tabId) {
+        // Única cuenta con acceso. Aquí solo sirve para decidir qué pantalla mostrar:
+        // la protección real está en la Edge Function y en las políticas RLS de Supabase.
+        const SUPERADMIN_EMAIL = 'andresvalenciocampo@gmail.com';
+
+        // Lista completa de clientes en memoria: el buscador filtra sobre ella sin volver a consultar
+        let clientes = [];
+
+        // ==========================================
+        // UTILIDADES
+        // ==========================================
+        function escapeHtml(texto) {
+            return String(texto == null ? '' : texto)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Llamada a la Edge Function. Devuelve { ok, resultado }
+        async function llamarFuncion(payload) {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                mostrarLogin('La sesión ha caducado. Vuelve a iniciar sesión.');
+                throw new Error('Sesión caducada');
+            }
+
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/superadmin-action`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`,
+                    'apikey': SUPABASE_ANON_KEY
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const textResult = await response.text();
+            let resultado;
+            try {
+                resultado = JSON.parse(textResult);
+            } catch (e) {
+                throw new Error("Respuesta no válida del servidor: " + textResult);
+            }
+            return { ok: response.ok, resultado: resultado };
+        }
+
+        // ==========================================
+        // PESTAÑAS
+        // ==========================================
+        function switchTab(btn) {
+            const tabId = btn.dataset.tab;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-            evt.currentTarget.classList.add('active');
+            btn.classList.add('active');
             if (tabId === 'gestionTab') cargarClientes();
         }
 
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn));
+        });
+
+        // ==========================================
+        // ALTA DE CLIENTES
+        // ==========================================
         async function registrarNuevoClienteSeguro(event) {
             event.preventDefault();
             const email = document.getElementById('nuevoEmail').value.trim();
-            const maxDevices = parseInt(document.getElementById('numDispositivos').value);
-            const tvUrl = document.getElementById('tvUrl').value.trim();
+            const maxDevices = parseInt(document.getElementById('numDispositivos').value, 10);
+            const carpeta = document.getElementById('carpetaCliente').value.trim();
             const btn = document.getElementById('btnCrear');
             const resBox = document.getElementById('altaResultado');
 
@@ -107,41 +357,32 @@
             resBox.style.display = "none";
 
             try {
-                const response = await fetch(`${SUPABASE_URL}/functions/v1/superadmin-action`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'apikey': SUPABASE_ANON_KEY
-                    },
-                    body: JSON.stringify({ 
-                        action: 'createUser', 
-                        email: email, 
-                        maxDevices: maxDevices,
-                        tvUrl: tvUrl
-                    })
+                const { ok, resultado } = await llamarFuncion({
+                    action: 'createUser',
+                    email: email,
+                    maxDevices: maxDevices,
+                    carpeta: carpeta
                 });
 
-                const textResult = await response.text();
-                let resultado;
-                try {
-                    resultado = JSON.parse(textResult);
-                } catch (e) {
-                    throw new Error("Respuesta no válida del servidor: " + textResult);
-                }
-
-                if (!response.ok || !resultado.success) {
+                if (!ok || !resultado.success) {
                     throw new Error(resultado.error || "Error desconocido en el servidor");
                 }
 
                 resBox.style.display = "block";
-                resBox.textContent = `✅ ¡Usuario creado con éxito y correo con instrucciones enviado!\n\n` +
+                const correo = resultado.emailEnviado
+                    ? '📨 Correo con las instrucciones enviado.'
+                    : '⚠️ El correo NO se ha enviado (revisa Resend). Pásale tú las credenciales al cliente.';
+
+                resBox.textContent = `✅ ¡Usuario creado con éxito!\n\n` +
+                                     `${correo}\n\n` +
                                      `📧 Email: ${email}\n` +
                                      `🔑 Contraseña provisional: ${resultado.tempPassword}\n` +
                                      `📺 Dispositivos: ${maxDevices}\n` +
-                                     `🌐 URL TV enviada: ${tvUrl}`;
+                                     `🌐 URL de la TV: ${resultado.tvUrl}\n` +
+                                     `⚙️ Panel del cliente: ${resultado.adminUrl}`;
 
                 document.getElementById('nuevoEmail').value = '';
+                document.getElementById('carpetaCliente').value = '';
             } catch (err) {
                 console.error("Detalle del error:", err);
                 resBox.style.display = "block";
@@ -152,103 +393,164 @@
             }
         }
 
+        document.getElementById('formAlta').addEventListener('submit', registrarNuevoClienteSeguro);
+
+        // ==========================================
+        // LISTA DE CLIENTES Y BUSCADOR
+        // ==========================================
         async function cargarClientes() {
             const container = document.getElementById('listaClientes');
-            container.innerHTML = `<p style="color: #64748b;">Buscando clientes...</p>`;
+            const contador = document.getElementById('contadorClientes');
+            container.innerHTML = `<p class="mensaje">Buscando clientes...</p>`;
+            contador.textContent = '';
 
             try {
-                const { data: configs, error } = await supabaseClient.from('apartments_config').select('*');
+                const { data: configs, error } = await supabaseClient
+                    .from('apartments_config')
+                    .select('*')
+                    .order('user_email', { ascending: true });
                 if (error) throw error;
 
-                if (!configs || configs.length === 0) {
-                    container.innerHTML = `<p style="color: #64748b;">No hay clientes registrados.</p>`;
-                    return;
-                }
-
-                container.innerHTML = configs.map(c => {
-                    const isSuspended = c.is_suspended || false;
-
-                    return `
-                        <div class="user-card" style="${isSuspended ? 'opacity: 0.6; border-left: 4px solid #ef4444;' : 'border-left: 4px solid #38bdf8;'}">
-                            <div>
-                                <div style="font-weight: 600; color: #f8fafc;">
-                                    ${c.user_email} ${isSuspended ? '<span style="color: #ef4444; font-size: 0.75rem;">(SUSPENDIDO)</span>' : ''}
-                                </div>
-                                <div style="font-size: 0.8rem; color: #94a3b8;">
-                                    Licencias: ${c.max_devices} | Desvínculos usados: ${c.unbind_count} / ${c.max_unbinds}
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
-                                <button class="btn btn-warning" onclick="darUnaOportunidadMas('${c.user_email}', ${c.max_unbinds})">+1 Oportunidad</button>
-                                
-                                <!-- BOTÓN CAMBIAR/RESET CONTRASEÑA -->
-                                <button class="btn btn-purple" onclick="resetearPassword('${c.user_email}')">🔑 Reset Pass</button>
-
-                                <button class="btn" style="background-color: ${isSuspended ? '#22c55e' : '#f97316'}; color: #fff;" onclick="toggleSuspenderCliente('${c.user_email}', ${isSuspended})">
-                                    ${isSuspended ? 'Reactivar' : 'Suspender'}
-                                </button>
-                                
-                                <button class="btn btn-danger" onclick="eliminarCliente('${c.user_email}')">Borrar</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
+                clientes = configs || [];
+                renderClientes();
             } catch (err) {
-                container.innerHTML = `<p style="color: #ef4444;">Error al cargar clientes: ${err.message}</p>`;
+                clientes = [];
+                container.innerHTML = `<p class="mensaje error">Error al cargar clientes: ${escapeHtml(err.message)}</p>`;
             }
         }
 
+        // Devuelve los clientes que corresponden al texto escrito:
+        //  - vacío            -> todos
+        //  - texto parcial    -> los que contienen ese texto (se va acotando al escribir)
+        //  - email completo   -> solo ese cliente, aunque otros lo contengan como parte de su correo
+        function filtrarClientes(texto) {
+            const q = texto.trim().toLowerCase();
+            if (!q) return { lista: clientes, exacto: false };
+
+            const exacto = clientes.find(c => (c.user_email || '').toLowerCase() === q);
+            if (exacto) return { lista: [exacto], exacto: true };
+
+            return {
+                lista: clientes.filter(c => (c.user_email || '').toLowerCase().includes(q)),
+                exacto: false
+            };
+        }
+
+        function renderClientes() {
+            const container = document.getElementById('listaClientes');
+            const contador = document.getElementById('contadorClientes');
+            const texto = document.getElementById('buscarEmail').value;
+
+            if (clientes.length === 0) {
+                container.innerHTML = `<p class="mensaje">No hay clientes registrados.</p>`;
+                contador.textContent = '';
+                return;
+            }
+
+            const { lista, exacto } = filtrarClientes(texto);
+
+            if (lista.length === 0) {
+                container.innerHTML = `<p class="mensaje">Ningún cliente coincide con «${escapeHtml(texto.trim())}».</p>`;
+                contador.textContent = `0 de ${clientes.length} clientes`;
+                return;
+            }
+
+            if (exacto) {
+                contador.textContent = 'Coincidencia exacta';
+            } else if (texto.trim()) {
+                contador.textContent = `${lista.length} de ${clientes.length} clientes`;
+            } else {
+                contador.textContent = `${clientes.length} ${clientes.length === 1 ? 'cliente' : 'clientes'}`;
+            }
+
+            container.innerHTML = lista.map(c => {
+                const isSuspended = c.is_suspended || false;
+                const email = escapeHtml(c.user_email);
+
+                return `
+                    <div class="user-card ${isSuspended ? 'suspendido' : ''}">
+                        <div class="user-info">
+                            <div class="user-email">
+                                ${email}${isSuspended ? '<span class="badge-suspendido">(SUSPENDIDO)</span>' : ''}
+                            </div>
+                            <div class="user-meta">
+                                Licencias: ${escapeHtml(c.max_devices)} | Desvínculos usados: ${escapeHtml(c.unbind_count)} / ${escapeHtml(c.max_unbinds)}
+                            </div>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn btn-warning" data-action="oportunidad" data-email="${email}">+1 Oportunidad</button>
+                            <button class="btn btn-purple" data-action="reset" data-email="${email}">🔑 Reset Pass</button>
+                            <button class="btn ${isSuspended ? 'btn-reactivate' : 'btn-suspend'}" data-action="suspender" data-email="${email}">
+                                ${isSuspended ? 'Reactivar' : 'Suspender'}
+                            </button>
+                            <button class="btn btn-danger" data-action="borrar" data-email="${email}">Borrar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Buscador: filtra en cada pulsación sin volver a consultar a Supabase
+        document.getElementById('buscarEmail').addEventListener('input', renderClientes);
+        document.getElementById('btnActualizar').addEventListener('click', cargarClientes);
+
+        // Un único listener para todos los botones de las tarjetas
+        document.getElementById('listaClientes').addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+
+            const email = btn.dataset.email;
+            const cliente = clientes.find(c => c.user_email === email);
+            if (!cliente) return;
+
+            switch (btn.dataset.action) {
+                case 'oportunidad': darUnaOportunidadMas(email, cliente.max_unbinds); break;
+                case 'reset':       resetearPassword(email); break;
+                case 'suspender':   toggleSuspenderCliente(email, !!cliente.is_suspended); break;
+                case 'borrar':      eliminarCliente(email); break;
+            }
+        });
+
+        // ==========================================
+        // ACCIONES SOBRE CLIENTES
+        // ==========================================
         async function resetearPassword(email) {
-                    const nuevaClaveManual = prompt(`Restablecer contraseña para ${email}:\n\nEscribe la nueva contraseña deseada o déjalo en blanco para generar una automática:`);
-                    
-                    if (nuevaClaveManual === null) return; // Si pulsa cancelar
+            const nuevaClaveManual = prompt(`Restablecer contraseña para ${email}:\n\nEscribe la nueva contraseña deseada o déjalo en blanco para generar una automática:`);
+            if (nuevaClaveManual === null) return; // Si pulsa cancelar
 
-                    try {
-                        const response = await fetch(`${SUPABASE_URL}/functions/v1/superadmin-action`, {
-                            method: 'POST',
-                            headers: { 
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                                'apikey': SUPABASE_ANON_KEY
-                            },
-                            body: JSON.stringify({ 
-                                action: 'resetPassword', 
-                                email: email, 
-                                newPassword: nuevaClaveManual.trim() !== '' ? nuevaClaveManual.trim() : null 
-                            })
-                        });
+            try {
+                const { ok, resultado } = await llamarFuncion({
+                    action: 'resetPassword',
+                    email: email,
+                    newPassword: nuevaClaveManual.trim() !== '' ? nuevaClaveManual.trim() : null
+                });
 
-                        const textResult = await response.text();
-                        let resultado;
-                        try {
-                            resultado = JSON.parse(textResult);
-                        } catch (e) {
-                            throw new Error("Respuesta inválida del servidor: " + textResult);
-                        }
-
-                        if (!response.ok || !resultado.success) {
-                            throw new Error(resultado.error || "Error desconocido al resetear");
-                        }
-
-                        alert(`✅ ¡Contraseña actualizada con éxito para ${email}!\n\nNueva contraseña: ${resultado.newPassword}\n\n(Se ha enviado una notificación por correo al cliente).`);
-                    } catch (err) {
-                        console.error("Error en resetPass:", err);
-                        alert("❌ No se pudo restablecer la contraseña: " + err.message);
-                    }
+                if (!ok || !resultado.success) {
+                    throw new Error(resultado.error || "Error desconocido al resetear");
                 }
+
+                alert(`✅ ¡Contraseña actualizada con éxito para ${email}!\n\nNueva contraseña: ${resultado.newPassword}\n\n(Se ha enviado una notificación por correo al cliente).`);
+            } catch (err) {
+                console.error("Error en resetPass:", err);
+                alert("❌ No se pudo restablecer la contraseña: " + err.message);
+            }
+        }
 
         async function toggleSuspenderCliente(email, estaSuspendido) {
             const accionTexto = estaSuspendido ? "reactivar" : "suspender";
             if (!confirm(`¿Estás seguro de que deseas ${accionTexto} el acceso a ${email}?`)) return;
 
             try {
-                const { error } = await supabaseClient
+                const { data, error } = await supabaseClient
                     .from('apartments_config')
                     .update({ is_suspended: !estaSuspendido })
-                    .eq('user_email', email);
+                    .eq('user_email', email)
+                    .select();
 
                 if (error) throw error;
+                if (!data || data.length === 0) {
+                    throw new Error('No se modificó ningún registro (revisa los permisos de la tabla).');
+                }
 
                 alert(`El cliente ${email} ha sido ${estaSuspendido ? 'reactivado' : 'suspendido'} con éxito.`);
                 cargarClientes();
@@ -258,14 +560,17 @@
         }
 
         async function darUnaOportunidadMas(email, currentMaxUnbinds) {
-            const nuevoMax = currentMaxUnbinds + 1;
-            const { error } = await supabaseClient
+            const nuevoMax = (currentMaxUnbinds || 0) + 1;
+            const { data, error } = await supabaseClient
                 .from('apartments_config')
                 .update({ max_unbinds: nuevoMax })
-                .eq('user_email', email);
+                .eq('user_email', email)
+                .select();
 
             if (error) {
                 alert("Error: " + error.message);
+            } else if (!data || data.length === 0) {
+                alert("No se modificó ningún registro (revisa los permisos de la tabla).");
             } else {
                 alert(`¡Se ha concedido 1 oportunidad extra a ${email} (Nuevo límite: ${nuevoMax})!`);
                 cargarClientes();
@@ -276,15 +581,11 @@
             if (!confirm(`⚠️ ATENCIÓN: ¿Estás seguro de eliminar por completo a ${email}?`)) return;
 
             try {
-                await fetch(`${SUPABASE_URL}/functions/v1/superadmin-action`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'apikey': SUPABASE_ANON_KEY
-                    },
-                    body: JSON.stringify({ action: 'deleteUser', email: email })
-                });
+                const { ok, resultado } = await llamarFuncion({ action: 'deleteUser', email: email });
+
+                if (!ok || (resultado && resultado.success === false)) {
+                    throw new Error((resultado && resultado.error) || "El servidor rechazó la operación");
+                }
 
                 alert("Cliente eliminado correctamente de Auth y base de datos.");
                 cargarClientes();
@@ -292,6 +593,80 @@
                 alert("Error al eliminar cliente: " + err.message);
             }
         }
+
+        // ==========================================
+        // ACCESO (LOGIN) Y SESIÓN
+        // ==========================================
+        function esSuperadmin(user) {
+            return !!user && (user.email || '').toLowerCase() === SUPERADMIN_EMAIL.toLowerCase();
+        }
+
+        function mostrarLogin(mensaje) {
+            document.getElementById('panelSection').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'block';
+            if (mensaje !== undefined) document.getElementById('loginError').textContent = mensaje;
+            clientes = [];
+        }
+
+        function mostrarPanel() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('panelSection').style.display = 'block';
+            if (document.getElementById('gestionTab').classList.contains('active')) cargarClientes();
+        }
+
+        async function iniciarSesion(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('btnLogin');
+
+            btn.disabled = true;
+            btn.textContent = 'Entrando...';
+            document.getElementById('loginError').textContent = '';
+
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+                if (error) throw error;
+
+                if (!esSuperadmin(data.user)) {
+                    await supabaseClient.auth.signOut();
+                    throw new Error('Esta cuenta no tiene acceso al panel.');
+                }
+
+                document.getElementById('loginPassword').value = '';
+                mostrarPanel();
+            } catch (err) {
+                const msg = err.message === 'Invalid login credentials' ? 'Correo o contraseña incorrectos.' : err.message;
+                mostrarLogin(msg);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+            }
+        }
+
+        async function cerrarSesion() {
+            await supabaseClient.auth.signOut();
+            mostrarLogin('');
+        }
+
+        document.getElementById('formLogin').addEventListener('submit', iniciarSesion);
+        document.getElementById('btnSalir').addEventListener('click', cerrarSesion);
+
+        // Si la sesión se cierra o expira en cualquier momento, se vuelve al login
+        supabaseClient.auth.onAuthStateChange((evento) => {
+            if (evento === 'SIGNED_OUT') mostrarLogin();
+        });
+
+        // Al cargar la página: solo se muestra el panel con una sesión válida del superadmin
+        (async function comprobarSesionInicial() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session && esSuperadmin(session.user)) {
+                mostrarPanel();
+            } else {
+                if (session) await supabaseClient.auth.signOut();
+                mostrarLogin('');
+            }
+        })();
     </script>
 </body>
 </html>
