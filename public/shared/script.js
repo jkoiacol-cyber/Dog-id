@@ -64,7 +64,7 @@ function leerParametroUrl(nombre) {
 var translations = {
     es: {
         welcome: "Bienvenidos a Aruba",
-        message: "Esperamos que disfrutéis de una estancia inolvidable.",
+        message: "Esperamos que disfruten de una estancia inolvidable.",
         cardTitle1: "📶 Conexión y Datos",
         cardTitle2: "🌴 Guía de Aruba",
         cardGuideDesc: "Escanea para descubrir recomendaciones, restaurantes y playas.",
