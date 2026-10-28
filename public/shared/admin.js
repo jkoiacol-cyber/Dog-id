@@ -212,7 +212,12 @@ function renderLicencias() {
 function renderPantallas() {
     const cont = $('pantallasList');
 
+    // El texto sobre "todas las pantallas" solo tiene sentido si hay más de una
+    $('ayudaGeneral').style.display = dispositivos.length > 1 ? 'block' : 'none';
+
     if (dispositivos.length === 0) {
+        // Sin pantallas se despliega la sección para que se vean los pasos a seguir
+        $('detallesPantallas').open = true;
         cont.innerHTML = `<p class="vacio">Todavía no hay ninguna pantalla vinculada.<br>
             Abre la dirección de tu portal en la TV y escanea el código QR que aparece con este móvil.</p>`;
         return;
@@ -225,7 +230,6 @@ function renderPantallas() {
                 <div>
                     <div class="pantalla-nombre">📺 ${escapeHtml(d.device_name || 'Smart TV')}</div>
                     <span class="chip ${propio ? 'chip-propio' : ''}">${propio ? 'Contenido propio' : 'Igual que la general'}</span>
-                    <div class="pantalla-id">ID: ${escapeHtml(d.device_id)}</div>
                 </div>
                 <div class="pantalla-acciones">
                     <button class="btn" data-action="configurar" data-id="${escapeHtml(d.device_id)}">Configurar</button>
@@ -264,13 +268,13 @@ async function guardarConfiguracionGeneral(event) {
         if (error) throw error;
 
         await cargarTodo();
-        toast('¡Configuración guardada! Las pantallas se actualizan en unos segundos.');
+        toast('¡Listo! La TV se actualizará en unos segundos.');
     } catch (err) {
         console.error('Error al guardar:', err);
         toast('Error al guardar: ' + err.message, true);
     } finally {
         btn.disabled = false;
-        btn.textContent = 'Guardar y actualizar las pantallas';
+        btn.textContent = 'Actualizar pantalla de la TV';
     }
 }
 
@@ -336,6 +340,7 @@ async function guardarPantalla(event) {
 
         await cargarTodo();
         mostrarVista('vistaLista');
+        $('detallesPantallas').open = true;
         toast('Pantalla guardada. Se actualizará en unos segundos.');
     } catch (err) {
         console.error('Error al guardar la pantalla:', err);
@@ -459,7 +464,10 @@ $('btnSalir').addEventListener('click', cerrarSesion);
 $('configForm').addEventListener('submit', guardarConfiguracionGeneral);
 $('pantallaForm').addEventListener('submit', guardarPantalla);
 $('vincularForm').addEventListener('submit', vincularPantalla);
-$('btnVolver').addEventListener('click', () => mostrarVista('vistaLista'));
+$('btnVolver').addEventListener('click', () => {
+    mostrarVista('vistaLista');
+    $('detallesPantallas').open = true; // se vuelve a donde se estaba: la lista de pantallas
+});
 $('btnCancelarVincular').addEventListener('click', () => { limpiarParametroPair(); mostrarVista('vistaLista'); });
 document.querySelectorAll('input[name="modo"]').forEach(r => r.addEventListener('change', actualizarModoVisual));
 

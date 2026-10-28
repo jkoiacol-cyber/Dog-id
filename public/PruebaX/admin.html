@@ -166,6 +166,42 @@
     .opciones-correo { display: grid; gap: 8px; margin: 14px 0; }
     .btn-secundario { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); }
     .btn-secundario:hover { background: rgba(255,255,255,0.14); }
+    /* ---------- Bloque principal y secciones desplegables ---------- */
+    .bloque-principal { border-color: rgba(56, 189, 248, 0.35); }
+    .plegable {
+        background: rgba(15, 23, 42, 0.45);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        margin-bottom: 12px;
+    }
+    .plegable > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        min-height: 54px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        color: #38bdf8;
+        user-select: none;
+        -webkit-user-select: none;
+        border-radius: 16px;
+    }
+    .plegable > summary::-webkit-details-marker { display: none; }
+    .plegable > summary::after {
+        content: '▾';
+        margin-left: auto;
+        color: #94a3b8;
+        font-size: 1.1rem;
+        transition: transform 0.2s;
+    }
+    .plegable[open] > summary::after { transform: rotate(180deg); }
+    .plegable > summary:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+    .plegable-cuerpo { padding: 0 16px 16px; }
+    .btn-cerrar { width: 100%; margin-top: 6px; }
+
     .error-login { color: #ef4444; font-size: 0.85rem; margin-top: 12px; min-height: 1.2em; }
 
     #toast {
@@ -227,47 +263,51 @@
 
         <div class="panel-header">
             <div>
-                <h1>Mis pantallas</h1>
+                <h1>Panel de control · Smart TV</h1>
                 <p class="subtitle" id="cuentaEmail"></p>
             </div>
-            <button class="btn btn-salir" id="btnSalir" type="button">Cerrar sesión</button>
         </div>
 
-        <!-- VISTA 1: LISTA DE PANTALLAS Y CONFIGURACIÓN GENERAL -->
+        <!-- VISTA 1: PANEL DE LA TV (lo principal) + OPCIONES PLEGADAS AL FINAL -->
         <div id="vistaLista">
-            <section class="bloque">
-                <div class="bloque-cab">
-                    <h2>📺 Pantallas vinculadas</h2>
-                    <span class="chip" id="licenciasInfo">–</span>
-                </div>
-                <div id="pantallasList"></div>
-                <div class="aviso" id="unbindWarning"></div>
-            </section>
 
-            <section class="bloque">
-                <h2>⚙️ Configuración general</h2>
-                <p class="ayuda">Es lo que muestran todas tus pantallas, salvo las que tengan contenido propio.</p>
+            <section class="bloque bloque-principal">
+                <h2>📺 Lo que ven tus huéspedes en la TV</h2>
+                <p class="ayuda" id="ayudaGeneral" style="display: none;">Es lo que muestran todas tus pantallas, salvo las que tengan contenido propio (puedes cambiarlo en «Mis pantallas»).</p>
                 <form id="configForm">
                     <div id="camposGenerales"></div>
-                    <button type="submit" class="btn" id="btnGuardarGeneral">Guardar y actualizar las pantallas</button>
+                    <button type="submit" class="btn" id="btnGuardarGeneral">Actualizar pantalla de la TV</button>
                 </form>
             </section>
 
-            <section class="bloque">
-                <h2>🔑 Mi contraseña</h2>
-                <p class="ayuda">Cambia la contraseña provisional por una que recuerdes. Mínimo 8 caracteres.</p>
-                <form id="passwordForm">
-                    <div class="form-group">
-                        <label for="nuevaPassword">Nueva contraseña:</label>
-                        <input type="password" id="nuevaPassword" minlength="8" required autocomplete="new-password">
-                    </div>
-                    <div class="form-group">
-                        <label for="repetirPassword">Repite la contraseña:</label>
-                        <input type="password" id="repetirPassword" minlength="8" required autocomplete="new-password">
-                    </div>
-                    <button type="submit" class="btn" id="btnPassword">Cambiar contraseña</button>
-                </form>
-            </section>
+            <details class="plegable" id="detallesPantallas">
+                <summary><span>📺 Mis pantallas</span><span class="chip" id="licenciasInfo">–</span></summary>
+                <div class="plegable-cuerpo">
+                    <p class="ayuda">Aquí ves las pantallas vinculadas. Si tienes varias, puedes dar a cada una su propio contenido.</p>
+                    <div id="pantallasList"></div>
+                    <div class="aviso" id="unbindWarning"></div>
+                </div>
+            </details>
+
+            <details class="plegable">
+                <summary><span>🔑 Cambiar mi contraseña</span></summary>
+                <div class="plegable-cuerpo">
+                    <p class="ayuda">Cambia la contraseña provisional por una que recuerdes. Mínimo 8 caracteres.</p>
+                    <form id="passwordForm">
+                        <div class="form-group">
+                            <label for="nuevaPassword">Nueva contraseña:</label>
+                            <input type="password" id="nuevaPassword" minlength="8" required autocomplete="new-password">
+                        </div>
+                        <div class="form-group">
+                            <label for="repetirPassword">Repite la contraseña:</label>
+                            <input type="password" id="repetirPassword" minlength="8" required autocomplete="new-password">
+                        </div>
+                        <button type="submit" class="btn" id="btnPassword">Cambiar contraseña</button>
+                    </form>
+                </div>
+            </details>
+
+            <button class="btn btn-salir btn-cerrar" id="btnSalir" type="button">Cerrar sesión</button>
         </div>
 
         <!-- VISTA 2: EDITAR UNA PANTALLA -->
