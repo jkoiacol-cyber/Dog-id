@@ -287,6 +287,37 @@ function reiniciarDispositivo() {
     location.reload();
 }
 
+// Pantalla de bloqueo por cuenta suspendida. NO borra nada: la TV conserva su identidad
+// y, cuando se reactiva la cuenta, vuelve sola a su estado anterior.
+function mostrarSuspension() {
+    var el = document.getElementById('suspensionOverlay');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'suspensionOverlay';
+        el.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#0f172a;color:#ffffff;z-index:99998;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-family:Poppins,sans-serif;padding:5%;';
+        el.innerHTML =
+            '<div style="font-size:5rem;margin-bottom:1.5rem;">⏸️</div>' +
+            '<h1 style="font-size:3rem;font-weight:700;color:#38bdf8;margin-bottom:1rem;">Servicio suspendido temporalmente</h1>' +
+            '<p style="font-size:1.6rem;opacity:0.9;margin-bottom:2rem;">Contacta con tu anfitrión o con el administrador.</p>' +
+            '<p style="font-size:1.3rem;opacity:0.7;">Service temporarily suspended. Please contact your host.</p>';
+        document.body.appendChild(el);
+    }
+    el.style.display = 'flex';
+    if (typeof audio !== 'undefined' && audio) {
+        try { audio.pause(); } catch (e) {}
+    }
+}
+
+function ocultarSuspension() {
+    var el = document.getElementById('suspensionOverlay');
+    if (el && el.style.display !== 'none') {
+        el.style.display = 'none';
+        if (typeof audio !== 'undefined' && audio) {
+            intentarReproducir(function () {});
+        }
+    }
+}
+
 function verificarVinculacionYCargar() {
     obtenerConfigTv(currentDeviceId, function (err, respuesta) {
         if (err) {
@@ -319,16 +350,15 @@ function verificarVinculacionYCargar() {
             return;
         }
 
-        if (config.is_suspended) {
-            alert("Esta cuenta ha sido suspendida por el administrador.");
-            localStorage.clear();
-            location.reload();
-            return;
-        }
-
         ocultarAviso();
-        ultimaConfigAplicada = JSON.stringify(config);
-        aplicarDatos(config);
+        if (config.is_suspended) {
+            // Cuenta suspendida: se bloquea la pantalla pero se conserva el dispositivo
+            ultimaConfigAplicada = '';
+            mostrarSuspension();
+        } else {
+            ultimaConfigAplicada = JSON.stringify(config);
+            aplicarDatos(config);
+        }
         iniciarSondeo();
     });
 }
@@ -359,10 +389,10 @@ function iniciarSondeo() {
             if (!config) return;
 
             if (config.is_suspended) {
-                localStorage.clear();
-                location.reload();
+                mostrarSuspension();
                 return;
             }
+            ocultarSuspension();
 
             var huella = JSON.stringify(config);
             if (huella !== ultimaConfigAplicada) {

@@ -149,6 +149,23 @@
     .opcion small { display: block; color: #94a3b8; font-size: 0.78rem; margin-top: 2px; line-height: 1.4; }
     .opcion.activa { border-color: #38bdf8; background: rgba(56, 189, 248, 0.08); }
 
+    /* Campo de contraseña con ojo para ver lo que se escribe */
+    .campo-pass { position: relative; }
+    .campo-pass input { padding-right: 52px; }
+    .btn-ojo {
+        position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+        width: 40px; height: 40px; background: transparent; border: none;
+        color: #cbd5e1; font-size: 1.2rem; cursor: pointer; border-radius: 8px;
+    }
+    .btn-ojo:hover { background: rgba(255,255,255,0.08); }
+
+    .btn-enlace { background: none; border: none; color: #38bdf8; font-weight: 600; text-decoration: underline; cursor: pointer; font-size: inherit; padding: 0; }
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
+    .modal.abierto { display: flex; }
+    .modal-caja { background: #1e293b; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 20px; width: 100%; max-width: 440px; max-height: 90vh; overflow: auto; }
+    .opciones-correo { display: grid; gap: 8px; margin: 14px 0; }
+    .btn-secundario { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); }
+    .btn-secundario:hover { background: rgba(255,255,255,0.14); }
     .error-login { color: #ef4444; font-size: 0.85rem; margin-top: 12px; min-height: 1.2em; }
 
     #toast {
@@ -235,6 +252,22 @@
                     <button type="submit" class="btn" id="btnGuardarGeneral">Guardar y actualizar las pantallas</button>
                 </form>
             </section>
+
+            <section class="bloque">
+                <h2>🔑 Mi contraseña</h2>
+                <p class="ayuda">Cambia la contraseña provisional por una que recuerdes. Mínimo 8 caracteres.</p>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="nuevaPassword">Nueva contraseña:</label>
+                        <input type="password" id="nuevaPassword" minlength="8" required autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="repetirPassword">Repite la contraseña:</label>
+                        <input type="password" id="repetirPassword" minlength="8" required autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn" id="btnPassword">Cambiar contraseña</button>
+                </form>
+            </section>
         </div>
 
         <!-- VISTA 2: EDITAR UNA PANTALLA -->
@@ -285,8 +318,24 @@
     </div>
 </div>
 
+<div id="modalSoporte" class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloSoporte">
+    <div class="modal-caja">
+        <h2 id="tituloSoporte">Contactar con el administrador</h2>
+        <p class="ayuda">Elige cómo quieres enviar el mensaje. El texto ya está preparado.</p>
+        <div class="opciones-correo">
+            <button type="button" class="btn" id="soporteCompartir">📲 Elegir una aplicación del dispositivo…</button>
+            <button type="button" class="btn btn-secundario" data-correo="gmail">Gmail (web)</button>
+            <button type="button" class="btn btn-secundario" data-correo="outlook">Outlook (web)</button>
+            <button type="button" class="btn btn-secundario" data-correo="yahoo">Yahoo Mail (web)</button>
+            <button type="button" class="btn btn-secundario" data-correo="mailto">Aplicación de correo predeterminada</button>
+            <button type="button" class="btn btn-secundario" data-correo="copiar">Copiar dirección y mensaje</button>
+        </div>
+        <button type="button" class="btn btn-salir" id="soporteCerrar" style="width: 100%;">Cerrar</button>
+    </div>
+</div>
+
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="../shared/admin.js"></script>
+<script src="../shared/admin.js?v=3"></script>
 </body>
 </html>

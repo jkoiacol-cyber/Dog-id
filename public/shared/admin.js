@@ -202,7 +202,7 @@ function renderLicencias() {
         aviso.className = 'aviso alerta';
         aviso.innerHTML = `⚠️ <strong>Has alcanzado el límite de ${maxUnbinds} desvinculaciones.</strong><br>
             Si necesitas cambiar una pantalla o has tenido un problema,
-            <a href="mailto:${CONTACTO_SOPORTE}?subject=${encodeURIComponent('Solicitud de reset de dispositivo - ' + usuarioActual.email)}&body=${encodeURIComponent('Hola, necesito desvincular una pantalla pero he alcanzado el límite.')}">contacta con el administrador por correo aquí</a>.`;
+            <button type="button" class="btn-enlace" id="btnSoporte">contacta con el administrador aquí</button>.`;
     } else {
         aviso.className = 'aviso';
         aviso.innerHTML = `ℹ️ Te quedan <strong>${restantes}</strong> cambio(s) de pantalla.`;
@@ -462,5 +462,117 @@ $('vincularForm').addEventListener('submit', vincularPantalla);
 $('btnVolver').addEventListener('click', () => mostrarVista('vistaLista'));
 $('btnCancelarVincular').addEventListener('click', () => { limpiarParametroPair(); mostrarVista('vistaLista'); });
 document.querySelectorAll('input[name="modo"]').forEach(r => r.addEventListener('change', actualizarModoVisual));
+
+// ==========================================
+// CONTRASEÑA: CAMBIO Y OJO PARA VERLA
+// ==========================================
+async function cambiarPassword(event) {
+    event.preventDefault();
+    const nueva = $('nuevaPassword').value;
+    const repetir = $('repetirPassword').value;
+
+    if (nueva.length < 8) { toast('La contraseña debe tener al menos 8 caracteres.', true); return; }
+    if (nueva !== repetir) { toast('Las dos contraseñas no coinciden.', true); return; }
+
+    const btn = $('btnPassword');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    try {
+        const { error } = await supabaseClient.auth.updateUser({ password: nueva });
+        if (error) throw error;
+        $('nuevaPassword').value = '';
+        $('repetirPassword').value = '';
+        toast('Contraseña actualizada.');
+    } catch (err) {
+        console.error('Error al cambiar la contraseña:', err);
+        toast('No se pudo cambiar la contraseña: ' + err.message, true);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Cambiar contraseña';
+    }
+}
+
+function agregarOjo(input) {
+    const wrap = document.createElement('div');
+    wrap.className = 'campo-pass';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-ojo';
+    btn.textContent = '👁';
+    btn.setAttribute('aria-label', 'Mostrar contraseña');
+    btn.addEventListener('click', () => {
+        const visible = input.type === 'text';
+        input.type = visible ? 'password' : 'text';
+        btn.textContent = visible ? '👁' : '🙈';
+        btn.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+    });
+    wrap.appendChild(btn);
+}
+
+$('passwordForm').addEventListener('submit', cambiarPassword);
+document.querySelectorAll('input[type="password"]').forEach(agregarOjo);
+
+// ==========================================
+// CONTACTO CON EL ADMINISTRADOR (cualquier gestor de correo)
+// ==========================================
+// Una página web no puede listar las aplicaciones instaladas. Por eso se ofrecen tres vías:
+// el menú de compartir del propio dispositivo (muestra TODAS sus apps), los correos web
+// más habituales y copiar el mensaje para pegarlo donde quieras.
+function datosSoporte() {
+    return {
+        asunto: 'Solicitud de reset de dispositivo - ' + usuarioActual.email,
+        cuerpo: 'Hola, necesito desvincular una pantalla pero he alcanzado el límite.\n\nMi cuenta: ' + usuarioActual.email
+    };
+}
+
+function abrirSoporte() {
+    $('soporteCompartir').style.display = navigator.share ? 'block' : 'none';
+    $('modalSoporte').classList.add('abierto');
+}
+
+function cerrarSoporte() {
+    $('modalSoporte').classList.remove('abierto');
+}
+
+async function enviarSoporte(via) {
+    const { asunto, cuerpo } = datosSoporte();
+    const para = encodeURIComponent(CONTACTO_SOPORTE);
+    const as = encodeURIComponent(asunto);
+    const cu = encodeURIComponent(cuerpo);
+
+    if (via === 'gmail') {
+        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${para}&su=${as}&body=${cu}`, '_blank');
+    } else if (via === 'outlook') {
+        window.open(`https://outlook.live.com/mail/0/deeplink/compose?to=${para}&subject=${as}&body=${cu}`, '_blank');
+    } else if (via === 'yahoo') {
+        window.open(`https://compose.mail.yahoo.com/?to=${para}&subject=${as}&body=${cu}`, '_blank');
+    } else if (via === 'mailto') {
+        window.location.href = `mailto:${CONTACTO_SOPORTE}?subject=${as}&body=${cu}`;
+    } else if (via === 'compartir') {
+        try {
+            await navigator.share({ title: asunto, text: `Para: ${CONTACTO_SOPORTE}\n\n${asunto}\n\n${cuerpo}` });
+        } catch (e) { /* el usuario cerró el menú: no pasa nada */ }
+    } else if (via === 'copiar') {
+        const texto = `Para: ${CONTACTO_SOPORTE}\nAsunto: ${asunto}\n\n${cuerpo}`;
+        try {
+            await navigator.clipboard.writeText(texto);
+            toast('Copiado. Pégalo en tu aplicación de correo.');
+        } catch (e) {
+            window.prompt('Copia este texto:', texto);
+        }
+    }
+}
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('#btnSoporte')) { abrirSoporte(); return; }
+    if (e.target.closest('#soporteCerrar') || e.target === $('modalSoporte')) { cerrarSoporte(); return; }
+    if (e.target.closest('#soporteCompartir')) { enviarSoporte('compartir'); return; }
+    const opcion = e.target.closest('[data-correo]');
+    if (opcion) enviarSoporte(opcion.dataset.correo);
+});
 
 window.addEventListener('load', verificarSesion);

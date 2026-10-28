@@ -182,6 +182,16 @@
         .user-actions .btn { width: auto; min-height: 36px; }
     }
 
+    /* Campo de contraseña con ojo para ver lo que se escribe */
+    .campo-pass { position: relative; }
+    .campo-pass input { padding-right: 52px; }
+    .btn-ojo {
+        position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+        width: 40px; height: 40px; background: transparent; border: none;
+        color: #cbd5e1; font-size: 1.2rem; cursor: pointer; border-radius: 8px;
+    }
+    .btn-ojo:hover { background: rgba(255,255,255,0.08); }
+
     .hint { display: block; font-size: 0.75rem; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
 
     /* ---------- Acceso (login) ---------- */
@@ -250,7 +260,7 @@
                     <label for="carpetaCliente">Carpeta del cliente (la que usará su TV):</label>
                     <input type="text" id="carpetaCliente" placeholder="Andres" required maxlength="40"
                            pattern="[A-Za-z0-9][A-Za-z0-9_\-]{0,39}" autocomplete="off" autocapitalize="off" spellcheck="false">
-                    <span class="hint">Solo letras, números, guiones y guiones bajos. Respeta las mayúsculas: Andres no es lo mismo que andres. El enlace completo se genera solo y se envía en el correo.</span>
+                    <span class="hint">Solo letras, números, guiones y guiones bajos. Respeta las mayúsculas al subirla al servidor (Andres no es lo mismo que andres). Cada carpeta es de un solo cliente: si ya está asignada, aunque su dueño esté suspendido, no se podrá usar. Solo queda libre cuando el cliente se borra. El enlace completo se genera solo y se envía en el correo.</span>
                 </div>
                 <button type="submit" class="btn btn-block" id="btnCrear">Crear Cuenta y Enviar Tutorial por Email</button>
             </form>
@@ -369,9 +379,14 @@
                 }
 
                 resBox.style.display = "block";
-                const correo = resultado.emailEnviado
-                    ? '📨 Correo con las instrucciones enviado.'
-                    : '⚠️ El correo NO se ha enviado (revisa Resend). Pásale tú las credenciales al cliente.';
+                let correo;
+                if (resultado.emailEnviado) {
+                    correo = '📨 Correo con las instrucciones enviado al cliente.';
+                } else if (resultado.respaldoEnviado) {
+                    correo = '⚠️ El correo al cliente NO se pudo entregar. Te he enviado una copia a tu correo para que se la reenvíes.';
+                } else {
+                    correo = '⚠️ No se pudo enviar ningún correo (revisa Resend). Pásale tú las credenciales al cliente.';
+                }
 
                 resBox.textContent = `✅ ¡Usuario creado con éxito!\n\n` +
                                      `${correo}\n\n` +
@@ -474,7 +489,7 @@
                                 ${email}${isSuspended ? '<span class="badge-suspendido">(SUSPENDIDO)</span>' : ''}
                             </div>
                             <div class="user-meta">
-                                Licencias: ${escapeHtml(c.max_devices)} | Desvínculos usados: ${escapeHtml(c.unbind_count)} / ${escapeHtml(c.max_unbinds)}
+                                Carpeta: ${escapeHtml(c.carpeta || 'sin asignar')} | Licencias: ${escapeHtml(c.max_devices)} | Desvínculos usados: ${escapeHtml(c.unbind_count)} / ${escapeHtml(c.max_unbinds)}
                             </div>
                         </div>
                         <div class="user-actions">
@@ -529,7 +544,15 @@
                     throw new Error(resultado.error || "Error desconocido al resetear");
                 }
 
-                alert(`✅ ¡Contraseña actualizada con éxito para ${email}!\n\nNueva contraseña: ${resultado.newPassword}\n\n(Se ha enviado una notificación por correo al cliente).`);
+                let aviso;
+                if (resultado.emailEnviado) {
+                    aviso = '📨 Se ha enviado el correo al cliente.';
+                } else if (resultado.respaldoEnviado) {
+                    aviso = '⚠️ El correo al cliente NO se pudo entregar. Te he enviado una copia a tu correo para que se la reenvíes.';
+                } else {
+                    aviso = '⚠️ No se envió ningún correo. Pásale tú la contraseña al cliente.';
+                }
+                alert(`✅ ¡Contraseña actualizada con éxito para ${email}!\n\nNueva contraseña: ${resultado.newPassword}\n\n${aviso}`);
             } catch (err) {
                 console.error("Error en resetPass:", err);
                 alert("❌ No se pudo restablecer la contraseña: " + err.message);
@@ -651,6 +674,28 @@
 
         document.getElementById('formLogin').addEventListener('submit', iniciarSesion);
         document.getElementById('btnSalir').addEventListener('click', cerrarSesion);
+
+        // Ojo para ver la contraseña mientras se escribe
+        function agregarOjo(input) {
+            const wrap = document.createElement('div');
+            wrap.className = 'campo-pass';
+            input.parentNode.insertBefore(wrap, input);
+            wrap.appendChild(input);
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-ojo';
+            btn.textContent = '👁';
+            btn.setAttribute('aria-label', 'Mostrar contraseña');
+            btn.addEventListener('click', () => {
+                const visible = input.type === 'text';
+                input.type = visible ? 'password' : 'text';
+                btn.textContent = visible ? '👁' : '🙈';
+                btn.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+            });
+            wrap.appendChild(btn);
+        }
+        document.querySelectorAll('input[type="password"]').forEach(agregarOjo);
 
         // Si la sesión se cierra o expira en cualquier momento, se vuelve al login
         supabaseClient.auth.onAuthStateChange((evento) => {

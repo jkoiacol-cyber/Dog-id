@@ -1,4 +1,17 @@
 /* ==========================================
+   ESCALA AUTOMÁTICA PARA CUALQUIER TV
+   ==========================================
+   Todo el diseño usa rem. Aquí el rem se calcula a partir de la ALTURA visible,
+   así el contenido se reduce de forma proporcional cuando el navegador de la TV
+   muestra su barra de herramientas o la pantalla tiene otra proporción.
+   (1.48vh equivale a 16px en una pantalla de 1080 px de alto.)
+   Compatible con navegadores antiguos: no usa inset, gap, clamp ni min()/max(). */
+html {
+    font-size: 16px;      /* respaldo si el navegador no entiende vh */
+    font-size: 1.48vh;
+}
+
+/* ==========================================
    ESTILOS GENERALES Y RESET
    ========================================== */
 * {
@@ -15,6 +28,7 @@ body {
     justify-content: center;
     align-items: center;
     font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
     color: #ffffff;
     text-align: center;
     background: #000;
@@ -33,6 +47,7 @@ body {
     background-position: center center;
     background-repeat: no-repeat;
     opacity: 0;
+    -webkit-transition: opacity 2.5s ease-in-out;
     transition: opacity 2.5s ease-in-out;
     z-index: -2;
 }
@@ -42,12 +57,14 @@ body {
 }
 
 .overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        rgba(0, 0, 0, 0.50),
-        rgba(0, 0, 0, 0.80)
-    );
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.80));
+    background: linear-gradient(rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.80));
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     z-index: -1;
 }
@@ -59,21 +76,20 @@ body {
     position: relative;
     z-index: 10;
     width: 92%;
-    max-width: 1500px;
+    max-width: 93.75rem;
     height: 90vh;
     margin: auto;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    padding: 15px 0;
+    padding: 0.9rem 0;
 }
 
-/* Títulos superiores sobredimensionados para que se vean bien en la TV */
 h1#welcome {
     font-size: 3.5rem;
     font-weight: 700;
-    letter-spacing: 3px;
+    letter-spacing: 0.19rem;
     text-transform: uppercase;
     color: #38bdf8;
     text-shadow: 0 3px 8px rgba(0, 0, 0, 0.95);
@@ -83,7 +99,10 @@ h1#welcome {
     font-size: 4.1rem;
     font-weight: 600;
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.95);
-    margin: 5px 0;
+    margin: 0.3rem 0;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 #message {
@@ -103,32 +122,38 @@ h1#welcome {
    ========================================== */
 .cards-wrapper {
     display: flex;
-    gap: 30px;
     justify-content: center;
-    align-items: center;
+    align-items: stretch;
     width: 100%;
-    max-width: 1200px;
+    max-width: 75rem;
 }
 
 .info-card {
     flex: 1;
+    min-width: 0;
     background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 24px;
-    padding: 24px 30px;
+    border-radius: 1.5rem;
+    padding: 1.5rem 1.9rem;
     text-align: left;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
-    
+
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
+}
+
+/* Separación entre tarjetas (sustituye a "gap", que los navegadores antiguos ignoran) */
+.info-card + .info-card {
+    margin-left: 1.9rem;
 }
 
 .card-text {
     flex: 1;
+    min-width: 0;
+    margin-right: 1.25rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -137,7 +162,7 @@ h1#welcome {
 .card-text h3 {
     font-size: 1.3rem;
     color: #38bdf8;
-    margin-bottom: 10px;
+    margin-bottom: 0.6rem;
 }
 
 .card-text p {
@@ -145,13 +170,14 @@ h1#welcome {
     line-height: 1.6;
     color: #f8fafc;
     word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* Contenedor del QR */
 .qr-box {
     background: white;
-    padding: 10px;
-    border-radius: 16px;
+    padding: 0.6rem;
+    border-radius: 1rem;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
@@ -162,17 +188,17 @@ h1#welcome {
 }
 
 .qr-box img {
-    width: 120px;
-    height: 120px;
+    width: 7.5rem;
+    height: 7.5rem;
     display: block;
-    border-radius: 6px;
+    border-radius: 0.4rem;
 }
 
 .qr-box span {
     font-size: 0.75rem;
     color: #0f172a;
     font-weight: 600;
-    margin-top: 6px;
+    margin-top: 0.4rem;
     display: block;
 }
 
@@ -188,23 +214,23 @@ h1#welcome {
    ========================================== */
 .weather-card {
     position: absolute;
-    top: 35px;
-    right: 40px;
+    top: 2.2rem;
+    right: 2.5rem;
     z-index: 20;
     display: flex;
     align-items: center;
-    gap: 15px;
     background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 12px 24px;
-    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    padding: 0.75rem 1.5rem;
+    border-radius: 1.25rem;
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
 .weather-icon {
     font-size: 2rem;
+    margin-right: 0.9rem;
 }
 
 .weather-temp {
@@ -223,20 +249,21 @@ h1#welcome {
    ========================================== */
 #muteBtn {
     position: absolute;
-    bottom: 35px;
-    left: 40px;
-    width: 65px;
-    height: 65px;
-    border: none;
+    bottom: 2.2rem;
+    left: 2.5rem;
+    width: 4rem;
+    height: 4rem;
     border-radius: 50%;
     background: rgba(15, 23, 42, 0.85);
+    -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.18);
     color: white;
-    font-size: 28px;
+    font-size: 1.75rem;
     cursor: pointer;
     z-index: 100;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    -webkit-transition: background 0.3s;
     transition: background 0.3s;
 }
 
