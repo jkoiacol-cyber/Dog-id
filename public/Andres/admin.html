@@ -41,6 +41,11 @@
 
     .panel-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
 
+    /* Nada debe sobresalir de la pantalla en móvil */
+    html, body { max-width: 100%; overflow-x: hidden; }
+    .container, .panel-header > div { min-width: 0; }
+    h1 { overflow-wrap: anywhere; }
+
     /* ---------- Bloques ---------- */
     .bloque {
         background: rgba(15, 23, 42, 0.45);
