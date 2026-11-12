@@ -192,6 +192,25 @@
     }
     .btn-ojo:hover { background: rgba(255,255,255,0.08); }
 
+    .btn-urls { background: #0ea5e9; color: #fff; }
+    .btn-urls:hover { background: #0284c7; }
+    .btn-urls-hueco { background: rgba(255,255,255,0.08); color: #f8fafc; border: 1px solid rgba(255,255,255,0.15); }
+    .btn-urls-hueco:hover { background: rgba(255,255,255,0.14); }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
+    .modal.abierto { display: flex; }
+    .modal-caja { background: #1e293b; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 20px; width: 100%; max-width: 560px; max-height: 90vh; overflow: auto; }
+    .modal-caja h2 { font-size: 1.15rem; color: #38bdf8; margin-bottom: 4px; }
+    .url-bloque { margin-top: 14px; }
+    .url-bloque input { font-family: monospace; font-size: 14px; }
+    .url-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .url-acciones .btn { min-height: 44px; }
+    .modal-pie { display: grid; gap: 8px; margin-top: 18px; }
+
+    @media (max-width: 899px) {
+        .user-actions .btn-urls { grid-column: 1 / -1; }
+    }
+
     .hint { display: block; font-size: 0.75rem; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
 
     /* ---------- Acceso (login) ---------- */
@@ -281,6 +300,37 @@
         </div>
 
         </div><!-- /panelSection -->
+    </div>
+
+    <!-- Ventana con las URLs de un cliente -->
+    <div id="modalUrls" class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloUrls">
+        <div class="modal-caja">
+            <h2 id="tituloUrls">🔗 URLs del cliente</h2>
+            <p class="hint" id="urlsCliente"></p>
+
+            <div class="url-bloque">
+                <label for="urlTv">TV (se escribe una sola vez en la tele):</label>
+                <input type="text" id="urlTv" readonly>
+                <div class="url-acciones">
+                    <button type="button" class="btn" data-copiar="urlTv">Copiar</button>
+                    <button type="button" class="btn btn-urls-hueco" data-abrir="urlTv">Abrir</button>
+                </div>
+            </div>
+
+            <div class="url-bloque">
+                <label for="urlAdmin">Panel del cliente (para el móvil):</label>
+                <input type="text" id="urlAdmin" readonly>
+                <div class="url-acciones">
+                    <button type="button" class="btn" data-copiar="urlAdmin">Copiar</button>
+                    <button type="button" class="btn btn-urls-hueco" data-abrir="urlAdmin">Abrir</button>
+                </div>
+            </div>
+
+            <div class="modal-pie">
+                <button type="button" class="btn btn-urls" id="btnCopiarAmbas">Copiar las dos</button>
+                <button type="button" class="btn btn-urls-hueco" id="btnCerrarUrls">Cerrar</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -493,6 +543,7 @@
                             </div>
                         </div>
                         <div class="user-actions">
+                            <button class="btn btn-urls" data-action="urls" data-email="${email}">🔗 URLs</button>
                             <button class="btn btn-warning" data-action="oportunidad" data-email="${email}">+1 Oportunidad</button>
                             <button class="btn btn-purple" data-action="reset" data-email="${email}">🔑 Reset Pass</button>
                             <button class="btn ${isSuspended ? 'btn-reactivate' : 'btn-suspend'}" data-action="suspender" data-email="${email}">
@@ -523,6 +574,7 @@
                 case 'reset':       resetearPassword(email); break;
                 case 'suspender':   toggleSuspenderCliente(email, !!cliente.is_suspended); break;
                 case 'borrar':      eliminarCliente(email); break;
+                case 'urls':        mostrarUrls(email); break;
             }
         });
 
@@ -616,6 +668,77 @@
                 alert("Error al eliminar cliente: " + err.message);
             }
         }
+
+        // ==========================================
+        // URLs DE UN CLIENTE
+        // ==========================================
+        async function mostrarUrls(email) {
+            try {
+                // Las URLs las construye la función, así el dominio vive en un único sitio (PORTAL_BASE_URL)
+                const { ok, resultado } = await llamarFuncion({ action: 'getUrls', email: email });
+                if (!ok || !resultado.success) {
+                    throw new Error(resultado.error || 'No se pudieron obtener las URLs');
+                }
+
+                document.getElementById('urlsCliente').textContent = `${email}  ·  carpeta: ${resultado.carpeta}`;
+                document.getElementById('urlTv').value = resultado.tvUrl;
+                document.getElementById('urlAdmin').value = resultado.adminUrl;
+                document.getElementById('modalUrls').classList.add('abierto');
+            } catch (err) {
+                console.error('Error al obtener las URLs:', err);
+                alert('❌ ' + err.message);
+            }
+        }
+
+        function cerrarUrls() {
+            document.getElementById('modalUrls').classList.remove('abierto');
+        }
+
+        async function copiarTexto(texto, campo) {
+            try {
+                await navigator.clipboard.writeText(texto);
+            } catch (e) {
+                // Respaldo para navegadores que bloquean el portapapeles
+                const el = campo || document.getElementById('urlTv');
+                el.select();
+                document.execCommand('copy');
+            }
+        }
+
+        document.getElementById('modalUrls').addEventListener('click', async (e) => {
+            if (e.target === document.getElementById('modalUrls') || e.target.closest('#btnCerrarUrls')) {
+                cerrarUrls();
+                return;
+            }
+
+            const copiar = e.target.closest('[data-copiar]');
+            if (copiar) {
+                const campo = document.getElementById(copiar.dataset.copiar);
+                await copiarTexto(campo.value, campo);
+                copiar.textContent = '¡Copiado!';
+                setTimeout(() => { copiar.textContent = 'Copiar'; }, 1500);
+                return;
+            }
+
+            const abrir = e.target.closest('[data-abrir]');
+            if (abrir) {
+                window.open(document.getElementById(abrir.dataset.abrir).value, '_blank', 'noopener');
+                return;
+            }
+
+            if (e.target.closest('#btnCopiarAmbas')) {
+                const texto = `TV: ${document.getElementById('urlTv').value}\nPanel: ${document.getElementById('urlAdmin').value}`;
+                await copiarTexto(texto, null);
+                const btn = document.getElementById('btnCopiarAmbas');
+                btn.textContent = '¡Copiado!';
+                setTimeout(() => { btn.textContent = 'Copiar las dos'; }, 1500);
+            }
+        });
+
+        // Un toque sobre la URL la selecciona entera, para copiarla a mano si hace falta
+        ['urlTv', 'urlAdmin'].forEach(id => {
+            document.getElementById(id).addEventListener('focus', (e) => e.target.select());
+        });
 
         // ==========================================
         // ACCESO (LOGIN) Y SESIÓN
