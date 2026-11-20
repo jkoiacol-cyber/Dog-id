@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Guest TV - Portal Inteligente para Alojamientos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; line-height: 1.6; }
+        header { max-width: 1100px; margin: 0 auto; padding: 30px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: #38bdf8; }
+        .hero { max-width: 900px; margin: 40px auto; padding: 20px; text-align: center; }
+        .hero h1 { font-size: 2.6rem; font-weight: 700; line-height: 1.2; margin-bottom: 20px; }
+        .hero h1 span { color: #38bdf8; }
+        .hero p { font-size: 1.1rem; color: #94a3b8; max-width: 680px; margin: 0 auto 35px; }
+        .features { max-width: 1000px; margin: 50px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+        .card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); padding: 28px; border-radius: 20px; }
+        .card h3 { color: #38bdf8; margin-bottom: 10px; font-size: 1.15rem; }
+        .card p { color: #cbd5e1; font-size: 0.92rem; }
+        .contact-section { max-width: 540px; margin: 60px auto 80px; padding: 35px 25px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+        .contact-section h2 { text-align: center; color: #38bdf8; margin-bottom: 8px; }
+        .contact-section p { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px; }
+        input, textarea { width: 100%; padding: 12px 15px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #fff; font-size: 0.95rem; }
+        input:focus, textarea:focus { outline: none; border-color: #38bdf8; }
+        button { width: 100%; padding: 14px; background: #38bdf8; color: #0f172a; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #0ea5e9; }
+        #formStatus { margin-top: 15px; text-align: center; font-size: 0.9rem; display: none; }
+        footer { text-align: center; padding: 30px; color: #64748b; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">📺 Welcome Guest TV</div>
+        <a href="#contacto" style="color: #38bdf8; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Solicitar Demo →</a>
+    </header>
+
+    <section class="hero">
+        <h1>Convierte la Smart TV de tu alojamiento en un <span>conserje digital</span></h1>
+        <p>Da la bienvenida personalizada a tus huéspedes, comparte el WiFi con un código QR y muestra tu guía turística local en tiempo real desde cualquier móvil.</p>
+    </section>
+
+    <section class="features">
+        <div class="card">
+            <h3>📶 WiFi en 1 Escaneo</h3>
+            <p>Tus huéspedes se conectan al WiFi escaneando la pantalla de la televisión sin tener que teclear contraseñas largas.</p>
+        </div>
+        <div class="card">
+            <h3>🌍 Multi-idioma Automático</h3>
+            <p>Cambia el idioma de bienvenida y el nombre del huésped en segundos desde tu teléfono antes de que lleguen.</p>
+        </div>
+        <div class="card">
+            <h3>🏨 Gestión Multi-pantalla</h3>
+            <p>Controla desde un único panel centralizado las televisiones de uno o varios apartamentos turísticos.</p>
+        </div>
+    </section>
+
+    <section id="contacto" class="contact-section">
+        <h2>¿Quieres probarlo en tus alojamientos?</h2>
+        <p>Déjanos tus datos y te enviamos acceso a una demo personalizada.</p>
+
+        <form id="contactForm">
+            <!-- Sustituye TU_ACCESS_KEY_AQUI por la clave gratuita de web3forms.com -->
+            <input type="hidden" name="access_key" value="TU_ACCESS_KEY_AQUI">
+            <input type="hidden" name="subject" value="Nuevo contacto desde Landing Welcome Guest TV">
+
+            <div class="form-group">
+                <label>Nombre o Empresa</label>
+                <input type="text" name="name" placeholder="Ej. Apartamentos Sol" required>
+            </div>
+            <div class="form-group">
+                <label>Correo Electrónico</label>
+                <input type="email" name="email" placeholder="tu@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>¿Cuántas pantallas o alojamientos gestionas?</label>
+                <textarea name="message" rows="3" placeholder="Cuéntanos brevemente qué necesitas..." required></textarea>
+            </div>
+            <button type="submit" id="submitBtn">Enviar Solicitud</button>
+            <div id="formStatus"></div>
+        </form>
+    </section>
+
+    <footer>
+        © 2026 Welcome Guest TV · Un servicio de dogid.es
+    </footer>
+
+    <script>
+        const form = document.getElementById('contactForm');
+        const statusDiv = document.getElementById('formStatus');
+        const btn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+
+            const formData = new FormData(form);
+            const object = Object.fromEntries(formData);
+            const json = JSON.stringify(object);
+
+            try {
+                const res = await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: json
+                });
+                const data = await res.json();
+
+                statusDiv.style.display = 'block';
+                if (data.success) {
+                    statusDiv.style.color = '#4ade80';
+                    statusDiv.textContent = '✅ ¡Mensaje enviado! Te responderemos muy pronto a tu correo.';
+                    form.reset();
+                } else {
+                    throw new Error(data.message || 'Error al enviar');
+                }
+            } catch (err) {
+                statusDiv.style.display = 'block';
+                statusDiv.style.color = '#f87171';
+                statusDiv.textContent = '❌ Hubo un problema al enviar. Inténtalo de nuevo.';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Enviar Solicitud';
+            }
+        });
+    </script>
+</body>
+</html>
