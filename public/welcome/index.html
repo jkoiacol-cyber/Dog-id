@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome Guest TV - Portal Inteligente para Alojamientos</title>
+    <title>Welcome Guest TV - Smart Concierge for Rentals</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
         body { background-color: #0f172a; color: #f8fafc; line-height: 1.6; }
-        header { max-width: 1100px; margin: 0 auto; padding: 30px 20px; display: flex; justify-content: space-between; align-items: center; }
+        header { max-width: 1100px; margin: 0 auto; padding: 30px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo { font-size: 1.4rem; font-weight: 700; color: #38bdf8; }
+        .header-actions { display: flex; align-items: center; gap: 16px; }
+        .lang-switch { display: flex; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; overflow: hidden; }
+        .lang-btn { background: transparent; border: none; color: #94a3b8; padding: 6px 12px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .lang-btn.active { background: #38bdf8; color: #0f172a; }
+        .cta-link { color: #38bdf8; text-decoration: none; font-weight: 600; font-size: 0.95rem; }
         .hero { max-width: 900px; margin: 40px auto; padding: 20px; text-align: center; }
         .hero h1 { font-size: 2.6rem; font-weight: 700; line-height: 1.2; margin-bottom: 20px; }
         .hero h1 span { color: #38bdf8; }
@@ -25,78 +30,178 @@
         label { display: block; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px; }
         input, textarea { width: 100%; padding: 12px 15px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #fff; font-size: 0.95rem; }
         input:focus, textarea:focus { outline: none; border-color: #38bdf8; }
-        button { width: 100%; padding: 14px; background: #38bdf8; color: #0f172a; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
-        button:hover { background: #0ea5e9; }
+        button[type="submit"] { width: 100%; padding: 14px; background: #38bdf8; color: #0f172a; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+        button[type="submit"]:hover { background: #0ea5e9; }
         #formStatus { margin-top: 15px; text-align: center; font-size: 0.9rem; display: none; }
         footer { text-align: center; padding: 30px; color: #64748b; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.05); }
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2rem; }
+        }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">📺 Welcome Guest TV</div>
-        <a href="#contacto" style="color: #38bdf8; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Solicitar Demo →</a>
+        <div class="header-actions">
+            <div class="lang-switch">
+                <button type="button" class="lang-btn active" id="btn-es" onclick="setLanguage('es')">ES</button>
+                <button type="button" class="lang-btn" id="btn-en" onclick="setLanguage('en')">EN</button>
+            </div>
+            <a href="#contacto" class="cta-link" id="navCta">Solicitar Demo →</a>
+        </div>
     </header>
 
     <section class="hero">
-        <h1>Convierte la Smart TV de tu alojamiento en un <span>conserje digital</span></h1>
-        <p>Da la bienvenida personalizada a tus huéspedes, comparte el WiFi con un código QR y muestra tu guía turística local en tiempo real desde cualquier móvil.</p>
+        <h1 id="heroTitle">Convierte la Smart TV de tu alojamiento en un <span>conserje digital</span></h1>
+        <p id="heroDesc">Da la bienvenida personalizada a tus huéspedes, comparte el WiFi con un código QR y muestra tu guía turística local en tiempo real desde cualquier móvil.</p>
     </section>
 
     <section class="features">
         <div class="card">
-            <h3>📶 WiFi en 1 Escaneo</h3>
-            <p>Tus huéspedes se conectan al WiFi escaneando la pantalla de la televisión sin tener que teclear contraseñas largas.</p>
+            <h3 id="feat1Title">📶 WiFi en 1 Escaneo</h3>
+            <p id="feat1Desc">Tus huéspedes se conectan al WiFi escaneando la pantalla de la televisión sin tener que teclear contraseñas largas.</p>
         </div>
         <div class="card">
-            <h3>🌍 Multi-idioma Automático</h3>
-            <p>Cambia el idioma de bienvenida y el nombre del huésped en segundos desde tu teléfono antes de que lleguen.</p>
+            <h3 id="feat2Title">🌍 Multi-idioma Automático</h3>
+            <p id="feat2Desc">Cambia el idioma de bienvenida y el nombre del huésped en segundos desde tu teléfono antes de que lleguen.</p>
         </div>
         <div class="card">
-            <h3>🏨 Gestión Multi-pantalla</h3>
-            <p>Controla desde un único panel centralizado las televisiones de uno o varios apartamentos turísticos.</p>
+            <h3 id="feat3Title">🏨 Gestión Multi-pantalla</h3>
+            <p id="feat3Desc">Controla desde un único panel centralizado las televisiones de uno o varios apartamentos turísticos.</p>
         </div>
     </section>
 
     <section id="contacto" class="contact-section">
-        <h2>¿Quieres probarlo en tus alojamientos?</h2>
-        <p>Déjanos tus datos y te enviamos acceso a una demo personalizada.</p>
+        <h2 id="formTitle">¿Quieres probarlo en tus alojamientos?</h2>
+        <p id="formSubtitle">Déjanos tus datos y te enviamos acceso a una demo personalizada.</p>
 
         <form id="contactForm">
-            <!-- Sustituye TU_ACCESS_KEY_AQUI por la clave gratuita de web3forms.com -->
+            <!-- PEGA AQUÍ TU ACCESS KEY DE WEB3FORMS -->
             <input type="hidden" name="access_key" value="9fde24d9-e05a-449d-9d65-98344195f534">
-            <input type="hidden" name="subject" value="Nuevo contacto desde Landing Welcome Guest TV">
+            <input type="hidden" name="subject" id="emailSubject" value="Nuevo contacto desde Landing Welcome Guest TV (ES)">
 
             <div class="form-group">
-                <label>Nombre o Empresa</label>
-                <input type="text" name="name" placeholder="Ej. Apartamentos Sol" required>
+                <label id="labelName">Nombre o Empresa</label>
+                <input type="text" name="name" id="inputName" placeholder="Ej. Apartamentos Sol" required>
             </div>
             <div class="form-group">
-                <label>Correo Electrónico</label>
-                <input type="email" name="email" placeholder="tu@email.com" required>
+                <label id="labelEmail">Correo Electrónico</label>
+                <input type="email" name="email" id="inputEmail" placeholder="tu@email.com" required>
             </div>
             <div class="form-group">
-                <label>¿Cuántas pantallas o alojamientos gestionas?</label>
-                <textarea name="message" rows="3" placeholder="Cuéntanos brevemente qué necesitas..." required></textarea>
+                <label id="labelMessage">¿Cuántas pantallas o alojamientos gestionas?</label>
+                <textarea name="message" id="inputMessage" rows="3" placeholder="Cuéntanos brevemente qué necesitas..." required></textarea>
             </div>
             <button type="submit" id="submitBtn">Enviar Solicitud</button>
             <div id="formStatus"></div>
         </form>
     </section>
 
-    <footer>
-        © 2026 Welcome Guest TV · Un servicio de WelcoomeGuest
+    <footer id="footerText">
+        © 2026 Welcome Guest TV · Un servicio de dogid.es
     </footer>
 
     <script>
+        const i18n = {
+            es: {
+                navCta: "Solicitar Demo →",
+                heroTitle: 'Convierte la Smart TV de tu alojamiento en un <span>conserje digital</span>',
+                heroDesc: "Da la bienvenida personalizada a tus huéspedes, comparte el WiFi con un código QR y muestra tu guía turística local en tiempo real desde cualquier móvil.",
+                feat1Title: "📶 WiFi en 1 Escaneo",
+                feat1Desc: "Tus huéspedes se conectan al WiFi escaneando la pantalla de la televisión sin tener que teclear contraseñas largas.",
+                feat2Title: "🌍 Multi-idioma Automático",
+                feat2Desc: "Cambia el idioma de bienvenida y el nombre del huésped en segundos desde tu teléfono antes de que lleguen.",
+                feat3Title: "🏨 Gestión Multi-pantalla",
+                feat3Desc: "Controla desde un único panel centralizado las televisiones de uno o varios apartamentos turísticos.",
+                formTitle: "¿Quieres probarlo en tus alojamientos?",
+                formSubtitle: "Déjanos tus datos y te enviamos acceso a una demo personalizada.",
+                emailSubject: "Nuevo contacto desde Landing Welcome Guest TV (ES)",
+                labelName: "Nombre o Empresa",
+                inputNamePlaceholder: "Ej. Apartamentos Sol",
+                labelEmail: "Correo Electrónico",
+                inputEmailPlaceholder: "tu@email.com",
+                labelMessage: "¿Cuántas pantallas o alojamientos gestionas?",
+                inputMessagePlaceholder: "Cuéntanos brevemente qué necesitas...",
+                submitBtn: "Enviar Solicitud",
+                sendingBtn: "Enviando...",
+                successMsg: "✅ ¡Mensaje enviado! Te responderemos muy pronto a tu correo.",
+                errorMsg: "❌ Hubo un problema al enviar. Inténtalo de nuevo.",
+                footerText: "© 2026 Welcome Guest TV · Un servicio de WelcomeGuest"
+            },
+            en: {
+                navCta: "Request Demo →",
+                heroTitle: 'Turn your rental Smart TV into a <span>digital concierge</span>',
+                heroDesc: "Give your guests a personalized welcome, share WiFi with a QR code, and display your local travel guide in real time from any smartphone.",
+                feat1Title: "📶 One-Scan WiFi",
+                feat1Desc: "Guests connect to WiFi simply by scanning the TV screen—no more typing long, complicated passwords.",
+                feat2Title: "🌍 Automatic Multi-language",
+                feat2Desc: "Switch the welcome language and update guest names in seconds from your phone before check-in.",
+                feat3Title: "🏨 Multi-Screen Management",
+                feat3Desc: "Control TVs across one or multiple vacation rentals from a single centralized dashboard.",
+                formTitle: "Want to try it in your properties?",
+                formSubtitle: "Leave your details and we will send you access to a personalized demo.",
+                emailSubject: "New Lead from Welcome Guest TV Landing (EN)",
+                labelName: "Name or Company",
+                inputNamePlaceholder: "e.g. Oceanview Apartments",
+                labelEmail: "Email Address",
+                inputEmailPlaceholder: "you@email.com",
+                labelMessage: "How many screens or properties do you manage?",
+                inputMessagePlaceholder: "Tell us briefly about your setup...",
+                submitBtn: "Request Access",
+                sendingBtn: "Sending...",
+                successMsg: "✅ Message sent! We will get back to you via email shortly.",
+                errorMsg: "❌ Something went wrong. Please try again.",
+                footerText: "© 2026 Welcome Guest TV · Powered by dogid.es"
+            }
+        };
+
+        let currentLang = 'es';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+
+            document.getElementById('btn-es').classList.toggle('active', lang === 'es');
+            document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+
+            const t = i18n[lang];
+            document.getElementById('navCta').textContent = t.navCta;
+            document.getElementById('heroTitle').innerHTML = t.heroTitle;
+            document.getElementById('heroDesc').textContent = t.heroDesc;
+            document.getElementById('feat1Title').textContent = t.feat1Title;
+            document.getElementById('feat1Desc').textContent = t.feat1Desc;
+            document.getElementById('feat2Title').textContent = t.feat2Title;
+            document.getElementById('feat2Desc').textContent = t.feat2Desc;
+            document.getElementById('feat3Title').textContent = t.feat3Title;
+            document.getElementById('feat3Desc').textContent = t.feat3Desc;
+            document.getElementById('formTitle').textContent = t.formTitle;
+            document.getElementById('formSubtitle').textContent = t.formSubtitle;
+            document.getElementById('emailSubject').value = t.emailSubject;
+            document.getElementById('labelName').textContent = t.labelName;
+            document.getElementById('inputName').placeholder = t.inputNamePlaceholder;
+            document.getElementById('labelEmail').textContent = t.labelEmail;
+            document.getElementById('inputEmail').placeholder = t.inputEmailPlaceholder;
+            document.getElementById('labelMessage').textContent = t.labelMessage;
+            document.getElementById('inputMessage').placeholder = t.inputMessagePlaceholder;
+            document.getElementById('submitBtn').textContent = t.submitBtn;
+            document.getElementById('footerText').textContent = t.footerText;
+            document.getElementById('formStatus').style.display = 'none';
+        }
+
+        // Detectar idioma del navegador automáticamente al entrar
+        const browserLang = (navigator.language || navigator.userLanguage || 'es').slice(0, 2).toLowerCase();
+        setLanguage(browserLang === 'en' ? 'en' : 'es');
+
         const form = document.getElementById('contactForm');
         const statusDiv = document.getElementById('formStatus');
         const btn = document.getElementById('submitBtn');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const t = i18n[currentLang];
             btn.disabled = true;
-            btn.textContent = 'Enviando...';
+            btn.textContent = t.sendingBtn;
 
             const formData = new FormData(form);
             const object = Object.fromEntries(formData);
@@ -113,18 +218,19 @@
                 statusDiv.style.display = 'block';
                 if (data.success) {
                     statusDiv.style.color = '#4ade80';
-                    statusDiv.textContent = '✅ ¡Mensaje enviado! Te responderemos muy pronto a tu correo.';
+                    statusDiv.textContent = t.successMsg;
                     form.reset();
+                    document.getElementById('emailSubject').value = t.emailSubject;
                 } else {
-                    throw new Error(data.message || 'Error al enviar');
+                    throw new Error(data.message || 'Error');
                 }
             } catch (err) {
                 statusDiv.style.display = 'block';
                 statusDiv.style.color = '#f87171';
-                statusDiv.textContent = '❌ Hubo un problema al enviar. Inténtalo de nuevo.';
+                statusDiv.textContent = t.errorMsg;
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Enviar Solicitud';
+                btn.textContent = t.submitBtn;
             }
         });
     </script>
