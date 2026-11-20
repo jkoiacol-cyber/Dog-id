@@ -176,6 +176,7 @@ async function cargarTodo() {
     );
 
     renderLicencias();
+    renderAcceso();
     renderPantallas();
     escribirCampos($('camposGenerales'), configGeneral || {});
 }
@@ -191,6 +192,32 @@ function limites() {
 // ==========================================
 // LISTA DE PANTALLAS Y LICENCIAS
 // ==========================================
+// Estado del acceso (prueba / plan): el cliente ve hasta cuándo tiene servicio
+function renderAcceso() {
+    const aviso = $('avisoAcceso');
+    const fin = (configGeneral && configGeneral.access_until) ? new Date(configGeneral.access_until) : null;
+
+    if (!fin) {
+        aviso.style.display = 'none';
+        return;
+    }
+
+    const dias = Math.ceil((fin - new Date()) / 86400000);
+    const fecha = fin.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    aviso.style.display = 'block';
+
+    if (dias <= 0) {
+        aviso.className = 'aviso alerta';
+        aviso.innerHTML = `⛔ <strong>Tu acceso caducó el ${fecha}.</strong> Tus pantallas están bloqueadas hasta que lo renueves. <button type="button" class="btn-enlace" id="btnRenovar">Contacta para renovarlo</button>.`;
+    } else if (dias <= 3) {
+        aviso.className = 'aviso alerta';
+        aviso.innerHTML = `⏳ <strong>Tu acceso termina el ${fecha}</strong> (quedan ${dias} día${dias === 1 ? '' : 's'}). <button type="button" class="btn-enlace" id="btnRenovar">Contacta para renovarlo</button>.`;
+    } else {
+        aviso.className = 'aviso';
+        aviso.innerHTML = `✅ Tu acceso está activo hasta el <strong>${fecha}</strong> (quedan ${dias} días).`;
+    }
+}
+
 function renderLicencias() {
     const { maxDevices, unbindCount, maxUnbinds } = limites();
     const restantes = Math.max(0, maxUnbinds - unbindCount);
@@ -530,7 +557,15 @@ document.querySelectorAll('input[type="password"]').forEach(agregarOjo);
 // Una página web no puede listar las aplicaciones instaladas. Por eso se ofrecen tres vías:
 // el menú de compartir del propio dispositivo (muestra TODAS sus apps), los correos web
 // más habituales y copiar el mensaje para pegarlo donde quieras.
+let motivoSoporte = 'desvinculacion';
+
 function datosSoporte() {
+    if (motivoSoporte === 'renovacion') {
+        return {
+            asunto: 'Renovación de acceso - ' + usuarioActual.email,
+            cuerpo: 'Hola, quiero renovar mi acceso a WelcomeGuest.\n\nMi cuenta: ' + usuarioActual.email
+        };
+    }
     return {
         asunto: 'Solicitud de reset de dispositivo - ' + usuarioActual.email,
         cuerpo: 'Hola, necesito desvincular una pantalla pero he alcanzado el límite.\n\nMi cuenta: ' + usuarioActual.email
@@ -576,7 +611,8 @@ async function enviarSoporte(via) {
 }
 
 document.addEventListener('click', (e) => {
-    if (e.target.closest('#btnSoporte')) { abrirSoporte(); return; }
+    if (e.target.closest('#btnSoporte')) { motivoSoporte = 'desvinculacion'; abrirSoporte(); return; }
+    if (e.target.closest('#btnRenovar')) { motivoSoporte = 'renovacion'; abrirSoporte(); return; }
     if (e.target.closest('#soporteCerrar') || e.target === $('modalSoporte')) { cerrarSoporte(); return; }
     if (e.target.closest('#soporteCompartir')) { enviarSoporte('compartir'); return; }
     const opcion = e.target.closest('[data-correo]');

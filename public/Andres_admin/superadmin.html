@@ -210,6 +210,11 @@
         .user-email { font-size: 0.92rem; }
     }
 
+    .btn-acceso { background: #14b8a6; color: #fff; }
+    .btn-acceso:hover { background: #0d9488; }
+    .acceso-ok { color: #22c55e; }
+    .acceso-aviso { color: #f59e0b; font-weight: 600; }
+    .acceso-caducado { color: #ef4444; font-weight: 600; }
     .btn-urls { background: #0ea5e9; color: #fff; }
     .btn-urls:hover { background: #0284c7; }
     .btn-urls-hueco { background: rgba(255,255,255,0.08); color: #f8fafc; border: 1px solid rgba(255,255,255,0.15); }
@@ -226,7 +231,7 @@
     .modal-pie { display: grid; gap: 8px; margin-top: 18px; }
 
     @media (max-width: 899px) {
-        .user-actions .btn-urls { grid-column: 1 / -1; }
+        .user-actions .btn-urls, .user-actions .btn-acceso { grid-column: 1 / -1; }
     }
 
     .hint { display: block; font-size: 0.75rem; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
@@ -294,6 +299,14 @@
                     <input type="number" id="numDispositivos" value="1" min="1" max="20" required inputmode="numeric">
                 </div>
                 <div class="form-group">
+                    <label for="planAcceso">Acceso inicial:</label>
+                    <select id="planAcceso">
+                        <option value="prueba" selected>Prueba gratuita (8 días)</option>
+                        <option value="anual">Plan anual (1 año)</option>
+                        <option value="sin_limite">Sin caducidad</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="carpetaCliente">Carpeta del cliente (la que usará su TV):</label>
                     <input type="text" id="carpetaCliente" placeholder="Andres" required maxlength="40"
                            pattern="[A-Za-z0-9][A-Za-z0-9_\-]{0,39}" autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -318,6 +331,30 @@
         </div>
 
         </div><!-- /panelSection -->
+    </div>
+
+    <!-- Ventana para gestionar el acceso (prueba / plan anual) de un cliente -->
+    <div id="modalAcceso" class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloAcceso">
+        <div class="modal-caja">
+            <h2 id="tituloAcceso">📅 Acceso del cliente</h2>
+            <p class="hint" id="accesoCliente"></p>
+            <p class="hint" id="accesoActual"></p>
+
+            <div class="modal-pie">
+                <button type="button" class="btn btn-acceso" data-dias="8">+ 8 días (prueba)</button>
+                <button type="button" class="btn btn-acceso" data-dias="30">+ 30 días</button>
+                <button type="button" class="btn btn-acceso" data-dias="365">+ 1 año (plan anual)</button>
+                <button type="button" class="btn btn-urls-hueco" data-dias="0">Sin caducidad</button>
+            </div>
+
+            <div class="url-bloque">
+                <label for="accesoFecha">O elige el último día de acceso:</label>
+                <input type="date" id="accesoFecha">
+                <button type="button" class="btn btn-acceso" id="btnAccesoFecha" style="margin-top: 8px; width: 100%;">Guardar esa fecha</button>
+            </div>
+
+            <button type="button" class="btn btn-urls-hueco" id="btnCerrarAcceso" style="margin-top: 14px; width: 100%;">Cerrar</button>
+        </div>
     </div>
 
     <!-- Ventana con las URLs de un cliente -->
@@ -426,6 +463,7 @@
             event.preventDefault();
             const email = document.getElementById('nuevoEmail').value.trim();
             const maxDevices = parseInt(document.getElementById('numDispositivos').value, 10);
+            const plan = document.getElementById('planAcceso').value;
             const carpeta = document.getElementById('carpetaCliente').value.trim();
             const btn = document.getElementById('btnCrear');
             const resBox = document.getElementById('altaResultado');
@@ -439,6 +477,7 @@
                     action: 'createUser',
                     email: email,
                     maxDevices: maxDevices,
+                    plan: plan,
                     carpeta: carpeta
                 });
 
@@ -461,6 +500,7 @@
                                      `📧 Email: ${email}\n` +
                                      `🔑 Contraseña provisional: ${resultado.tempPassword}\n` +
                                      `📺 Dispositivos: ${maxDevices}\n` +
+                                     `🗓️ Acceso: ${textoAcceso(resultado.accessUntil)}\n` +
                                      `🌐 URL de la TV: ${resultado.tvUrl}\n` +
                                      `⚙️ Panel del cliente: ${resultado.adminUrl}`;
 
@@ -549,6 +589,7 @@
             container.innerHTML = lista.map(c => {
                 const isSuspended = c.is_suspended || false;
                 const email = escapeHtml(c.user_email);
+                const acc = estadoAcceso(c);
 
                 return `
                     <div class="user-card ${isSuspended ? 'suspendido' : ''}">
@@ -557,11 +598,12 @@
                                 ${email}${isSuspended ? '<span class="badge-suspendido">(SUSPENDIDO)</span>' : ''}
                             </div>
                             <div class="user-meta">
-                                Carpeta: ${escapeHtml(c.carpeta || 'sin asignar')} | Licencias: ${escapeHtml(c.max_devices)} | Desvínculos usados: ${escapeHtml(c.unbind_count)} / ${escapeHtml(c.max_unbinds)}
+                                Carpeta: ${escapeHtml(c.carpeta || 'sin asignar')} | Licencias: ${escapeHtml(c.max_devices)} | Desvínculos usados: ${escapeHtml(c.unbind_count)} / ${escapeHtml(c.max_unbinds)}<br><span class="${acc.clase}">${acc.texto}</span>
                             </div>
                         </div>
                         <div class="user-actions">
                             <button class="btn btn-urls" data-action="urls" data-email="${email}">🔗 URLs</button>
+                            <button class="btn btn-acceso" data-action="acceso" data-email="${email}">📅 Acceso</button>
                             <button class="btn btn-warning" data-action="oportunidad" data-email="${email}">+1 Oportunidad</button>
                             <button class="btn btn-purple" data-action="reset" data-email="${email}">🔑 Reset Pass</button>
                             <button class="btn ${isSuspended ? 'btn-reactivate' : 'btn-suspend'}" data-action="suspender" data-email="${email}">
@@ -593,6 +635,7 @@
                 case 'suspender':   toggleSuspenderCliente(email, !!cliente.is_suspended); break;
                 case 'borrar':      eliminarCliente(email); break;
                 case 'urls':        mostrarUrls(email); break;
+                case 'acceso':      abrirAcceso(email); break;
             }
         });
 
@@ -686,6 +729,99 @@
                 alert("Error al eliminar cliente: " + err.message);
             }
         }
+
+        // ==========================================
+        // ACCESO (PRUEBA / PLAN ANUAL)
+        // ==========================================
+        function formatoFecha(iso) {
+            return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        function textoAcceso(iso) {
+            return iso ? `hasta el ${formatoFecha(iso)}` : 'sin caducidad';
+        }
+
+        function estadoAcceso(c) {
+            if (!c.access_until) return { texto: '♾️ Sin caducidad', clase: 'acceso-ok' };
+            const dias = Math.ceil((new Date(c.access_until) - new Date()) / 86400000);
+            const fecha = formatoFecha(c.access_until);
+            if (dias <= 0) return { texto: `⛔ Acceso caducado el ${fecha}`, clase: 'acceso-caducado' };
+            if (dias <= 3) return { texto: `⏳ Acceso hasta el ${fecha} (quedan ${dias} día${dias === 1 ? '' : 's'})`, clase: 'acceso-aviso' };
+            return { texto: `✅ Acceso hasta el ${fecha} (${dias} días)`, clase: 'acceso-ok' };
+        }
+
+        let accesoEmail = null;
+
+        function abrirAcceso(email) {
+            const c = clientes.find(x => x.user_email === email);
+            if (!c) return;
+            accesoEmail = email;
+            document.getElementById('accesoCliente').textContent = email;
+            document.getElementById('accesoActual').textContent = estadoAcceso(c).texto;
+            document.getElementById('accesoFecha').value = '';
+            document.getElementById('modalAcceso').classList.add('abierto');
+        }
+
+        function cerrarAcceso() {
+            document.getElementById('modalAcceso').classList.remove('abierto');
+        }
+
+        async function guardarAcceso(nuevoValor, descripcion) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('apartments_config')
+                    .update({ access_until: nuevoValor })
+                    .eq('user_email', accesoEmail)
+                    .select();
+
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    throw new Error('No se modificó ningún registro (revisa los permisos de la tabla).');
+                }
+
+                cerrarAcceso();
+                alert(`✅ Acceso de ${accesoEmail}: ${descripcion}.`);
+                cargarClientes();
+            } catch (err) {
+                console.error('Error al cambiar el acceso:', err);
+                alert('❌ ' + err.message);
+            }
+        }
+
+        // Si el acceso sigue vigente se suma desde su fecha de fin; si ya caducó, desde ahora
+        function sumarDiasAcceso(dias) {
+            const c = clientes.find(x => x.user_email === accesoEmail);
+            const ahora = new Date();
+            const base = (c && c.access_until && new Date(c.access_until) > ahora) ? new Date(c.access_until) : ahora;
+            const nuevo = new Date(base.getTime() + dias * 86400000);
+            guardarAcceso(nuevo.toISOString(), `hasta el ${formatoFecha(nuevo.toISOString())}`);
+        }
+
+        document.getElementById('modalAcceso').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modalAcceso') || e.target.closest('#btnCerrarAcceso')) {
+                cerrarAcceso();
+                return;
+            }
+
+            const boton = e.target.closest('[data-dias]');
+            if (boton) {
+                const dias = parseInt(boton.dataset.dias, 10);
+                if (dias === 0) {
+                    guardarAcceso(null, 'sin caducidad');
+                } else {
+                    sumarDiasAcceso(dias);
+                }
+                return;
+            }
+
+            if (e.target.closest('#btnAccesoFecha')) {
+                const fecha = document.getElementById('accesoFecha').value;
+                if (!fecha) { alert('Elige una fecha.'); return; }
+                // Acceso hasta el final de ese día
+                const fin = new Date(fecha + 'T23:59:59');
+                guardarAcceso(fin.toISOString(), `hasta el ${formatoFecha(fin.toISOString())}`);
+            }
+        });
 
         // ==========================================
         // URLs DE UN CLIENTE
